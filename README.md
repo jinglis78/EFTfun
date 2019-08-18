@@ -1,4 +1,4 @@
-EFT fits in unfolded measurements.
+EFT Fitter for UNfolded measurements.
 
 For help:
-./bin/fit.py 
+./bin/eftfun.py 
