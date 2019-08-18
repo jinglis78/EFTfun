@@ -1,0 +1,135 @@
+from ROOT import RooRealVar,RooFit
+import re
+import Utils
+
+class Theory:
+    def __init__(self,coeff_names=[],coeff_ranges={},default_range=(-1e3,1e3),theta_names=[],theta_range=(-10,10),stat_unc_threshold=0.3):
+        self.default_range=default_range
+        self.coeffs=[]
+        for coeff_name in coeff_names:
+            if coeff_name in coeff_ranges:
+                self.coeffs.append(RooRealVar(coeff_name,coeff_name,coeff_ranges[0],coeff_ranges[1]))
+            else:
+                self.coeffs.append(RooRealVar(coeff_name,coeff_name,default_range[0],default_range[1]))
+        self.thetas=[]
+        for theta_name in theta_names:
+            self.thetas.append(RooRealVar(theta_name,theta_name,theta_range[0],theta_range[1]))
+        self.theta_range=theta_range
+        self.stat_unc_threshold=stat_unc_threshold       
+
+
+    def addCoeff(self,coeff_name,coeff_range=None):
+        if coeff_range==None:
+            coeff_range=default_range
+        self.coeffs.append(RooRealVar(coeff_name,coeff_name,coeff_range[0],coeff_range[1]))
+
+    def addTheta(self,theta_name,theta_range=None):
+        if theta_name in [t.GetName() for t in self.thetas]:
+            return
+        if theta_range==None:
+            theta_range=self.theta_range
+        self.thetas.append(RooRealVar(theta_name,theta_name,theta_range[0],theta_range[1]))
+
+    def setConstantFromCfg(self,constant,pois):
+        if constant==None:
+            pass
+        elif constant.lower()=='all':
+            self.setConstant()
+#            for theta in self.thetas:
+#                for c in self.coeffs:
+#                    if c.GetName() in pois:
+#                        continue
+#                    if re.match(Utils.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):
+#                        theta.setVal(0.)
+#                        theta.setConstant()
+        else:
+            for c in constant.split(','):
+                if '=' in c:
+                    c,v=[x.strip() for x in c.split('=')]
+                else:
+                    c,v=c,0.
+                self.setConstant(c,float(v))
+#                for theta in self.thetas:
+#                    if re.match(Utils.makeMCstatName('.+',c,'\d+'),theta.GetName()):
+#                        theta.setVal(0.)
+#                        theta.setConstant()
+            for p in pois:
+                self.setFloating(p)
+                
+        
+    def setConstant(self,coeff=None,value=0.):
+        if coeff==None:
+            for c in self.coeffs:
+                self.setConstant(c.GetName(),0.)
+            return
+        elif isinstance(coeff,dict):
+            for key in coeff:
+                self.setConstant(key,coeff[key])
+            return
+        else:
+            for c in self.coeffs+self.thetas:
+                if c.GetName() == coeff:
+                    print 'setting',coeff,'constant to',value 
+                    c.setVal(value)
+                    c.setConstant()
+                    return
+        raise Exception('Did not find parameter: '+coeff)
+        
+    def setFloating(self,coeff=None):
+        if coeff==None:
+            for c in self.coeffs:
+                self.setFloating(c.GetName())
+        elif isinstance(coeff,list):
+            for c in coeff:
+                self.setFloating(c)
+        else:
+            for c in self.coeffs+self.thetas:
+                if c.GetName() == coeff:
+                    print 'setting',coeff,'floating'
+                    c.setConstant(False)
+                    for theta in self.thetas:
+                        if re.match(Utils.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):                            
+                            theta.setConstant(False)
+
+        #TODO: drop constraint
+    def useUncertainties(self,use=False):
+        for theta in self.thetas:
+            if use:
+                theta.setConstant(False)
+            else:
+                theta.setVal(0.)
+                theta.setConstant(True)
+    def deactivateUncertainties(self,pattern=None):
+        if pattern==None or len(pattern)==0:
+            return
+        for theta in self.thetas:
+            if pattern=='all' or re.match(pattern,theta.GetName()):
+                theta.setVal(0.)
+                theta.setConstant(True)
+
+    def activateUncertainties(self,pattern=None):
+        if pattern==None:
+            return
+        for theta in self.thetas:
+            if re.match(pattern,theta.GetName()):
+                theta.setConstant(False)
+
+    def getCoeffs(self):
+        return self.coeffs
+
+    def getCoeff(self,name):
+        for c in self.coeffs+self.thetas:
+            if c.GetName() == name:
+                return c
+        print 'did not find parameter',name
+        assert False
+        
+    def getConstantCoeffs(self):
+        cs=[]
+        for c in self.coeffs:
+            if c.isConstant():
+                cs.append(c)
+        return c
+
+    def getCoeffNames(self):
+        return [c.GetName() for c in self.coeffs]
