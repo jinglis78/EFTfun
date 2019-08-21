@@ -228,22 +228,37 @@ def canvasPostfit(name,data_prefit,pred_prefit,pred_postfit,outfile,outfolder):
     printAndSave(c,outfile,outfolder)
     return c
 
-def canvasPulls(name,thetas,pulls,outfile,outfolder,pois=False):
-    thetas=[t for t in thetas if t in pulls]
-    c=ROOT.TCanvas(name,name,int(50*(len(thetas))),200 )
+def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
+    pars=[t for t in pars if t in pulls]
+    c=ROOT.TCanvas(name,name,int(50*(len(pars))),200 )
     c.SetRightMargin(0.05)
     c.SetTopMargin(0.05)
     c.SetLeftMargin(0.1)
     c.SetBottomMargin(0.15)
     c.SetTicks(1,1)
-    h=ROOT.TH1F('dummy','',len(thetas),-0.5,len(thetas)-0.5)
-    for i,t in enumerate(thetas):
-        h.GetXaxis().SetBinLabel(i+1,t)
+    h=ROOT.TH1F('dummy','',len(pars),-0.5,len(pars)-0.5)
+    if pois and rescale:
+        rescaled={}
+        for p in pars:
+            rescaled[p]=1.
+            while pulls[p][2]-pulls[p][1]<20:
+                pulls[p]=(pulls[p][0]*10,pulls[p][1]*10,pulls[p][2]*10)
+                rescaled[p]=rescaled[p]*10
+            while pulls[p][2]-pulls[p][1]>20:
+                pulls[p]=(pulls[p][0]/10,pulls[p][1]/10,pulls[p][2]/10)
+                rescaled[p]=rescaled[p]/10
+                
+    for i,p in enumerate(pars):
+        h.GetXaxis().SetBinLabel(i+1,p)
+        if rescale and rescaled[p]!=1.:
+            h.GetXaxis().SetBinLabel(i+1,p+'#times'+str(round2(rescaled[p])))
     h.SetStats(0)
     h.SetLineColor(ROOT.kBlack)
     h.Draw()
     if not pois:
         h.GetYaxis().SetRangeUser(-3,3)
+    elif rescale:
+        h.GetYaxis().SetRangeUser(-15,15)
     else:
         ymin=0.
         ymax=0.
@@ -251,7 +266,8 @@ def canvasPulls(name,thetas,pulls,outfile,outfolder,pois=False):
             ymin=min(ymin,pulls[p][0]+pulls[p][1]*1.2)
             ymax=max(ymax,pulls[p][0]+pulls[p][2]*1.2)
         h.GetYaxis().SetRangeUser(ymin,ymax)
-    h.GetYaxis().SetTitle('pull')
+    if not pois:
+        h.GetYaxis().SetTitle('pull')
     h.GetYaxis().CenterTitle()
 #    h.GetYaxis().SetTitleSize(0.06)
 #    h.GetYaxis().SetTitleOffset(0.5)
@@ -270,7 +286,7 @@ def canvasPulls(name,thetas,pulls,outfile,outfolder,pois=False):
     g=ROOT.TGraphAsymmErrors()
     g.SetMarkerStyle(20)
     g.SetMarkerSize(0.5)
-    for i,t in enumerate(thetas):
+    for i,t in enumerate(pars):
         g.SetPoint(i,i,pulls[t][0])
         g.SetPointError(i,0,0,abs(pulls[t][1]),abs(pulls[t][2]))
     g.Draw('sameP')

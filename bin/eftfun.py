@@ -96,7 +96,10 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     main_cfg_name=config
     main_cfg = SafeConfigParser()
     main_cfg.optionxform = str
-    overrides=override.split(',')
+    if override!=None:
+        overrides=override.split(',')
+    else:
+        overrides=[]
     overrides_main=[]
     for ovr in overrides:
         if ovr.split(':')[0]=='main' or ovr.split(':')[0]==main_cfg_name:
@@ -292,7 +295,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
                 print '{} = {}^{{ {} }}_{{ {} }}'.format(t.GetName(),*(pulls[t.GetName()]))
                 theta_names+=[t.GetName()]
         Plotting.canvasPulls('c_pulls',theta_names,pulls,outfile=f,outfolder=outname)
-        Plotting.canvasPulls('c_bestfit',theory.getCoeffNames(),pulls,outfile=f,outfolder=outname,pois=True)
+        Plotting.canvasPulls('c_bestfit',theory.getCoeffNames(),pulls,outfile=f,outfolder=outname,pois=True,rescale=True)
             
 
     elif method=='profilelikelihood':
