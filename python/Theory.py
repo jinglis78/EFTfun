@@ -39,7 +39,7 @@ class Theory:
 #                for c in self.coeffs:
 #                    if c.GetName() in pois:
 #                        continue
-#                    if re.match(Utils.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):
+#                    if re.match(self.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):
 #                        theta.setVal(0.)
 #                        theta.setConstant()
         else:
@@ -50,7 +50,7 @@ class Theory:
                     c,v=c,0.
                 self.setConstant(c,float(v))
 #                for theta in self.thetas:
-#                    if re.match(Utils.makeMCstatName('.+',c,'\d+'),theta.GetName()):
+#                    if re.match(self.makeMCstatName('.+',c,'\d+'),theta.GetName()):
 #                        theta.setVal(0.)
 #                        theta.setConstant()
             for p in pois:
@@ -88,7 +88,7 @@ class Theory:
                     print 'setting',coeff,'floating'
                     c.setConstant(False)
                     for theta in self.thetas:
-                        if re.match(Utils.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):                            
+                        if re.match(self.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):                            
                             theta.setConstant(False)
 
         #TODO: drop constraint
@@ -133,3 +133,6 @@ class Theory:
 
     def getCoeffNames(self):
         return [c.GetName() for c in self.coeffs]
+
+    def makeMCstatName(self,name,coeff_name,iBin):
+        return 'mcstat_'+name+'_'+coeff_name+'_lin_bin'+str(iBin)

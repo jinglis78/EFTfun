@@ -23,7 +23,7 @@ def main():
                       help="Write output to OUTNAME.root and in folder OUTNAME/", metavar="OUTNAME")
     parser.add_option("-m", "--method",
                       dest="method",default="fit",
-                      help="Method to be run, can be one of fit,scan,profilelikelihood,workspace,histo (fit - perform a maximum likelihood fit,  - perform a profile likelihood scan of one or multiple POIs, profilelikelihood - run the RooStats ProfileLikelihoodCalculator to calculate confidece intervals, workspace - write out workspace and ModelConfig, histo - just write out histograms with given parameter values e.g. for validation of the parametrisation)"
+                      help="Method to be run, can be one of fit,scan,profilelikelihood,workspace,histo (fit - perform a maximum likelihood fit with MIGRAD+HESSE,  - perform a profile likelihood scan of one or multiple POIs, pulls - calculate nuisance parameter pulls and best fit values and errors with MINOS, profilelikelihood - run the RooStats ProfileLikelihoodCalculator to calculate confidece intervals, workspace - write out workspace and ModelConfig, histo - just write out histograms with given parameter values e.g. for validation of the parametrisation)"
     )
     parser.add_option("-p", "--poi",dest='poi',default=None,
                       help="Parameters of interest, comma separated. In the case of a maximum likelihood fit, POIs will always be floating.")
@@ -54,7 +54,11 @@ def main():
     parser.add_option("-f", "--force",
                       action="store_true", dest="force", default=False,
                       help="Run without user interaction?")
+    parser.add_option("--override",
+                      dest="override", default=None,
+                      help="Override option in config. Syntax: Configname1:Section1.Option1=Value1,Configname2:Section2.Option2=Value2,... . Configname can also be 'measurements' or 'main' as shortcut for all measurments or the main cfg.")
 
+    
     options,args=parser.parse_args()
 
     if  options.method==None:
@@ -67,10 +71,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.deactivate_uncertainties,options.constant,options.verbose,options.save,options.force)
+        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.deactivate_uncertainties,options.constant,options.verbose,options.save,options.force,options.override)
 
 
-def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivate_uncertainties,constant,verbose,save,force):
+def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivate_uncertainties,constant,verbose,save,force,override):
     if verbose:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -86,12 +90,19 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         print 'constant',constant
         print 'verbose',verbose
         print 'save',save
+        print 'override',override
         print '--------------------------------------'
-        
+
     main_cfg_name=config
     main_cfg = SafeConfigParser()
     main_cfg.optionxform = str
-    main_cfg_name=Utils.expandCfg(main_cfg_name)
+    overrides=override.split(',')
+    overrides_main=[]
+    for ovr in overrides:
+        if ovr.split(':')[0]=='main' or ovr.split(':')[0]==main_cfg_name:
+            overrides_main+=[ovr.split(':')[1]]
+
+    main_cfg_name=Utils.expandCfg(main_cfg_name,overrides_main)
     main_cfg.read(main_cfg_name)
 
     theory=Theory()
@@ -117,7 +128,12 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             cfg_name='/'.join(main_cfg_name.split('/')[:-1])+'/'+cfg_name
         if not os.path.exists(cfg_name):
             raise Exception("Could not find path "+cfg_name_orig+" or "+cfg_name)
-        cfg.read([main_cfg_name,Utils.expandCfg(cfg_name)])
+        overrides_measurement=[]
+        for ovr in overrides:
+            if ovr.split(':')[0]=='measurements' or ovr.split(':')[0]==cfg_name:
+                overrides_measurement+=[ovr.split(':')[1]]
+
+        cfg.read([main_cfg_name,Utils.expandCfg(cfg_name,overrides_measurement)])
 
         per_bin_width=False
         if cfg.has_option('Measurement','per_bin_width'):
@@ -187,8 +203,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             print
             print '------------------------------------------------'
 
-    if not force:
-        raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
+        if not force:
+            raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
 
     if not os.path.exists(outname):
         os.mkdir(outname)
@@ -208,14 +224,14 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         w.Write()
         f.Close()
 
-    if method=='histo':
+    elif method=='histo':
         for p in predictions:
             p.plotPrefit(f)
         for m in measurements:
             m.plotPrefit(f)
         f.Close()
 
-    if method=='scan':
+    elif method=='scan':
         extra_outfile=None
         if save:
             extra_outfile=f
@@ -243,7 +259,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
                 Plotting.graphProfile2D('scan_'+'_'.join(pois),prof,f)
                 Plotting.canvasProfile2D('scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname)
 
-    if method=='fit':
+    elif method=='fit':
         if verbose:
             print 'doing fit'
         for p in pois:
@@ -253,7 +269,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         for p,m in zip(predictions,measurements):
             pred_histos_prefit+=[p.plotPrefit(f)]
             data_histos_prefit+=[m.plotPrefit(f)]
-        combination.minimize()
+        combination.fit()
         corr=combination.getFitResult().correlationHist()
         corrPOIs=combination.correlationHistPOIs()
         corr.Write()
@@ -264,19 +280,28 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         for p,m,h_p_pre,h_m_pre in zip(predictions,measurements,pred_histos_prefit,data_histos_prefit):
             h_p_post=p.plotPostfit(f,combination.getFitResult())
             Plotting.canvasPostfit('c_postfit_'+m.name,h_m_pre,h_p_pre,h_p_post,outfile=f,outfolder=outname)
+        #TODO: run minos, plot results and errrors
 
-    if method=='pulls':
+    elif method=='pulls':
+        for p in pois:
+            theory.setFloating(p)
         pulls=combination.pulls()
         theta_names=[]
-        for t in theory.thetas:
+        for t in theory.coeffs+theory.thetas:
             if t.GetName() in pulls:
-                print t.GetName(),pulls[t.GetName()]
+                print '{} = {}^{{ {} }}_{{ {} }}'.format(t.GetName(),*(pulls[t.GetName()]))
                 theta_names+=[t.GetName()]
         Plotting.canvasPulls('c_pulls',theta_names,pulls,outfile=f,outfolder=outname)
+        Plotting.canvasPulls('c_bestfit',theory.getCoeffNames(),pulls,outfile=f,outfolder=outname,pois=True)
             
 
-    if method=='profilelikelihood':
+    elif method=='profilelikelihood':
         combination.calcProfileLikelihood(pois)
+
+    #TODO: implement hypotest inverter
+        
+    else:
+        raise Excpetion("unkown method "+method)
 
     f.Close()
 if __name__== "__main__":

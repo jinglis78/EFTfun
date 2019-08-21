@@ -3,7 +3,15 @@ from collections import OrderedDict
 import itertools
 import re
 
-def expandCfg(cfg_name):
+def expandCfg(cfg_name,overrides):
+    replacements={}
+    for ovr in overrides:        
+        section=ovr.split('=')[0].split('.')[0]
+        option=ovr.split('=')[0].split('.')[1]
+        value=ovr.split('=')[1]
+        if not section in replacements:
+            replacements[section]={}
+        replacements[section][option]=value
     parser=ConfigParser()
     parser.optionxform = str
     parser.read(cfg_name)
@@ -12,12 +20,24 @@ def expandCfg(cfg_name):
         for key,values in parser.items('Wildcards'):
             wildcards[key]=values.split()
     sections_new=OrderedDict()
-
     for section in parser.sections():
         section_new=OrderedDict()
         for option,value in parser.items(section):
             section_new[option]=value
         sections_new[section]=section_new
+    for s in replacements:
+        for o in replacements[s]:
+            print 'will try to override option',o,'in section',s,'in',cfg_name,'with',replacements[s][o]
+            if s in sections_new:
+                if o in sections_new[s]:
+                    print 'replacing old value',sections_new[s][o],'with',replacements[s][o]
+                else:
+                    print 'adding new option',o,'with value',replacements[s][o]
+                sections_new[s][o]=replacements[s][o]
+            else:
+                print 'adding new section',s,'and new option',o,'with value',replacements[s][o]
+                sections_new[s]=OrderedDict()
+                sections_new[s][o]=replacements[s][o]
 
     for section in sections_new:
         for option,value in sections_new[section].items():
@@ -84,9 +104,6 @@ def isFile(data):
     if data.split(':')[0].lower().endswith('.root') or data.split(':')[0].lower().endswith('.yoda'):
         return True
     return False
-
-def makeMCstatName(name,coeff_name,iBin):
-    return 'mcstat_'+name+'_'+coeff_name+'_lin_bin'+str(iBin)
 
 def saveToTree(results,outfile):
     from array import array

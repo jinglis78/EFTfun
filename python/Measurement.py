@@ -1,6 +1,6 @@
 from ROOT import RooRealVar, TMatrixDSym, TH1F
 from array import array
-
+#TODO: allow profiling of experimental systematics
 class Measurement:
     def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None):
         self.name=name
@@ -12,7 +12,7 @@ class Measurement:
         self.per_bin_width=per_bin_width
         self.binning=binning
         self.rescaled=1.
-       
+        
 
     def setMeasured(self,measured):
         if self.nbins==None:

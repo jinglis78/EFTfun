@@ -228,7 +228,8 @@ def canvasPostfit(name,data_prefit,pred_prefit,pred_postfit,outfile,outfolder):
     printAndSave(c,outfile,outfolder)
     return c
 
-def canvasPulls(name,thetas,pulls,outfile,outfolder):
+def canvasPulls(name,thetas,pulls,outfile,outfolder,pois=False):
+    thetas=[t for t in thetas if t in pulls]
     c=ROOT.TCanvas(name,name,int(50*(len(thetas))),200 )
     c.SetRightMargin(0.05)
     c.SetTopMargin(0.05)
@@ -241,22 +242,30 @@ def canvasPulls(name,thetas,pulls,outfile,outfolder):
     h.SetStats(0)
     h.SetLineColor(ROOT.kBlack)
     h.Draw()
-    h.GetYaxis().SetRangeUser(-3,3)
+    if not pois:
+        h.GetYaxis().SetRangeUser(-3,3)
+    else:
+        ymin=0.
+        ymax=0.
+        for p in pulls:
+            ymin=min(ymin,pulls[p][0]+pulls[p][1]*1.2)
+            ymax=max(ymax,pulls[p][0]+pulls[p][2]*1.2)
+        h.GetYaxis().SetRangeUser(ymin,ymax)
     h.GetYaxis().SetTitle('pull')
     h.GetYaxis().CenterTitle()
 #    h.GetYaxis().SetTitleSize(0.06)
 #    h.GetYaxis().SetTitleOffset(0.5)
     h.GetXaxis().SetLabelSize(0.06)
-    
-    outer=ROOT.TGraphAsymmErrors(h)
-    inner=ROOT.TGraphAsymmErrors(h)
-    for i in range(outer.GetN()):
-        outer.SetPointError(i,1,1,2,2)
-        inner.SetPointError(i,1,1,1,1)
-    outer.SetFillColor(ROOT.kYellow)
-    inner.SetFillColor(ROOT.kGreen)
-    outer.Draw('2')
-    inner.Draw('2')
+    if not pois:
+        outer=ROOT.TGraphAsymmErrors(h)
+        inner=ROOT.TGraphAsymmErrors(h)
+        for i in range(outer.GetN()):
+            outer.SetPointError(i,1,1,2,2)
+            inner.SetPointError(i,1,1,1,1)
+        outer.SetFillColor(ROOT.kYellow)
+        inner.SetFillColor(ROOT.kGreen)
+        outer.Draw('2')
+        inner.Draw('2')
     
     g=ROOT.TGraphAsymmErrors()
     g.SetMarkerStyle(20)

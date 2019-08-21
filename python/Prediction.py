@@ -71,7 +71,7 @@ class Prediction:
             elif self.theory.stat_unc_threshold!=None:
                 th=self.theory.stat_unc_threshold
             if th>0 and effect!=0 and abs(error/effect)>th:
-                self.addUncertainty(Utils.makeMCstatName(self.name,coeff_name,iBin),[0.]*iBin+[error]+[0.]*(self.nbins-iBin-1),affected=coeff_name,interpol='lin')
+                self.addUncertainty(self.theory.makeMCstatName(self.name,coeff_name,iBin),[0.]*iBin+[error]+[0.]*(self.nbins-iBin-1),affected=coeff_name,interpol='lin')
         
         for u in self.uncertainties:
             if coeff_name in u.affected:

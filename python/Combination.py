@@ -3,6 +3,8 @@ from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculat
 import itertools,re
 import Utils
 
+#TODO: allow profiling of experimental systematics or combination of covariance matrices
+
 class Combination:
     def __init__(self, theory=None, predictions=None,measurements=None,name='test',verbose=True):
 
@@ -44,8 +46,8 @@ class Combination:
         self.data=RooDataSet(self.name+'_data',self.name+'_data',RooArgSet(self.xVecs))
         self.data.add(RooArgSet(self.xVecs))
         self.nll=self.pdf.createNLL(self.data)
+        self.minimizer=RooMinuit(self.nll)
         self.last_scan_range=None
-        self.minimizer=None
 
 
     def getFitResult(self):
@@ -193,7 +195,7 @@ class Combination:
             for theta in self.theory.thetas:
                 if theta.isConstant():
                     continue
-                if re.match(Utils.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):
+                if re.match(self.theory.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):
                     deactivated[theta]=theta.getVal()
                     theta.setVal(0.)
                     theta.setConstant()
@@ -202,8 +204,6 @@ class Combination:
 
     def minimize(self,strategy=2,hesse=True,minos=False):
         deactivated=self.deactivateIrrelevantThetas()
-        if self.minimizer==None:
-            self.minimizer=RooMinuit(self.nll)
         self.minimizer.setPrintLevel(1)
         if not self.verbose:
             self.minimizer.setPrintLevel(-1)
@@ -227,7 +227,11 @@ class Combination:
 #            print 'WARNING: non-zero status, will return nll=999'
 #            return 999.
 
-    #TODO: other interval calculators, CLs
+    #TODO: other interval calculators, CLs.
+
+    def fit(self):
+        #TODO: print result even if quiet
+        self.minimize()
     def calcProfileLikelihood(self,poi_names):
         if len(poi_names)>1:
             print 'can only do 1D intervals right now'
@@ -299,15 +303,21 @@ class Combination:
             
         
 
-    def pulls(self):
+    def pulls(self,thetas=True,pois=True,skipMCstat=True):
         pulls={}
         self.minimize(0,minos=True)
         res=self.getFitResult()
         float_pars=res.floatParsFinal()
-        thetas= [t.GetName() for t in self.theory.thetas]
+        pars=[]
+        if thetas:
+            pars+=[t.GetName() for t in self.theory.thetas]
+        if pois:
+            pars+=[c.GetName() for c in self.theory.coeffs]
         for ipar in range(float_pars.getSize()):
             name=float_pars[ipar].GetName()
-            if not name in thetas:
+            if not name in pars:
+                continue
+            if skipMCstat and name.startswith('mcstat'):
                 continue
             val=float_pars[ipar].getVal()
             hi=float_pars[ipar].getAsymErrorHi()
