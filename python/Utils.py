@@ -1,7 +1,8 @@
 from ConfigParser import ConfigParser
 from collections import OrderedDict
-import itertools
-import re
+import itertools,re,math
+
+#TODO: logger
 
 def expandCfg(cfg_name,overrides):
     replacements={}
@@ -121,3 +122,10 @@ def saveToTree(results,outfile):
     t.Write()
     
 
+
+def round2(number,digits=3):
+    if number==0:
+        return 0
+    if math.log10(abs(number))>digits-1:
+        return int(round(number))   
+    return round(number, digits-int(math.floor(math.log10(abs(number))))-1)

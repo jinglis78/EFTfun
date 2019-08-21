@@ -305,6 +305,8 @@ class Combination:
 
     def pulls(self,thetas=True,pois=True,skipMCstat=True):
         pulls={}
+        if self.verbose:
+            print 'Minimizing for pulls'
         self.minimize(0,minos=True)
         res=self.getFitResult()
         float_pars=res.floatParsFinal()
@@ -323,4 +325,34 @@ class Combination:
             hi=float_pars[ipar].getAsymErrorHi()
             lo=float_pars[ipar].getAsymErrorLo()            
             pulls[name]=(val,lo,hi)
+        return pulls
+
+    def pullEach(self,pois=True,thetas=False,skipMCstat=True):
+        pulls={}
+        pars=[]
+        if thetas:
+            pars+=[t for t in self.theory.thetas if not t.isConstant()]
+        if pois:
+            pars+=[c for c in self.theory.coeffs if not c.isConstant()]
+        for thepar in pars:
+            if skipMCstat and thepar.GetName().startswith('mcstat'):
+                continue
+            for par in pars:
+                par.setVal(0.)
+                par.setConstant()
+            thepar.setConstant(False)
+            if self.verbose:
+                print 'Minimizing for pulls, with all POIs but',thepar.GetName(),'fixed at zero'
+            self.minimize(0,minos=True)
+            res=self.getFitResult()
+            float_pars=res.floatParsFinal()
+            for ipar in range(float_pars.getSize()):
+                if float_pars[ipar].GetName()==thepar.GetName():
+                    val=float_pars[ipar].getVal()
+                    hi=float_pars[ipar].getAsymErrorHi()
+                    lo=float_pars[ipar].getAsymErrorLo()            
+                    pulls[thepar.GetName()]=(val,lo,hi)
+                break
+        for par in pars:
+            par.setConstant(False)
         return pulls

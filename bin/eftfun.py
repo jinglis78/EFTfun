@@ -19,7 +19,7 @@ def main():
     parser = OptionParser()
     parser.add_option("-i", "--input", dest="config",
                       help="Read input config FILE. Mandatory.", metavar="FILE")
-    parser.add_option("-o", "--outname", dest="outname",default='output',
+    parser.add_option("-o", "--outname", dest="outname",default=None,
                       help="Write output to OUTNAME.root and in folder OUTNAME/", metavar="OUTNAME")
     parser.add_option("-m", "--method",
                       dest="method",default="fit",
@@ -208,7 +208,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
 
         if not force:
             raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
-
+    if outname==None:
+        outname=main_cfg.get('General','name')
     if not os.path.exists(outname):
         os.mkdir(outname)
     f=TFile(outname+'.root','RECREATE')
@@ -287,15 +288,25 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
 
     elif method=='pulls':
         for p in pois:
-            theory.setFloating(p)
+            theory.setFloating(p)        
         pulls=combination.pulls()
+        pullsEach=combination.pullEach()
         theta_names=[]
+        print 'Results when floating all (MINOS errors)'
         for t in theory.coeffs+theory.thetas:
             if t.GetName() in pulls:
-                print '{} = {}^{{ {} }}_{{ {} }}'.format(t.GetName(),*(pulls[t.GetName()]))
+                print '{} = {}_{{ {} }}^{{ {} }}'.format(t.GetName(),*[ Utils.round2(p) for p in pulls[t.GetName()]])
                 theta_names+=[t.GetName()]
+        if len(pullsEach)>0:
+            print 'Results when setting all but one poi to zero (MINOS errors)'
+        for t in theory.coeffs:
+            if t.GetName() in pullsEach:
+                print '{} = {}_{{ {} }}^{{ {} }}'.format(t.GetName(),*[ Utils.round2(p) for p in pullsEach[t.GetName()]])
+                theta_names+=[t.GetName()]
+
         Plotting.canvasPulls('c_pulls',theta_names,pulls,outfile=f,outfolder=outname)
-        Plotting.canvasPulls('c_bestfit',theory.getCoeffNames(),pulls,outfile=f,outfolder=outname,pois=True,rescale=True)
+        Plotting.canvasPulls('c_bestfit_all',theory.getCoeffNames(),pulls,outfile=f,outfolder=outname,pois=True,rescale=True)
+        Plotting.canvasPulls('c_bestfit_each',theory.getCoeffNames(),pullsEach,outfile=f,outfolder=outname,pois=True,rescale=True)
             
 
     elif method=='profilelikelihood':

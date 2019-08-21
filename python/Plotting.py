@@ -1,5 +1,6 @@
 import ROOT,math
 from array import array
+import Utils
 
 def graphProfile1D(name,result,outfile=None):
     g=ROOT.TGraph()
@@ -23,18 +24,6 @@ def graphProfile2D(name,result,outfile=None):
         g.Write()
 
     return g
-
-def round2(number,digits=3):
-    if number==0:
-        return 0
-    if math.log10(abs(number))>digits-1:
-        return int(round(number))
-    if number<0:
-        sign=-1
-    else:
-        sign=1
-    div=(10**round(math.log10(abs(number))+1-digits))
-    return sign*round(number/div)*div
 
 
 def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',linecolor=ROOT.kRed+1,linewidth=2,linestyle=1,outfolder='.'):
@@ -90,12 +79,12 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         ci1line1.SetLineStyle(2)
         ci1line2=ROOT.TLine(ci1[1],0,ci1[1],cl1)
         ci1line2.SetLineStyle(2)
-        ci1text=ROOT.TLatex(0.5,0.85,'68% CL.: [{},{}]'.format(round2(ci1[0]),round2(ci1[1])))
+        ci1text=ROOT.TLatex(0.5,0.85,'68% CL.: [{},{}]'.format(Utils.round2(ci1[0]),Utils.round2(ci1[1])))
         ci1text.SetNDC()
         ci1text.SetTextSize(0.04)
         ci1text.SetTextFont(42)
         ci1text.SetTextAlign(21)
-        ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(round2(ci2[0]),round2(ci2[1])))
+        ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0]),Utils.round2(ci2[1])))
         ci2text.SetNDC()
         ci2text.SetTextSize(0.04)
         ci2text.SetTextFont(42)
@@ -230,6 +219,8 @@ def canvasPostfit(name,data_prefit,pred_prefit,pred_postfit,outfile,outfolder):
 
 def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     pars=[t for t in pars if t in pulls]
+    if len(pars)==0:
+        return ROOT.TCanvas(name)
     c=ROOT.TCanvas(name,name,int(50*(len(pars))),200 )
     c.SetRightMargin(0.05)
     c.SetTopMargin(0.05)
@@ -241,17 +232,17 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
         rescaled={}
         for p in pars:
             rescaled[p]=1.
-            while pulls[p][2]-pulls[p][1]<20:
+            while pulls[p][2]-pulls[p][1]!=0 and pulls[p][2]-pulls[p][1]<20:
                 pulls[p]=(pulls[p][0]*10,pulls[p][1]*10,pulls[p][2]*10)
                 rescaled[p]=rescaled[p]*10
-            while pulls[p][2]-pulls[p][1]>20:
+            while pulls[p][2]-pulls[p][1]!=0 and pulls[p][2]-pulls[p][1]>20:
                 pulls[p]=(pulls[p][0]/10,pulls[p][1]/10,pulls[p][2]/10)
                 rescaled[p]=rescaled[p]/10
                 
     for i,p in enumerate(pars):
         h.GetXaxis().SetBinLabel(i+1,p)
         if rescale and rescaled[p]!=1.:
-            h.GetXaxis().SetBinLabel(i+1,p+'#times'+str(round2(rescaled[p])))
+            h.GetXaxis().SetBinLabel(i+1,p+'#times'+str(Utils.round2(rescaled[p])))
     h.SetStats(0)
     h.SetLineColor(ROOT.kBlack)
     h.Draw()
