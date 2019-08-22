@@ -10,7 +10,7 @@ from Combination import Combination
 from ROOT import TFile,RooWorkspace,gROOT,TCanvas
 import Utils,Plotting
 from optparse import OptionParser
-import re,os
+import re,os,time
 gROOT.SetBatch(True)
 
 #TODO: pulls, nicer plots
@@ -224,6 +224,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     if not force:
         raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
 
+    start_time = time.time()
                     
     if method=='workspace':
         w=combination.createWorkspace()
@@ -250,6 +251,11 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             prof=combination.profile1D(poi,actual_scanrange,int(nsteps),extra_outfile=extra_outfile)
             Plotting.graphProfile1D('g_scan_'+poi,prof,f)
             Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname)
+            if save:
+                for par in combination.all_results:
+                    prof2=[(prof[i][0],y) for i,y in enumerate(combination.all_results[par])]
+                    Plotting.graphProfile1D('g_scan_'+par,prof2,f)
+                    Plotting.canvasProfile1D('c_scan_'+par,prof2,f,poi,par,outfolder=outname,isNLL=False)
         else:
             #TODO
             scanranges=scanrange.split(',')
@@ -315,8 +321,11 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         
     else:
         raise Excpetion("unkown method "+method)
-
+    
     f.Close()
+
+    print 'Fitting took',time.time() - start_time,'seconds'
+    
 if __name__== "__main__":
     main()
 

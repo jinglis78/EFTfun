@@ -26,7 +26,7 @@ def graphProfile2D(name,result,outfile=None):
     return g
 
 
-def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',linecolor=ROOT.kRed+1,linewidth=2,linestyle=1,outfolder='.'):
+def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',linecolor=ROOT.kRed+1,linewidth=2,linestyle=1,outfolder='.',isNLL=True):
     cl1=1
     cl2=3.841
     c=ROOT.TCanvas(name,name,1024,1024 )
@@ -45,16 +45,18 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         if y<ymin:
             ymin=y
             imin=i
-    if imin>-1 and ymin<0.01:
-        g_inverse1=ROOT.TGraph(imin,ys[:imin],xs[:imin])
-        g_inverse2=ROOT.TGraph(g.GetN()-imin,ys[imin:],xs[imin:])
-        ci1=g_inverse1.Eval(cl1),g_inverse2.Eval(cl1)
-        ci2=g_inverse1.Eval(cl2),g_inverse2.Eval(cl2)
+    if isNLL:
+        if imin>-1 and ymin<0.01:
+            g_inverse1=ROOT.TGraph(imin,ys[:imin],xs[:imin])
+            g_inverse2=ROOT.TGraph(g.GetN()-imin,ys[imin:],xs[imin:])
+            ci1=g_inverse1.Eval(cl1),g_inverse2.Eval(cl1)
+            ci2=g_inverse1.Eval(cl2),g_inverse2.Eval(cl2)
     g.SetLineColor(linecolor)
     g.SetLineStyle(linestyle)
     g.SetLineWidth(linewidth)
     g.Draw('AL')
-    g.GetHistogram().GetYaxis().SetRangeUser(0.,g.GetHistogram().GetYaxis().GetXmax())
+    if isNLL :
+        g.GetHistogram().GetYaxis().SetRangeUser(0.,g.GetHistogram().GetYaxis().GetXmax())
     g.GetHistogram().GetXaxis().SetTitleSize(0.05)
     g.GetHistogram().GetYaxis().SetTitleSize(0.05)
     g.GetHistogram().GetXaxis().SetLabelSize(0.04)
@@ -66,12 +68,13 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
     g.GetHistogram().GetYaxis().SetTitle(ytitle)
     xmax=g.GetHistogram().GetXaxis().GetXmax()
     xmin=g.GetHistogram().GetXaxis().GetXmin()
-    cl1line=ROOT.TLine(xmin,cl1,xmax,cl1)
-    cl2line=ROOT.TLine(xmin,cl2,xmax,cl2)
-    cl1line.Draw()
-    cl2line.Draw()
+    if isNLL:
+        cl1line=ROOT.TLine(xmin,cl1,xmax,cl1)
+        cl2line=ROOT.TLine(xmin,cl2,xmax,cl2)
+        cl1line.Draw()
+        cl2line.Draw()
 
-    if imin>-1 and ymin<0.01:
+    if isNLL and imin>-1 and ymin<0.01:
         ci2line1=ROOT.TLine(ci2[0],0,ci2[0],cl2)
         ci2line1.SetLineStyle(2)
         ci2line2=ROOT.TLine(ci2[1],0,ci2[1],cl2)

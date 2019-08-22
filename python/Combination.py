@@ -48,6 +48,8 @@ class Combination:
         self.nll=self.pdf.createNLL(self.data)
         self.minimizer=RooMinuit(self.nll)
         self.last_scan_range=None
+        self.all_results=None
+        self.robust=False
 
 
     def getFitResult(self):
@@ -82,6 +84,8 @@ class Combination:
             poiIsConst=poi.isConstant()
             poi.setConstant(True)
             strategy=0
+            if self.robust:
+                strategy=1
             if i==0:
                 strategy=2
             result.append( (val,self.minimize(print_level=print_level,hesse=False,strategy=strategy)) )
@@ -97,6 +101,7 @@ class Combination:
                     more_results[float_pars[ipar].GetName()]+=[float_pars[ipar].getVal()]
             poi.setConstant(poiIsConst)
         if extra_outfile!=None:
+            self.all_results=more_results
             Utils.saveToTree(more_results,extra_outfile)
         
                         
@@ -109,7 +114,7 @@ class Combination:
             result =[(r[0],r[1]-minNLL) for r in result]
         return result
 
-                   
+    #TODO: unify with 1D
     def profileND(self,poi_names,scan_ranges=[5],nsteps=[21],inclOffset=False,extra_outfile=None):
         pois=[]
         for p in poi_names:
@@ -163,8 +168,10 @@ class Combination:
             for poi,val in zip(pois,gridpoint):
                 poi.setVal(val)
                 poiIsConst+=[poi.isConstant()]
-                poi.setConstant(True)
+                poi.setConstant(True)            
             strategy=0
+            if self.robust:
+                strategy=1
             if ipoint==0 or grid[ipoint][-1]<grid[ipoint-1][-1]:
                 strategy=2
             result.append( gridpoint+(self.minimize(print_level=print_level,hesse=False,strategy=strategy),) )
@@ -193,6 +200,7 @@ class Combination:
             result =[r[:-1]+((r[-1]-minNLL),) for r in result]
         if extra_outfile!=None:
             Utils.saveToTree(more_results,extra_outfile)
+            self.all_results=more_results
         return result
 
     def deactivateIrrelevantThetas(self):
@@ -249,7 +257,6 @@ class Combination:
             return
         pois=RooArgSet()
         poiIsConst=[]
-        #TODO
         for p in poi_names:            
             poi=self.theory.getCoeff(p)
             poiIsConst.append(poi.isConstant())
