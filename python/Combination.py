@@ -81,7 +81,10 @@ class Combination:
             poi.setVal(val)
             poiIsConst=poi.isConstant()
             poi.setConstant(True)
-            result.append( (val,self.minimize(print_level,hesse=False)) )
+            strategy=0
+            if i==0:
+                strategy=2
+            result.append( (val,self.minimize(print_level=print_level,hesse=False,strategy=strategy)) )
             if extra_outfile!=None:
                 res=self.getFitResult()
                 float_pars=res.floatParsFinal()
@@ -98,9 +101,10 @@ class Combination:
         
                         
         if not inclOffset:
+            self.theory.reset()
             poiIsConst=poi.isConstant()
             poi.setConstant(False)
-            minNLL=self.minimize(print_level,hesse=False)
+            minNLL=self.minimize(print_level=print_level)
             poi.setConstant(poiIsConst)
             result =[(r[0],r[1]-minNLL) for r in result]
         return result
@@ -160,7 +164,10 @@ class Combination:
                 poi.setVal(val)
                 poiIsConst+=[poi.isConstant()]
                 poi.setConstant(True)
-            result.append( gridpoint+(self.minimize(print_level,hesse=False),) )
+            strategy=0
+            if ipoint==0 or grid[ipoint][-1]<grid[ipoint-1][-1]:
+                strategy=2
+            result.append( gridpoint+(self.minimize(print_level=print_level,hesse=False,strategy=strategy),) )
             if extra_outfile!=None:
                 res=self.getFitResult()
                 float_pars=res.floatParsFinal()
@@ -177,9 +184,10 @@ class Combination:
             for pisc,poi in zip(poiIsConst,pois):
                 poi.setConstant(pisc)
         if not inclOffset:
+            self.theory.reset()
             for poi in pois:
                 poi.setConstant(False)
-            minNLL=self.minimize(print_level,hesse=False)
+            minNLL=self.minimize(print_level=print_level)
             for pisc,poi in zip(poiIsConst,pois):
                 poi.setConstant(pisc)
             result =[r[:-1]+((r[-1]-minNLL),) for r in result]
@@ -202,15 +210,18 @@ class Combination:
         return deactivated
 
 
-    def minimize(self,strategy=2,hesse=True,minos=False):
+    def minimize(self,strategy=2,hesse=True,minos=False,print_level=None):
+        #TODO: strategy 3 -- scan around minimum
         deactivated=self.deactivateIrrelevantThetas()
         self.minimizer.setPrintLevel(1)
-        if not self.verbose:
+        if print_level!=None:
+            self.minimizer.setPrintLevel(print_level)
+        if not self.verbose or print_level<0:
             self.minimizer.setPrintLevel(-1)
             self.minimizer.setPrintEvalErrors(-1)
+            self.minimizer.setVerbose(False)
         self.minimizer.setStrategy(strategy)
         self.minimizer.setErrorLevel(0.5)
-        self.minimizer.setVerbose(self.verbose)
         self.minimizer.migrad()
         if hesse:
             self.minimizer.hesse()
@@ -307,7 +318,7 @@ class Combination:
         pulls={}
         if self.verbose:
             print 'Minimizing for pulls'
-        self.minimize(0,minos=True)
+        self.minimize(2,minos=True)
         res=self.getFitResult()
         float_pars=res.floatParsFinal()
         pars=[]
@@ -343,7 +354,7 @@ class Combination:
             thepar.setConstant(False)
             if self.verbose:
                 print 'Minimizing for pulls, with all POIs but',thepar.GetName(),'fixed at zero'
-            self.minimize(0,minos=True)
+            self.minimize(2,minos=True)
             res=self.getFitResult()
             float_pars=res.floatParsFinal()
             for ipar in range(float_pars.getSize()):

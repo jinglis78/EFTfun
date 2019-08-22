@@ -54,6 +54,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
     g.SetLineStyle(linestyle)
     g.SetLineWidth(linewidth)
     g.Draw('AL')
+    g.GetHistogram().GetYaxis().SetRangeUser(0.,g.GetHistogram().GetYaxis().GetXmax())
     g.GetHistogram().GetXaxis().SetTitleSize(0.05)
     g.GetHistogram().GetYaxis().SetTitleSize(0.05)
     g.GetHistogram().GetXaxis().SetLabelSize(0.04)

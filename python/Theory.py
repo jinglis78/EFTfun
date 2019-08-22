@@ -3,25 +3,27 @@ import re
 import Utils
 
 class Theory:
-    def __init__(self,coeff_names=[],coeff_ranges={},default_range=(-1e3,1e3),theta_names=[],theta_range=(-10,10),stat_unc_threshold=0.3):
+    def __init__(self,default_range=(-1e3,1e3),theta_range=(-10,10),stat_unc_threshold=0.3):
         self.default_range=default_range
         self.coeffs=[]
-        for coeff_name in coeff_names:
-            if coeff_name in coeff_ranges:
-                self.coeffs.append(RooRealVar(coeff_name,coeff_name,coeff_ranges[0],coeff_ranges[1]))
-            else:
-                self.coeffs.append(RooRealVar(coeff_name,coeff_name,default_range[0],default_range[1]))
         self.thetas=[]
-        for theta_name in theta_names:
-            self.thetas.append(RooRealVar(theta_name,theta_name,theta_range[0],theta_range[1]))
+        self.pars={}
+        self.initial_vals={}
         self.theta_range=theta_range
-        self.stat_unc_threshold=stat_unc_threshold       
+        self.stat_unc_threshold=stat_unc_threshold
 
+    def reset(self):
+        for par in self.pars:
+            if par in self.initial_vals:
+                self.pars[par].setVal(self.initial_vals[par])
+            else:
+                self.pars[par].setVal(0.)
 
     def addCoeff(self,coeff_name,coeff_range=None):
         if coeff_range==None:
             coeff_range=default_range
         self.coeffs.append(RooRealVar(coeff_name,coeff_name,coeff_range[0],coeff_range[1]))
+        self.pars[self.coeffs[-1].GetName()]=self.coeffs[-1]
 
     def addTheta(self,theta_name,theta_range=None):
         if theta_name in [t.GetName() for t in self.thetas]:
@@ -29,6 +31,7 @@ class Theory:
         if theta_range==None:
             theta_range=self.theta_range
         self.thetas.append(RooRealVar(theta_name,theta_name,theta_range[0],theta_range[1]))
+        self.pars[self.thetas[-1].GetName()]=self.thetas[-1]
 
     def setConstantFromCfg(self,constant,pois):
         if constant==None:
@@ -133,6 +136,13 @@ class Theory:
 
     def getCoeffNames(self):
         return [c.GetName() for c in self.coeffs]
+
+    def getThetaNames(self):
+        return [c.GetName() for c in self.thetas]
+
+    def getPar(self,par_name):
+        return self.pars[par_name]
+    
 
     def makeMCstatName(self,name,coeff_name,iBin):
         return 'mcstat_'+name+'_'+coeff_name+'_lin_bin'+str(iBin)

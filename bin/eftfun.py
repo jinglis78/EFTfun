@@ -58,7 +58,7 @@ def main():
                       dest="override", default=None,
                       help="Override option in config. Syntax: Configname1:Section1.Option1=Value1,Configname2:Section2.Option2=Value2,... . Configname can also be 'measurements' or 'main' as shortcut for all measurments or the main cfg.")
 
-    
+    #TODO: "robust" option
     options,args=parser.parse_args()
 
     if  options.method==None:
@@ -291,20 +291,17 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             theory.setFloating(p)        
         pulls=combination.pulls()
         pullsEach=combination.pullEach()
-        theta_names=[]
         print 'Results when floating all (MINOS errors)'
         for t in theory.coeffs+theory.thetas:
             if t.GetName() in pulls:
                 print '{} = {}_{{ {} }}^{{ {} }}'.format(t.GetName(),*[ Utils.round2(p) for p in pulls[t.GetName()]])
-                theta_names+=[t.GetName()]
         if len(pullsEach)>0:
             print 'Results when setting all but one poi to zero (MINOS errors)'
         for t in theory.coeffs:
             if t.GetName() in pullsEach:
                 print '{} = {}_{{ {} }}^{{ {} }}'.format(t.GetName(),*[ Utils.round2(p) for p in pullsEach[t.GetName()]])
-                theta_names+=[t.GetName()]
 
-        Plotting.canvasPulls('c_pulls',theta_names,pulls,outfile=f,outfolder=outname)
+        Plotting.canvasPulls('c_pulls',theory.getThetaNames(),pulls,outfile=f,outfolder=outname)
         Plotting.canvasPulls('c_bestfit_all',theory.getCoeffNames(),pulls,outfile=f,outfolder=outname,pois=True,rescale=True)
         Plotting.canvasPulls('c_bestfit_each',theory.getCoeffNames(),pullsEach,outfile=f,outfolder=outname,pois=True,rescale=True)
             
