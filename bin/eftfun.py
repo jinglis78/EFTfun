@@ -34,7 +34,9 @@ def main():
                       dest="scanrange",default='3',metavar='SCANRANGE',
                       help="Scan range, either given as min:max or one number. If only one number, scan will be performed in range (-SCANRANGE*error+central,central+SCANRANGE*error). For multiple POIs, multiple scan ranges can be given, separated by commas. Only relevant for method 'scan'.")
     parser.add_option("-c", "--constant", dest="constant", metavar="CONSTANTPARS",
-                      help="Parameters that are set constant ('all' for all coefficients except nuisance parameters). Can also be set to specific values with par=value. Can both be nuisance parameters and POIs. Comma separated.")
+                      help="Parameters that are set constant ('all' for all coefficients except nuisance parameters). Can be both nuisance parameters and POIs. Comma separated.")
+    parser.add_option("-s", "--set", dest="initial", metavar="PARAMETERSETTING",
+                      help="Set parameters to specific (initial) values with par1=x,par2=y,... Can be both nuisance parameters and POIs.")
     parser.add_option("-d", "--deactivate-uncertainties",metavar='PATTERN',
                       dest="deactivate_uncertainties", default=None,
                       help="Deactivate systematics that match the pattern given.")
@@ -48,9 +50,9 @@ def main():
     parser.add_option("-l", "--linear",
                       action="store_true", dest="linear", default=False,
                       help="Consider only effects linear in EFT coefficients?")
-    parser.add_option("-s", "--save",
-                      action="store_true", dest="save", default=False,
-                      help="Save all floating parameter values during scan in TTree?")
+    parser.add_option("-w", "--write_more",
+                      action="store_true", dest="write_more", default=False,
+                      help="Save all floating parameter values during scan in TTree? Will also plot non-linear parameter correlations.")
     parser.add_option("-f", "--force",
                       action="store_true", dest="force", default=False,
                       help="Run without user interaction?")
@@ -71,10 +73,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.deactivate_uncertainties,options.constant,options.verbose,options.save,options.force,options.override)
+        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.force,options.override)
 
 
-def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivate_uncertainties,constant,verbose,save,force,override):
+def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivate_uncertainties,constant,initial,verbose,write_more,force,override):
     if verbose:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -89,7 +91,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         print 'deactivate_uncertainties',deactivate_uncertainties
         print 'constant',constant
         print 'verbose',verbose
-        print 'save',save
+        print 'write_more',write_more
         print 'override',override
         print '--------------------------------------'
 
@@ -220,6 +222,11 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
 
     theory.setConstantFromCfg(constant,pois)
     theory.deactivateUncertainties(deactivate_uncertainties)
+    if initial!=None:
+        for x in initial.split(','):
+            par=x.split("=")[0].strip()
+            val=float(x.split("=")[1].strip())
+            theory.setInitialVal(par,val)
 
     if not force:
         raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
@@ -240,7 +247,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
 
     elif method=='scan':
         extra_outfile=None
-        if save:
+        if write_more:
             extra_outfile=f
         if len(pois)==1:
             poi=pois[0]
@@ -251,7 +258,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             prof=combination.profile1D(poi,actual_scanrange,int(nsteps),extra_outfile=extra_outfile)
             Plotting.graphProfile1D('g_scan_'+poi,prof,f)
             Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname)
-            if save:
+            if write_more:
                 for par in combination.all_results:
                     prof2=[(prof[i][0],y) for i,y in enumerate(combination.all_results[par])]
                     Plotting.graphProfile1D('g_scan_'+par,prof2,f)

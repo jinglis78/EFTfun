@@ -150,6 +150,10 @@ class Theory:
 
     def getPar(self,par_name):
         return self.pars[par_name]
+
+    def setInitialVal(self,par_name,val):
+        self.pars[par_name].setVal(val)
+        self.initial_vals[par_name]=val
     
 
     def makeMCstatName(self,name,coeff_name,iBin):
