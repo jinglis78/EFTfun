@@ -56,8 +56,8 @@ class Theory:
 #                    if re.match(self.makeMCstatName('.+',c,'\d+'),theta.GetName()):
 #                        theta.setVal(0.)
 #                        theta.setConstant()
-            for p in pois:
-                self.setFloating(p)
+        for p in pois:
+            self.setFloating(p)
                 
         
     def setConstant(self,coeff=None,value=0.):
@@ -107,6 +107,7 @@ class Theory:
             return
         for theta in self.thetas:
             if pattern=='all' or re.match(pattern,theta.GetName()):
+                print 'deactivating uncertainty',theta.GetName()
                 theta.setVal(0.)
                 theta.setConstant(True)
 
@@ -132,7 +133,14 @@ class Theory:
         for c in self.coeffs:
             if c.isConstant():
                 cs.append(c)
-        return c
+        return cs
+
+    def getConstantThetas(self):
+        cs=[]
+        for c in self.thetas:
+            if c.isConstant():
+                cs.append(c)
+        return cs
 
     def getCoeffNames(self):
         return [c.GetName() for c in self.coeffs]

@@ -211,7 +211,6 @@ class Combination:
 
 
     def minimize(self,strategy=2,hesse=True,minos=False,print_level=None):
-        #TODO: strategy 3 -- scan around minimum
         deactivated=self.deactivateIrrelevantThetas()
         self.minimizer.setPrintLevel(1)
         if print_level!=None:
@@ -242,7 +241,8 @@ class Combination:
 
     def fit(self):
         #TODO: print result even if quiet
-        self.minimize()
+        self.minimize(print_level=2,strategy=2,hesse=True)
+        
     def calcProfileLikelihood(self,poi_names):
         if len(poi_names)>1:
             print 'can only do 1D intervals right now'

@@ -206,8 +206,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             print
             print '------------------------------------------------'
 
-        if not force:
-            raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
     if outname==None:
         outname=main_cfg.get('General','name')
     if not os.path.exists(outname):
@@ -220,8 +218,12 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     else:
         pois=poi.split(',')
 
-    theory.deactivateUncertainties(deactivate_uncertainties)
     theory.setConstantFromCfg(constant,pois)
+    theory.deactivateUncertainties(deactivate_uncertainties)
+
+    if not force:
+        raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
+
                     
     if method=='workspace':
         w=combination.createWorkspace()
@@ -266,8 +268,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     elif method=='fit':
         if verbose:
             print 'doing fit'
-        for p in pois:
-            theory.setFloating(p)
+        #for p in pois:
+        #    theory.setFloating(p)
         data_histos_prefit=[]
         pred_histos_prefit=[]
         for p,m in zip(predictions,measurements):
@@ -287,8 +289,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         #TODO: run minos, plot results and errrors
 
     elif method=='pulls':
-        for p in pois:
-            theory.setFloating(p)        
+        #for p in pois:
+        #    theory.setFloating(p)        
         pulls=combination.pulls()
         pullsEach=combination.pullEach()
         print 'Results when floating all (MINOS errors)'
