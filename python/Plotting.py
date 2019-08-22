@@ -40,11 +40,12 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
     ys=array('f',g.GetY())
     imin=-1
     ymin=999.
-    xmin=0
+    x0=0.
     for i,y in enumerate(ys):
         if y<ymin:
             ymin=y
             imin=i
+            x0=xs[i]
     if isNLL:
         if imin>-1 and ymin<0.01:
             g_inverse1=ROOT.TGraph(imin,ys[:imin],xs[:imin])
@@ -66,9 +67,9 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
     g.GetHistogram().SetLineColor(ROOT.kBlack)
     g.GetHistogram().GetXaxis().SetTitle(xtitle)
     g.GetHistogram().GetYaxis().SetTitle(ytitle)
-    xmax=g.GetHistogram().GetXaxis().GetXmax()
-    xmin=g.GetHistogram().GetXaxis().GetXmin()
     if isNLL:
+        xmax=g.GetHistogram().GetXaxis().GetXmax()
+        xmin=g.GetHistogram().GetXaxis().GetXmin()
         cl1line=ROOT.TLine(xmin,cl1,xmax,cl1)
         cl2line=ROOT.TLine(xmin,cl2,xmax,cl2)
         cl1line.Draw()
@@ -83,12 +84,12 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         ci1line1.SetLineStyle(2)
         ci1line2=ROOT.TLine(ci1[1],0,ci1[1],cl1)
         ci1line2.SetLineStyle(2)
-        ci1text=ROOT.TLatex(0.5,0.85,'68% CL.: [{},{}]'.format(Utils.round2(ci1[0]),Utils.round2(ci1[1])))
+        ci1text=ROOT.TLatex(0.5,0.85,'Best fit: {}_{{ #minus{} }}^{{ #plus{} }}'.format(Utils.round2(x0,2),Utils.round2(abs(ci1[0]-x0),2),Utils.round2(abs(ci1[1]-x0),2)))
         ci1text.SetNDC()
         ci1text.SetTextSize(0.04)
         ci1text.SetTextFont(42)
         ci1text.SetTextAlign(21)
-        ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0]),Utils.round2(ci2[1])))
+        ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],2)))
         ci2text.SetNDC()
         ci2text.SetTextSize(0.04)
         ci2text.SetTextFont(42)
@@ -226,9 +227,9 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     if len(pars)==0:
         return ROOT.TCanvas(name)
     c=ROOT.TCanvas(name,name,int(50*(len(pars))),200 )
-    c.SetRightMargin(0.05)
+    c.SetRightMargin(0.1/len(pars))
     c.SetTopMargin(0.05)
-    c.SetLeftMargin(0.1)
+    c.SetRightMargin(0.5/len(pars))
     c.SetBottomMargin(0.15)
     c.SetTicks(1,1)
     h=ROOT.TH1F('dummy','',len(pars),-0.5,len(pars)-0.5)

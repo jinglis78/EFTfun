@@ -39,7 +39,7 @@ def main():
                       help="Set parameters to specific (initial) values with par1=x,par2=y,... Can be both nuisance parameters and POIs.")
     parser.add_option("-d", "--deactivate-uncertainties",metavar='PATTERN',
                       dest="deactivate_uncertainties", default=None,
-                      help="Deactivate systematics that match the pattern given.")
+                      help="Deactivate systematics (i.e. set them constant) that match the pattern given.")
     parser.add_option("-n", "--nsteps",dest="nsteps",default='200',
                       help="Number of steps in scan (only relevant for method 'scan').")
     parser.add_option("-t", "--ntoys",dest="ntoys",default=1000,
@@ -202,8 +202,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             measurement.covMatrix.Print()
 
             print 'Prediction formulas:'
-            for s in prediction.getPredictionStrings():
-                print 
+            for i,s in enumerate(prediction.getPredictionStrings()):
+                print
+                print 'bin {})'.format(i)
                 print s
             print
             print '------------------------------------------------'
@@ -331,7 +332,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     
     f.Close()
 
-    print 'Fitting took',time.time() - start_time,'seconds'
+    print 'Method took',time.time() - start_time,'seconds'
     
 if __name__== "__main__":
     main()

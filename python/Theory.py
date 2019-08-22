@@ -154,6 +154,7 @@ class Theory:
     def setInitialVal(self,par_name,val):
         self.pars[par_name].setVal(val)
         self.initial_vals[par_name]=val
+        print 'setting initival val for',par_name,'to',val
     
 
     def makeMCstatName(self,name,coeff_name,iBin):
