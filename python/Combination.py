@@ -325,7 +325,7 @@ class Combination:
         pulls={}
         if self.verbose:
             print 'Minimizing for pulls'
-        self.minimize(2,minos=True)
+        self.minimize(strategy=2,minos=True)
         res=self.getFitResult()
         float_pars=res.floatParsFinal()
         pars=[]
@@ -361,7 +361,7 @@ class Combination:
             thepar.setConstant(False)
             if self.verbose:
                 print 'Minimizing for pulls, with all POIs but',thepar.GetName(),'fixed at zero'
-            self.minimize(2,minos=True)
+            self.minimize(strategy=2,minos=True)
             res=self.getFitResult()
             float_pars=res.floatParsFinal()
             for ipar in range(float_pars.getSize()):

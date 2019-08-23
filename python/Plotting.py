@@ -2,22 +2,28 @@ import ROOT,math
 from array import array
 import Utils
 
-def graphProfile1D(name,result,outfile=None):
+def graphProfile1D(name,result,outfile=None,isNLL=True):
     g=ROOT.TGraph()
     result=[r for r in result if not math.isnan(r[1]) and not math.isinf(r[1])]
-    for i,r in enumerate(result):            
-        g.SetPoint(i,r[0],r[1]*2)
+    for i,r in enumerate(result):
+        y=r[1]
+        if isNLL:
+            y*=2
+        g.SetPoint(i,r[0],y)
     g.SetName(name)
     if outfile!=None:
         outfile.cd()
         g.Write()
     return g
 
-def graphProfile2D(name,result,outfile=None):
+def graphProfile2D(name,result,outfile=None,isNLL=True):
     g=ROOT.TGraph2D()
     result=[r for r in result if not math.isnan(r[2]) and not math.isinf(r[2])]
     for i,r in enumerate(result):
-        g.SetPoint(i,r[0],r[1],r[2]*2)
+        z=r[2]
+        if isNLL:
+            z*=2
+        g.SetPoint(i,r[0],r[1],z)
     g.SetName(name)
     if outfile!=None:
         outfile.cd()
@@ -35,7 +41,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
     c.SetLeftMargin(0.12)
     c.SetBottomMargin(0.12)
     c.SetTicks(1,1)
-    g=graphProfile1D(name,result)
+    g=graphProfile1D(name,result,isNLL=isNLL)
     xs=array('f',g.GetX())
     ys=array('f',g.GetY())
     imin=-1
@@ -126,7 +132,7 @@ def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log
     pad2.SetFrameFillStyle(0)
     pad1.Draw()
     pad1.cd()
-    g=graphProfile2D(name,result)
+    g=graphProfile2D(name,result,isNLL=isNLL)
     g.Draw('COLZ')
     g.GetHistogram().SetTitle('')
     g.GetHistogram().GetXaxis().SetTitle(xtitle)
@@ -226,10 +232,11 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     pars=[t for t in pars if t in pulls]
     if len(pars)==0:
         return ROOT.TCanvas(name)
-    c=ROOT.TCanvas(name,name,int(50*(len(pars))),200 )
-    c.SetRightMargin(0.1/len(pars))
+    l=min(3,len(pars))
+    c=ROOT.TCanvas(name,name,int(200*(l)),400 )
+    c.SetRightMargin(0.05/l)
     c.SetTopMargin(0.05)
-    c.SetRightMargin(0.5/len(pars))
+    c.SetLeftMargin(0.3/l)
     c.SetBottomMargin(0.15)
     c.SetTicks(1,1)
     h=ROOT.TH1F('dummy','',len(pars),-0.5,len(pars)-0.5)

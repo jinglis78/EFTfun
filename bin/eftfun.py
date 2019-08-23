@@ -13,8 +13,6 @@ from optparse import OptionParser
 import re,os,time
 gROOT.SetBatch(True)
 
-#TODO: pulls, nicer plots
-
 def main():    
     parser = OptionParser()
     parser.add_option("-i", "--input", dest="config",
@@ -211,8 +209,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
 
     if outname==None:
         outname=main_cfg.get('General','name')
+    outname='results/'+outname
     if not os.path.exists(outname):
-        os.mkdir(outname)
+        os.makedirs(outname)
     f=TFile(outname+'.root','RECREATE')
     combination=Combination(theory,predictions,measurements,main_cfg.get('General','name'),verbose=verbose) 
 
@@ -261,11 +260,12 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname)
             if write_more:
                 for par in combination.all_results:
+                    if par==poi:
+                        continue
                     prof2=[(prof[i][0],y) for i,y in enumerate(combination.all_results[par])]
-                    Plotting.graphProfile1D('g_scan_'+par,prof2,f)
+                    Plotting.graphProfile1D('g_scan_'+par,prof2,f,isNLL=False)
                     Plotting.canvasProfile1D('c_scan_'+par,prof2,f,poi,par,outfolder=outname,isNLL=False)
         else:
-            #TODO
             scanranges=scanrange.split(',')
             actual_scanranges=[]
             for s in scanranges:
@@ -300,7 +300,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         for p,m,h_p_pre,h_m_pre in zip(predictions,measurements,pred_histos_prefit,data_histos_prefit):
             h_p_post=p.plotPostfit(f,combination.getFitResult())
             Plotting.canvasPostfit('c_postfit_'+m.name,h_m_pre,h_p_pre,h_p_post,outfile=f,outfolder=outname)
-        #TODO: run minos, plot results and errrors
 
     elif method=='pulls':
         #for p in pois:
