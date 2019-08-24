@@ -5,14 +5,13 @@ For help:
 ./bin/eftfun.py
 ```
 
-Prerequisites: python2.7, ROOT6 with RooFit, YODA (typically installed with Rivet)
+Prerequisites: python2.7, ROOT6 with RooFit, YODA (typically installed with [Rivet](https://rivet.hepforge.org/trac/wiki/GettingStarted))
 
-On lxplus:
+On lxplus (but I would run it on a laptop):
 ```
 setupATLAS
 asetup 21.6.6,AthGeneration
 source setupRivet.sh
-lsetup "root 6.14.04-x86_64-slc6-gcc62-opt"
 ```
 
 

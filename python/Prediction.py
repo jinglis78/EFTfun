@@ -179,18 +179,18 @@ class Prediction:
         else:
             h=TH1F(self.name+'_prefit',self.name+'_prefit',self.nbins,0,1)
         for i,f in enumerate(self.getPredictionFormulas()):
-            h.SetBinContent(i+1,f.evaluate()/self.rescaled)
+            h.SetBinContent(i+1,f.getVal()/self.rescaled)
             uperror2=0.
             downerror2=0.
             for t in self.theory.thetas:
                 if not t.isConstant():
                     oldval=t.getVal()
                     t.setVal(0)
-                    nom=f.evaluate()
+                    nom=f.getVal()
                     t.setVal(1)
-                    err1=f.evaluate()-nom
+                    err1=f.getVal()-nom
                     t.setVal(-1)
-                    err2=f.evaluate()-nom
+                    err2=f.getVal()-nom
                     t.setVal(oldval)
                     if err1>0 and err1>err2:
                         uperror2+=err1**2
@@ -216,7 +216,7 @@ class Prediction:
         else:
             h=TH1F(hn,hn,self.nbins,0,1)
         for i,f in enumerate(self.getPredictionFormulas()):
-            h.SetBinContent(i+1,f.evaluate()/self.rescaled)
+            h.SetBinContent(i+1,f.getVal()/self.rescaled)
             h.SetBinError(i+1,f.getPropagatedError(fitresult)/self.rescaled)
             
         outfile.cd()
