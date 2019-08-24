@@ -1,7 +1,19 @@
 EFT Fitter for UNfolded measurements.
 
 For help:
-./bin/eftfun.py 
+```
+./bin/eftfun.py
+```
+
+Prerequisites: python2.7, ROOT6 with RooFit, YODA (typically installed with Rivet)
+
+On lxplus:
+```
+setupATLAS; lsetup "root 6.14.04-x86_64-slc6-gcc62-opt"; # for ROOT
+asetup 21.6.6,AthGeneration
+source setupRivet.sh
+```
+
 
 Examples:
 ```
