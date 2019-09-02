@@ -160,6 +160,11 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             measurement.setErrAndCorrFromCfg(cfg.get('Measurement','uncertainty'),cfg.get('Measurement','correlation'))
         else:
             raise Exception("Found neither covariance nor uncertainty and correlation for measurement in "+cfg_name)
+
+        if cfg.has_section('Exp Systs'):
+            for exp_syst_name,exp_syst in cfg.items('Exp Systs'):
+                measurement.setErrFromCfg(exp_syst)
+                
         prediction=Prediction(cfg.get('Measurement','name'),theory,per_bin_width=per_bin_width,binning=binning)
         assert prediction.name not in [p.name for p in predictions]
         

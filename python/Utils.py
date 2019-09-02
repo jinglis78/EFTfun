@@ -129,3 +129,11 @@ def round2(number,digits=3):
     if math.log10(abs(number))>digits-1:
         return int(round(number))   
     return round(number, digits-int(math.floor(math.log10(abs(number))))-1)
+
+def getOptionsAndData(data):
+    if '{' in data:
+        options=set(o.lower() for o in data[data.find('{')+1:data.find('}')].split())
+    else:
+        options=set()
+    data=data[data.find('}')+1:].strip()
+    return options,data

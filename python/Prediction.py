@@ -3,42 +3,7 @@ from math import log
 from array import array
 import os
 import Utils
-
-class Uncertainty:
-    def __init__(self,nbins,affected,parname,releffect,interpol):
-        self.nbins=nbins
-        self.affected=affected
-        self.parname=parname
-        assert len(releffect)==self.nbins
-
-        actual_releffect=[]
-        for e in releffect:
-            if isinstance(e,float):
-                actual_releffect+=[(-e,e)]
-            else:
-                actual_releffect+=[e]
-        assert len(actual_releffect)==self.nbins
-        self.releffect=actual_releffect
-        assert interpol in ['lin','exp']            
-        self.interpol=interpol
-
-        
-    def getStr(self,iBin):
-        if self.releffect[iBin]==0.:
-            return None
-        if isinstance(self.releffect[iBin],tuple) and self.releffect[iBin][0]==0 and self.releffect[iBin][1]==0:
-            return None
-        #TODO: define better interpolation functions
-        if self.interpol=='exp':
-            if abs(-self.releffect[iBin][0]/self.releffect[iBin][1]-1)<1e-2:
-                return 'exp({0}*{1})'.format(self.releffect[iBin][1],self.parname)
-            else:
-                return '(exp(-{0}*{2})*({2}<0)+exp({1}*{2})*({2}>=0))'.format(self.releffect[iBin][0],self.releffect[iBin][1],self.parname) 
-        if self.interpol=='lin':
-            if abs(-self.releffect[iBin][0]/self.releffect[iBin][1]-1)<1e-2:
-                return '(1+{0}*{1})'.format(self.releffect[iBin][1],self.parname)
-            else:
-                return '((1-{0}*{2})*({2}<0)+(1+{1}*{2})*({2}>=0))'.format(self.releffect[iBin][0],self.releffect[iBin][1],self.parname)
+from Uncertainty import *
 
 class Prediction:
     def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None):

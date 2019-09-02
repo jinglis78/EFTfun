@@ -1,5 +1,6 @@
 from ROOT import RooRealVar, TMatrixDSym, TH1F
 from array import array
+import Utils
 #TODO: allow profiling of experimental systematics
 class Measurement:
     def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None):
@@ -104,28 +105,23 @@ class Measurement:
             label_err=None
             if ':' in data_err:
                 label_err=data_err.split(':')[1]
-            f=open(filename_err)
-            vals=yaml.load(f)['dependent_variables'][0]['values']
-            assert len(vals)==self.nbins
-            errs=[]
-            for y in vals:
-                total_err2=0.
-                for error in y['errors']:
-                    if label_err==None:
+                errs=self.getErrsFromYaml(filename_err,label_err)
+            else:
+                f=open(filename_err)
+                vals=yaml.load(f)['dependent_variables'][0]['values']
+                assert len(vals)==self.nbins
+                errs=[]
+                for y in vals:
+                    total_err2=0.
+                    for error in y['errors']:
                         if 'symerror' in error:
                             total_err2+=error['symerror']**2
                         elif 'asymerror' in error:
                             total_err2+=(abs(error['asymerror']['minus'])+abs(error['asymerror']['plus']))**2/4.
-                    elif error['label']==label_err:
-                        if 'symerror' in error:
-                            errs.append(error['symerror'])
-                            break
-                        elif 'asymerror' in error:
-                            errs.append(abs(error['asymerror']['minus'])/2+abs(error['asymerror']['plus'])/2)
-                            break
                 errs.append(total_err2**0.5)
+                f.close()
             assert len(errs)==self.nbins
-            f.close()            
+
         else:
             errs=[float(x) for x in data_err.split()]
 
@@ -154,6 +150,44 @@ class Measurement:
             for j in range(self.nbins):
                 cov[i][j]=errs[i]*errs[j]*corr[i][j]
         self.setCov(cov)
+
+    def getErrsFromYaml(self,filename,err_label):
+        import yaml
+        f=open(filename)
+        vals=yaml.load(f)['dependent_variables'][0]['values']
+        assert len(vals)==self.nbins
+        errs=[]
+        for y in vals:
+            for error in y['errors']:
+                if error['label']==err_label:
+                    if 'symerror' in error:
+                        errs.append(error['symerror'])
+                        break
+                    elif 'asymerror' in error:
+                        errs.append(abs(error['asymerror']['minus'])/2+abs(error['asymerror']['plus'])/2)
+                        break
+        f.close()
+        return errs
+
+    def setErrFromCfg(self,data):
+        print data
+        raw_input()
+        options,data=Utils.getOptionsAndData(data)
+        filename,error_label=data.split(":")
+        errs=self.getErrsFromYaml(filename,error_label)
+        assert len(errs)==self.nbins
+        cov = TMatrixDSym(self.nbins)
+        if 'corr' in options:
+            for i in range(self.nbins):
+                for j in range(self.nbins):
+                    cov[i,j]=errs[i]*errs[j]
+        elif 'uncorr' in options:
+            for i in range(self.nbins):
+                cov[i,i]=errs[i]*errs[i]
+        else:
+            raise Exception('Uncertainty netiher correlated nor uncorrelated')
+                
+        self.covMatrix+=cov
 
     def setMeasuredFromYoda(self,filename,name):
         import yoda
