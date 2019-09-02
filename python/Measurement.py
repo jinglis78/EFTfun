@@ -47,6 +47,8 @@ class Measurement:
             spl=data.split(':')
             assert len(spl)==2
             self.setMeasuredFromRoot(spl[0],spl[1])
+        elif data.endswith('.yaml'):
+            self.setMeasuredFromYaml(data)
         else:
             self.setMeasured([float(x) for x in data.split()])
 
@@ -59,6 +61,8 @@ class Measurement:
             spl=data.split(':')
             assert len(spl)==2
             self.setCov(self.getMatrixFromRoot(spl[0],spl[1]))
+        elif data.endswith('.yaml'):
+            self.setCov(self.getMatrixFromYaml(data))
         else:
             cov=[]
             for y in data.split(','):
@@ -94,6 +98,34 @@ class Measurement:
             else:
                 errs=[histo.GetBinError(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
             f.Close()
+        elif data_err.split(':')[0].endswith('.yaml'):
+            import yaml
+            filename_err=data_err.split(':')[0]
+            label_err=None
+            if ':' in data_err:
+                label_err=data_err.split(':')[1]
+            f=open(filename_err)
+            vals=yaml.load(f)['dependent_variables'][0]['values']
+            assert len(vals)==self.nbins
+            errs=[]
+            for y in vals:
+                total_err2=0.
+                for error in y['errors']:
+                    if label_err==None:
+                        if 'symerror' in error:
+                            total_err2+=error['symerror']**2
+                        elif 'asymerror' in error:
+                            total_err2+=(abs(error['asymerror']['minus'])+abs(error['asymerror']['plus']))**2/4.
+                    elif error['label']==label_err:
+                        if 'symerror' in error:
+                            errs.append(error['symerror'])
+                            break
+                        elif 'asymerror' in error:
+                            errs.append(abs(error['asymerror']['minus'])/2+abs(error['asymerror']['plus'])/2)
+                            break
+                errs.append(total_err2**0.5)
+            assert len(errs)==self.nbins
+            f.close()            
         else:
             errs=[float(x) for x in data_err.split()]
 
@@ -105,6 +137,8 @@ class Measurement:
             import ROOT
             filename_corr,histoname_corr=[s.strip() for s in data.split(':')]
             corr=self.getMatrixFromRoot(filename_corr,histoname_corr)
+        elif data_corr.endswith('.yaml'):
+            corr=self.getMatrixFromYaml(data_corr)
         else:
             corr=[]
             for y in data.split(','):
@@ -146,6 +180,13 @@ class Measurement:
         self.setMeasured(contents)
         f.Close()
 
+    def setMeasuredFromYaml(self,filename):
+        import yaml
+        f=open(filename)
+        data=yaml.load(f)
+        vals=data['dependent_variables'][0]['values']
+        self.setMeasured([y['value'] for y in vals])                
+
     def getMatrixFromYoda(self,filename,name):
         import yoda
         scatter=yoda.read(filename)[name]
@@ -170,6 +211,19 @@ class Measurement:
             matrix+=[[]]
             for j in range(1,histo.GetNbinsY()+1):
                 matrix[-1]+=[histo.GetBinContent(i,j)]
+        return matrix
+
+    def getMatrixFromYaml(self,filename):
+        import yaml
+        f=open(filename)
+        data=yaml.load(f)
+        vals=data['dependent_variables'][0]['values']
+        assert len(vals)==self.nbins*self.nbins
+        matrix=[]
+        for i in range(self.nbins):
+            matrix+=[[]]
+            for j in range(self.nbins):
+                matrix[-1]+=[i*self.nbins+j]
         return matrix
 
     def scale(self,s):
