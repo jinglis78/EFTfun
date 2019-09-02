@@ -164,14 +164,12 @@ class Measurement:
                         errs.append(error['symerror'])
                         break
                     elif 'asymerror' in error:
-                        errs.append(abs(error['asymerror']['minus'])/2+abs(error['asymerror']['plus'])/2)
+                        errs.append(error['asymerror']['plus']/2-error['asymerror']['minus']/2)
                         break
         f.close()
         return errs
 
     def setErrFromCfg(self,data):
-        print data
-        raw_input()
         options,data=Utils.getOptionsAndData(data)
         filename,error_label=data.split(":")
         errs=self.getErrsFromYaml(filename,error_label)
