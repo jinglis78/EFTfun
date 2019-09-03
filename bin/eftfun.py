@@ -92,7 +92,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         print 'write_more',write_more
         print 'override',override
         print '--------------------------------------'
-
+    #TODO: make sure all options are used
     main_cfg_name=config
     main_cfg = SafeConfigParser()
     main_cfg.optionxform = str
@@ -163,7 +163,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
 
         if cfg.has_section('Exp Systs'):
             for exp_syst_name,exp_syst in cfg.items('Exp Systs'):
-                measurement.setErrFromCfg(exp_syst)
+                measurement.addUncertaintyFromCfg(exp_syst_name,exp_syst)
                 
         prediction=Prediction(cfg.get('Measurement','name'),theory,per_bin_width=per_bin_width,binning=binning)
         assert prediction.name not in [p.name for p in predictions]
@@ -202,7 +202,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])
 
             print 'Covariance matrix:'
-            measurement.covMatrix.Print()
+            measurement.getCov().Print()
 
             print 'Prediction formulas:'
             for i,s in enumerate(prediction.getPredictionStrings()):

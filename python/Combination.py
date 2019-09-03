@@ -15,15 +15,14 @@ class Combination:
         assert len(predictions)==len(measurements)
 
         for p,m in zip(predictions,measurements):
-            while m.covMatrix.Determinant()<10e-20:
-                print 'Tiny covariance matrix determinant (',m.name,':',m.covMatrix.Determinant(),') rescaling measurement and prediction by 10'
+            while m.getCov().Determinant()<10e-20:
+                print 'Tiny covariance matrix determinant (',m.name,':',m.getCov().Determinant(),') rescaling measurement and prediction by 10'
                 p.scale(10)
                 m.scale(10)
                 
         self.mvgaussians=[]
         self.xVecs=RooArgSet()
         for prediction,measurement in zip(predictions,measurements):
-            covMatrix=measurement.covMatrix
             muVec=RooArgList()
             for p in prediction.getPredictionFormulas():
                 muVec.add(p)
@@ -31,7 +30,7 @@ class Combination:
             for x in measurement.central_values:
                 xVec.add(x)
             self.xVecs.add(xVec)
-            self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec, covMatrix)]
+            self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec, measurement.getCov())]
         self.constraints=[]
         for theta in self.theory.thetas:
             constraint=RooGaussian("constraint_"+theta.GetName(),"constraint_"+theta.GetName(),theta ,RooFit.RooConst(.0) ,RooFit.RooConst(1.))

@@ -1,6 +1,7 @@
 from ROOT import RooRealVar, TMatrixDSym, TH1F
 from array import array
 import Utils
+from Uncertainty import *
 #TODO: allow profiling of experimental systematics
 class Measurement:
     def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None):
@@ -13,6 +14,7 @@ class Measurement:
         self.per_bin_width=per_bin_width
         self.binning=binning
         self.rescaled=1.
+        self.uncertainties={}
         
 
     def setMeasured(self,measured):
@@ -106,6 +108,7 @@ class Measurement:
             if ':' in data_err:
                 label_err=data_err.split(':')[1]
                 errs=self.getErrsFromYaml(filename_err,label_err)
+                errs=[(abs(x[0])+abs(x[1]))/2 for x in errs]
             else:
                 f=open(filename_err)
                 vals=yaml.load(f)['dependent_variables'][0]['values']
@@ -160,32 +163,30 @@ class Measurement:
         for y in vals:
             for error in y['errors']:
                 if error['label']==err_label:
+                    #TODO: percentage errors?
                     if 'symerror' in error:
-                        errs.append(error['symerror'])
+                        errs.append((-error['symerror'],error['symerror']))
                         break
                     elif 'asymerror' in error:
-                        errs.append(error['asymerror']['plus']/2-error['asymerror']['minus']/2)
-                        break
+                        errs.append((error['asymerror']['minus'],error['asymerror']['plus']))
+                        break        
         f.close()
         return errs
 
-    def setErrFromCfg(self,data):
+    def addUncertaintyFromCfg(self,name,data):
         options,data=Utils.getOptionsAndData(data)
         filename,error_label=data.split(":")
         errs=self.getErrsFromYaml(filename,error_label)
-        assert len(errs)==self.nbins
-        cov = TMatrixDSym(self.nbins)
-        if 'corr' in options:
-            for i in range(self.nbins):
-                for j in range(self.nbins):
-                    cov[i,j]=errs[i]*errs[j]
-        elif 'uncorr' in options:
-            for i in range(self.nbins):
-                cov[i,i]=errs[i]*errs[i]
-        else:
-            raise Exception('Uncertainty netiher correlated nor uncorrelated')
-                
-        self.covMatrix+=cov
+        rel_errs=[(e[0]/c.getVal(),e[1]/c.getVal()) for e,c in zip(errs,self.central_values)]
+        uncorr='uncorr' in options
+        self.addUncertainty(name,rel_errs,uncorr)
+            
+    def addUncertainty(self,name,rel_errs,uncorr):
+        #TODO: only book keeping, construct matrix later
+        assert len(rel_errs)==self.nbins
+        if name in self.uncertainties:
+            raise Exception('Added same uncertainty twice '+name)
+        self.uncertainties[name]=Uncertainty(self.nbins,'exp',name,rel_errs,'lin',uncorr)
 
     def setMeasuredFromYoda(self,filename,name):
         import yoda
@@ -271,7 +272,13 @@ class Measurement:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,0,1)
         for i in range(self.nbins):
             h.SetBinContent(i+1,self.central_values[i].getVal()/self.rescaled)
-            h.SetBinError(i+1,(self.covMatrix[i][i])**0.5/self.rescaled)
+            h.SetBinError(i+1,(self.getCov()[i][i])**0.5/self.rescaled)
         outfile.cd()
         h.Write()
         return h
+
+    def getCov(self):
+        cov=self.covMatrix
+        for u in self.uncertainties:
+            cov+=self.uncertainties[u].getCov([x.getVal() for x in self.central_values])
+        return cov
