@@ -278,7 +278,7 @@ class Measurement:
         return h
 
     def getCov(self):
-        cov=self.covMatrix
+        cov=TMatrixDSym(self.covMatrix)
         for u in self.uncertainties:
             cov+=self.uncertainties[u].getCov([x.getVal() for x in self.central_values])
         return cov
