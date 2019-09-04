@@ -78,3 +78,18 @@ def readRoot(filename,histoname,per_bin_width):
         contents=[histo.GetBinContent(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
         uncertainty=[histo.GetBinError(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
     return contents,uncertainty
+
+def isListOfNumbers(data,nbins):
+    splt=data.split()
+    if not len(splt)==1 and not len(splt)==nbins:
+        return False
+    for s in splt:
+        numbers=s.split(',')
+        for n in numbers:
+            try:
+                float(n)
+            except ValueError:
+                return False
+    return True
+    
+    

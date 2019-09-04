@@ -113,13 +113,14 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         ranges = dict(x for x in main_cfg.itemsAndRm('Ranges'))
     else:
         ranges = {}
-    for c in main_cfg.getAndRm('General','coeffs').split():
-        if c in ranges:
-            rng=[float(x) for x in ranges[c].split()]
-        else:
-            rng=[float(x) for x in main_cfg.getAndRm('General','default_range').split()]
-        assert len(rng)==2
-        theory.addCoeff(c,rng)
+    if main_cfg.has_option('General','coeffs'):
+        for c in main_cfg.getAndRm('General','coeffs').split():
+            if c in ranges:
+                rng=[float(x) for x in ranges[c].split()]
+            else:
+                rng=[float(x) for x in main_cfg.getAndRm('General','default_range').split()]
+            assert len(rng)==2
+            theory.addCoeff(c,rng)
         
     measurements=[]
     predictions=[]

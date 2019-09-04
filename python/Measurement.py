@@ -159,21 +159,14 @@ class Measurement:
         self.setCov(cov)
 
     def addUncertaintyFromCfg(self,name,data):
-        options,data=Utils.getOptionsAndData(data)
-        if ':' in data:
-            filename,error_label=data.split(":")
-        else:
-            filename,error_label=self.hepdata,data
-        rel_errs=Uncertainty.getErrsFromYaml(self,filename,error_label)
-        uncorr='uncorr' in options
-        self.addUncertainty(name,rel_errs,uncorr)
+        u=Uncertainty.createUncertaintyFromCfg(self,name,data)
+        self.addUncertainty(u)
             
-    def addUncertainty(self,name,rel_errs,uncorr):
-        #TODO: only book keeping, construct matrix later
-        assert len(rel_errs)==self.nbins
-        if name in self.uncertainties:
-            raise Exception('Added same uncertainty twice '+name)
-        self.uncertainties[name]=Uncertainty.Uncertainty(self.nbins,'exp',name,rel_errs,'lin',uncorr)
+    def addUncertainty(self,uncertainty):
+        assert uncertainty.nbins==self.nbins
+        if uncertainty.name in self.uncertainties:
+            raise Exception('Added same uncertainty twice '+uncertainty.name)
+        self.uncertainties[uncertainty.name]=uncertainty
 
     def setMeasuredFromYoda(self,filename,name):
         import yoda
