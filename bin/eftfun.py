@@ -94,6 +94,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         print '--------------------------------------'
     #TODO: make sure all options are used
     main_cfg_name=config
+    SafeConfigParser.getAndRm = Utils.getAndRm
+    SafeConfigParser.getbooleanAndRm = Utils.getbooleanAndRm
+    SafeConfigParser.itemsAndRm = Utils.itemsAndRm
     main_cfg = SafeConfigParser()
     main_cfg.optionxform = str
     if override!=None:
@@ -110,20 +113,20 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
 
     theory=Theory()
     if main_cfg.has_section('Ranges'):
-        ranges = dict(x for x in main_cfg.items('Ranges'))
+        ranges = dict(x for x in main_cfg.itemsAndRm('Ranges'))
     else:
         ranges = {}
-    for c in main_cfg.get('General','coeffs').split():
+    for c in main_cfg.getAndRm('General','coeffs').split():
         if c in ranges:
             rng=[float(x) for x in ranges[c].split()]
         else:
-            rng=[float(x) for x in main_cfg.get('General','default_range').split()]
+            rng=[float(x) for x in main_cfg.getAndRm('General','default_range').split()]
         assert len(rng)==2
         theory.addCoeff(c,rng)
         
     measurements=[]
     predictions=[]
-    for cfg_name in main_cfg.get('General','measurement_configs').split():
+    for cfg_name in main_cfg.getAndRm('General','measurement_configs').split():
         cfg=SafeConfigParser()
         cfg.optionxform = str
         if not os.path.exists(cfg_name):
@@ -136,50 +139,50 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             if ovr.split(':')[0]=='measurements' or ovr.split(':')[0]==cfg_name:
                 overrides_measurement+=[ovr.split(':')[1]]
 
-        cfg.read([main_cfg_name,Utils.expandCfg(cfg_name,overrides_measurement)])
+        cfg.read(Utils.expandCfg(cfg_name,overrides_measurement))
 
         per_bin_width=False
         if cfg.has_option('Measurement','per_bin_width'):
-            per_bin_width=cfg.getboolean('Measurement','per_bin_width')
+            per_bin_width=cfg.getbooleanAndRm('Measurement','per_bin_width')
         binning=None
         if cfg.has_option('Measurement','binning'):
-            binning=[float(x) for x in cfg.get('Measurement','binning').split()]
+            binning=[float(x) for x in cfg.getAndRm('Measurement','binning').split()]
 
 
-        measurement=Measurement(cfg.get('Measurement','name'),per_bin_width=per_bin_width,binning=binning)
+        measurement=Measurement(cfg.getAndRm('Measurement','name'),per_bin_width=per_bin_width,binning=binning)
         assert not measurement.name in [m.name for m in measurements]
         
         if asimov:
-            measurement.setMeasuredFromCfg(cfg.get('Measurement','sm'))
+            measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','sm'))
         else:
-            measurement.setMeasuredFromCfg(cfg.get('Measurement','measured'))
+            measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
 
         if cfg.has_option('Measurement','covariance'):
-            measurement.setCovFromCfg(cfg.get('Measurement','covariance'))
+            measurement.setCovFromCfg(cfg.getAndRm('Measurement','covariance'))
         elif cfg.has_option('Measurement','correlation') and cfg.has_option('Measurement','uncertainty'):
-            measurement.setErrAndCorrFromCfg(cfg.get('Measurement','uncertainty'),cfg.get('Measurement','correlation'))
+            measurement.setErrAndCorrFromCfg(cfg.getAndRm('Measurement','uncertainty'),cfg.getAndRm('Measurement','correlation'))
         else:
             raise Exception("Found neither covariance nor uncertainty and correlation for measurement in "+cfg_name)
 
         if cfg.has_section('Exp Systs'):
-            for exp_syst_name,exp_syst in cfg.items('Exp Systs'):
+            for exp_syst_name,exp_syst in cfg.itemsAndRm('Exp Systs'):
                 measurement.addUncertaintyFromCfg(exp_syst_name,exp_syst)
                 
-        prediction=Prediction(cfg.get('Measurement','name'),theory,per_bin_width=per_bin_width,binning=binning)
+        prediction=Prediction(measurement.name,theory,per_bin_width=per_bin_width,binning=binning)
         assert prediction.name not in [p.name for p in predictions]
         
-        prediction.setSMfromCfg(cfg.get('Measurement','sm'))
+        prediction.setSMfromCfg(cfg.getAndRm('Measurement','sm'))
         if cfg.has_option('Measurement','renorm sm'):        
-            prediction.setNormHistoFromCfg(cfg.get('Measurement','renorm sm'))
+            prediction.setNormHistoFromCfg(cfg.getAndRm('Measurement','renorm sm'))
         if cfg.has_option('Measurement','scaling_factor'):
-            prediction.setScalingFromCfg(cfg.get('Measurement','scaling_factor'))
+            prediction.setScalingFromCfg(cfg.getAndRm('Measurement','scaling_factor'))
         if cfg.has_option('Measurement','stat_unc_threshold'):
-            prediction.stat_unc_threshold=float(cfg.get('Measurement','stat_unc_threshold'))
+            prediction.stat_unc_threshold=float(cfg.getAndRm('Measurement','stat_unc_threshold'))
         if cfg.has_section('Theo Systs'):
-            for theo_syst_name,theo_syst in cfg.items('Theo Systs'):
+            for theo_syst_name,theo_syst in cfg.itemsAndRm('Theo Systs'):
                 prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst)
         if cfg.has_section('Linear Effects'):
-            for name,effect in cfg.items('Linear Effects'):
+            for name,effect in cfg.itemsAndRm('Linear Effects'):
                 if not prediction.setEffectFromCfg(1,name,effect):
                     print "WARNING: Could not find linear effect for "+name+" -- assuming it is zero"
         if not linear and cfg.has_section('Quadratic Effects'):
@@ -187,11 +190,15 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             for name,effect in cfg.items('Quadratic Effects'):
                 if prediction.setEffectFromCfg(2,name,effect):
                     names_set+=[' '.join(name.split())]
-            for name,effect in cfg.items('Quadratic Effects'):
+            for name,effect in cfg.itemsAndRm('Quadratic Effects'):
                 reverse=name.split()[1]+' '+name.split()[0]
                 if not name in names_set and not reverse in names_set:
                     print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" -- assuming it is zero"
-                        
+
+        for s in cfg.sections():
+            if len(cfg.options(s))>0:
+                raise Exception('Unused option '+','.join(cfg.options(s))+' in section '+s)
+        
         measurements+=[measurement]
         predictions+=[prediction]
                     
@@ -200,6 +207,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         for measurement,prediction in zip(measurements,predictions):
             print 'Measurement:',measurement.name
             print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])
+            print 'Uncertainty:', ' '.join(["{:.2f}% ".format(100*measurement.getCov()[i][i]**0.5/measurement.central_values[i].getVal()) for i in range(measurement.nbins)])
 
             print 'Covariance matrix:'
             measurement.getCov().Print()
@@ -211,14 +219,14 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
                 print s
             print
             print '------------------------------------------------'
-
+    main_name=main_cfg.getAndRm('General','name')
     if outname==None:
-        outname=main_cfg.get('General','name')
+        outname=main_name
     outname='results/'+outname
     if not os.path.exists(outname):
         os.makedirs(outname)
     f=TFile(outname+'.root','RECREATE')
-    combination=Combination(theory,predictions,measurements,main_cfg.get('General','name'),verbose=verbose) 
+    combination=Combination(theory,predictions,measurements,main_name,verbose=verbose) 
 
     if poi==None:
         pois=[]
@@ -232,6 +240,11 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             par=x.split("=")[0].strip()
             val=float(x.split("=")[1].strip())
             theory.setInitialVal(par,val)
+
+    for s in main_cfg.sections():
+        if len(main_cfg.options(s))>0:
+            raise Exception('Unused option '+','.join(main_cfg.options(s))+' in section '+s)
+
 
     if not force:
         raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')

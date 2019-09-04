@@ -90,11 +90,13 @@ def expandCfg(cfg_name,overrides):
 
     config_new=ConfigParser()
     config_new.optionxform = str
-    for section in  sections_new:
+    for section in sections_new:
         config_new.add_section(section)
         for key in sections_new[section]:
             config_new.set(section,key,sections_new[section][key])
 
+    config_new.remove_section('Wildcards')
+    
     new_cfg_name=cfg_name+'.exp'
     with open(new_cfg_name, 'wb') as configfile:
         config_new.write(configfile)
@@ -137,3 +139,19 @@ def getOptionsAndData(data):
         options=set()
     data=data[data.find('}')+1:].strip()
     return options,data
+
+def getAndRm(self,section,option):
+    val=self.get(section,option)
+    self.remove_option(section,option)
+    return val
+
+def getbooleanAndRm(self,section,option):
+    val=self.getboolean(section,option)
+    self.remove_option(section,option)
+    return val
+
+def itemsAndRm(self,section):
+    items=self.items(section)
+    self.remove_section(section)
+    return items
+
