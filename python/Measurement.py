@@ -11,10 +11,13 @@ class Measurement:
             self.setMeasured(measured)
         if covariance!=None:
             self.setCov(covariance)
+        else:
+            self.covMatrix=None
         self.per_bin_width=per_bin_width
         self.binning=binning
         self.rescaled=1.
         self.uncertainties={}
+        self.hepdata=None
         
 
     def setMeasured(self,measured):
@@ -51,6 +54,7 @@ class Measurement:
             assert len(spl)==2
             self.setMeasuredFromRoot(spl[0],spl[1])
         elif data.endswith('.yaml'):
+            self.hepdata=data
             self.setMeasuredFromYaml(data)
         else:
             self.setMeasured([float(x) for x in data.split()])
@@ -107,7 +111,7 @@ class Measurement:
             label_err=None
             if ':' in data_err:
                 label_err=data_err.split(':')[1]
-                errs=self.getErrsFromYaml(filename_err,label_err)
+                errs=self.getErrsFromYaml(filename_err,label_err,rel=False)
                 errs=[(abs(x[0])+abs(x[1]))/2 for x in errs]
             else:
                 f=open(filename_err)
@@ -154,30 +158,51 @@ class Measurement:
                 cov[i][j]=errs[i]*errs[j]*corr[i][j]
         self.setCov(cov)
 
-    def getErrsFromYaml(self,filename,err_label):
+    def getErrsFromYaml(self,filename,err_label,rel=True):
         import yaml
         f=open(filename)
         vals=yaml.load(f)['dependent_variables'][0]['values']
         assert len(vals)==self.nbins
         errs=[]
-        for y in vals:
+        for y,meas in zip(vals,self.getMeas()):
             for error in y['errors']:
-                if error['label']==err_label:
-                    #TODO: percentage errors?
+                if error['label']==err_label:                    
                     if 'symerror' in error:
-                        errs.append((-error['symerror'],error['symerror']))
+                        if isinstance(error['symerror'],str) and '%' in error['symerror']:
+                            err=float(error['symerror'].replace('%',''))/100.
+                            if not rel:
+                                err*=meas
+                            errs.append((-err,err))
+                        else:
+                            err=float(error['symerror'])
+                            if rel:
+                                err/=meas
+                            errs.append((-err,err))
                         break
                     elif 'asymerror' in error:
-                        errs.append((error['asymerror']['minus'],error['asymerror']['plus']))
+                        if isinstance(error['asymerror']['minus'],str) and '%' in error['asymerror']['minus']:
+                            asymerr=(float(error['asymerror']['minus'].replace('%',''))/100.,float(error['asymerror']['plus'].replace('%',''))/100.)
+                            if not rel:
+                                errs.append((asymerr[0]*meas,asymerr[1]*meas))
+                            else:
+                                errs.append(asymerr)
+                        else:
+                            asymerr=(float(error['asymerror']['minus']),float(error['asymerror']['plus']))
+                            if rel:
+                                errs.append((asymerr[0]/meas,asymerr[1]/meas))
+                            else:
+                                errs.append(asymerr)
                         break        
         f.close()
         return errs
 
     def addUncertaintyFromCfg(self,name,data):
         options,data=Utils.getOptionsAndData(data)
-        filename,error_label=data.split(":")
-        errs=self.getErrsFromYaml(filename,error_label)
-        rel_errs=[(e[0]/c.getVal(),e[1]/c.getVal()) for e,c in zip(errs,self.central_values)]
+        if ':' in data:
+            filename,error_label=data.split(":")
+        else:
+            filename,error_label=self.hepdata,data
+        rel_errs=self.getErrsFromYaml(filename,error_label)
         uncorr='uncorr' in options
         self.addUncertainty(name,rel_errs,uncorr)
             
@@ -260,7 +285,8 @@ class Measurement:
         return matrix
 
     def scale(self,s):
-        self.covMatrix*=s*s       
+        if self.covMatrix!=None:
+            self.covMatrix*=s*s  
         for x in self.central_values:
             x.setVal(x.getVal()*s)
         self.rescaled*=s
@@ -278,7 +304,23 @@ class Measurement:
         return h
 
     def getCov(self):
-        cov=TMatrixDSym(self.covMatrix)
+        if self.covMatrix:
+            cov=TMatrixDSym(self.covMatrix)
+        else:
+            cov=TMatrixDSym(self.nbins)
         for u in self.uncertainties:
-            cov+=self.uncertainties[u].getCov([x.getVal() for x in self.central_values])
+            cov+=self.uncertainties[u].getCov(self.getMeas())
         return cov
+
+    def getCorr(self):
+        m=TMatrixDSym(self.getCov())
+        var=[m[i][i] for i in range(self.nbins)]
+        for i in range(self.nbins):
+            for j in range(self.nbins):
+                m[i][j]=m[i][j]/var[i]**0.5/var[j]**0.5
+        return m
+        
+
+
+    def getMeas(self):
+        return [x.getVal() for x in self.central_values]

@@ -151,15 +151,17 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         
         if asimov:
             measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','sm'))
+            cfg.remove_option('Measurement','sm')
         else:
             measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
 
         if cfg.has_option('Measurement','covariance'):
             measurement.setCovFromCfg(cfg.getAndRm('Measurement','covariance'))
-        elif cfg.has_option('Measurement','correlation') and cfg.has_option('Measurement','uncertainty'):
-            measurement.setErrAndCorrFromCfg(cfg.getAndRm('Measurement','uncertainty'),cfg.getAndRm('Measurement','correlation'))
+        elif cfg.has_option('Measurement','correlation') and cfg.has_option('Measurement','correlated_uncertainty'):
+            measurement.setErrAndCorrFromCfg(cfg.getAndRm('Measurement','correlated_uncertainty'),cfg.getAndRm('Measurement','correlation'))
         else:
-            raise Exception("Found neither covariance nor uncertainty and correlation for measurement in "+cfg_name)
+            print 'WARNING: neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties'
+            
 
         if cfg.has_section('Exp Systs'):
             for exp_syst_name,exp_syst in cfg.itemsAndRm('Exp Systs'):
@@ -169,8 +171,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         assert prediction.name not in [p.name for p in predictions]
         
         prediction.setSMfromCfg(cfg.getAndRm('Measurement','sm'))
-        if cfg.has_option('Measurement','renorm sm'):        
-            prediction.setNormHistoFromCfg(cfg.getAndRm('Measurement','renorm sm'))
+        if cfg.has_option('Measurement','renorm_sm'):        
+            prediction.setNormHistoFromCfg(cfg.getAndRm('Measurement','renorm_sm'))
         if cfg.has_option('Measurement','scaling_factor'):
             prediction.setScalingFromCfg(cfg.getAndRm('Measurement','scaling_factor'))
         if cfg.has_option('Measurement','stat_unc_threshold'):
@@ -206,8 +208,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])
             print 'Uncertainty:', ' '.join(["{:.2f}% ".format(100*measurement.getCov()[i][i]**0.5/measurement.central_values[i].getVal()) for i in range(measurement.nbins)])
 
-            print 'Covariance matrix:'
-            measurement.getCov().Print()
+            print 'Correlation matrix:'
+            measurement.getCorr().Print()
 
             print 'Prediction formulas:'
             for i,s in enumerate(prediction.getPredictionStrings()):
@@ -297,8 +299,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     elif method=='fit':
         if verbose:
             print 'doing fit'
-        #for p in pois:
-        #    theory.setFloating(p)
         data_histos_prefit=[]
         pred_histos_prefit=[]
         for p,m in zip(predictions,measurements):
@@ -306,19 +306,18 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             data_histos_prefit+=[m.plotPrefit(f)]
         combination.fit()
         corr=combination.getFitResult().correlationHist()
-        corrPOIs=combination.correlationHistPOIs()
         corr.Write()
-        corrPOIs.Write()
         Plotting.canvasCorrelation('c_correlation',corr,f,outname)
-        Plotting.canvasCorrelation('c_correlationPOIs',corrPOIs,f,outname)
+        if len(pois)>0:
+            corrPOIs=combination.correlationHistPOIs()
+            corrPOIs.Write()
+            Plotting.canvasCorrelation('c_correlationPOIs',corrPOIs,f,outname)
         
         for p,m,h_p_pre,h_m_pre in zip(predictions,measurements,pred_histos_prefit,data_histos_prefit):
             h_p_post=p.plotPostfit(f,combination.getFitResult())
             Plotting.canvasPostfit('c_postfit_'+m.name,h_m_pre,h_p_pre,h_p_post,outfile=f,outfolder=outname)
 
     elif method=='pulls':
-        #for p in pois:
-        #    theory.setFloating(p)        
         pulls=combination.pulls()
         pullsEach=combination.pullEach()
         print 'Results when floating all (MINOS errors)'

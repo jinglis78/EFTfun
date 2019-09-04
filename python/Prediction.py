@@ -390,6 +390,7 @@ class Prediction:
                 interpol=o
                 options.remove(o)
                 break
+        isrel=None
         if 'abs' in options:
             isrel=False
             options.remove('abs')
@@ -403,8 +404,16 @@ class Prediction:
         elif 'keepnorm' in options:
             renorm=False
             options.remove('keepnorm')
+        elif self.normhisto==None:
+            renorm=False
         if len(options)>0:
             raise Exception('unknow/incompatible options in uncertainty '+data+' : '+' '.join(list(options)))
+        if interpol==None:
+            raise Exception('Need to specify interpolation: lin or exp')
+        if isrel==None:
+            raise Exception('Uncertainty needs to have option rel or abs')
+        if renorm==None:
+            raise Exception('Uncertainty needs to have option renorm or keepnorm')
         releffect=None
         if Utils.isFile(data):
             spl=data.split(',')

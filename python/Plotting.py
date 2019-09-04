@@ -225,7 +225,7 @@ def canvasPostfit(name,data_prefit,pred_prefit,pred_postfit,outfile,outfolder):
     legend.AddEntry(data_prefit,'measurement','PE')
     legend.Draw()
 
-    printAndSave(c,outfile,outfolder)
+    printAndSave(c,outfile,outfolder,alsoLog=True)
     return c
 
 def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
@@ -310,9 +310,12 @@ def canvasCorrelation(name,h,outfile,outfolder):
     printAndSave(c,outfile,outfolder)
     
 
-def printAndSave(c,outfile,outfolder):
+def printAndSave(c,outfile,outfolder,alsoLog=False):
     outfile.cd()
     c.Write()
     c.SaveAs(outfolder+'/'+c.GetName()+'.pdf')
     c.SaveAs(outfolder+'/'+c.GetName()+'.png')
-    
+    if alsoLog:
+        c.SetLogy()
+        c.SaveAs(outfolder+'/'+c.GetName()+'_log.pdf')
+        c.SaveAs(outfolder+'/'+c.GetName()+'_log.png')
