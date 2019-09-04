@@ -354,5 +354,5 @@ class Prediction:
             self.normhisto=[x*s for x in self.normhisto]
         self.rescaled*=s
 
-    def getNominal():
-        return sm
+    def getNominal(self):
+        return self.sm
