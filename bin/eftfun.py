@@ -206,9 +206,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         print 'Ingredients ------------------------------------------------'
         for measurement,prediction in zip(measurements,predictions):
             print 'Measurement:',measurement.name
-            print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])
-            print 'Uncertainty:', ' '.join(["{:.2f}% ".format(100*measurement.getCov()[i][i]**0.5/measurement.central_values[i].getVal()) for i in range(measurement.nbins)])
-
+            print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])            
+            print 'Uncertainty:', ' '.join(["{:.2f}% ".format(100.*x) for x in measurement.getRelErr()])
             print 'Correlation matrix:'
             measurement.getCorr().Print()
 

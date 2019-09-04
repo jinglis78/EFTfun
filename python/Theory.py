@@ -125,8 +125,8 @@ class Theory:
         for c in self.coeffs+self.thetas:
             if c.GetName() == name:
                 return c
-        print 'did not find parameter',name
-        assert False
+        raise Exception('Did not find parameter '+name)
+        
         
     def getConstantCoeffs(self):
         cs=[]

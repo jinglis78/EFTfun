@@ -109,12 +109,12 @@ class Measurement:
             import yaml
             filename_err=data_err.split(':')[0]
             label_err=None
-            if ':' in data_err:
+            if ':' in data_err and data_err.split(':')[1].lower()!='all':
                 label_err=data_err.split(':')[1]
                 errs=Uncertainty.getErrsFromYaml(self,filename_err,label_err,rel=False)
                 errs=[(abs(x[0])+abs(x[1]))/2 for x in errs]
             else:
-                f=open(filename_err)
+                f=open(filename_err.split(':')[0])
                 vals=yaml.load(f)['dependent_variables'][0]['values']
                 assert len(vals)==self.nbins
                 errs=[]
@@ -125,7 +125,7 @@ class Measurement:
                             total_err2+=error['symerror']**2
                         elif 'asymerror' in error:
                             total_err2+=(abs(error['asymerror']['minus'])+abs(error['asymerror']['plus']))**2/4.
-                errs.append(total_err2**0.5)
+                    errs.append(total_err2**0.5)
                 f.close()
             assert len(errs)==self.nbins
 
@@ -253,7 +253,7 @@ class Measurement:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,0,1)
         for i in range(self.nbins):
             h.SetBinContent(i+1,self.central_values[i].getVal()/self.rescaled)
-            h.SetBinError(i+1,(self.getCov()[i][i])**0.5/self.rescaled)
+            h.SetBinError(i+1,self.getErr()[i]/self.rescaled)
         outfile.cd()
         h.Write()
         return h
@@ -274,7 +274,15 @@ class Measurement:
             for j in range(self.nbins):
                 m[i][j]=m[i][j]/var[i]**0.5/var[j]**0.5
         return m
-        
+
+    def getRelErr(self):
+        cov=self.getCov()
+        return [(cov[i][i])**0.5/self.getNominal()[i] for i in range(self.nbins)]
+
+    def getErr(self):
+        cov=self.getCov()
+        return [(cov[i][i])**0.5 for i in range(self.nbins)]
+
     def getMeas(self):
         return [x.getVal() for x in self.central_values]
 
