@@ -2,7 +2,7 @@
 import sys
 sys.path.insert(0, '../python')
 sys.path.insert(0, 'python')
-from ConfigParser import SafeConfigParser
+import MyConfigParser
 from Measurement import Measurement
 from Theory import Theory
 from Prediction import Prediction
@@ -32,7 +32,7 @@ def main():
                       dest="scanrange",default='3',metavar='SCANRANGE',
                       help="Scan range, either given as min:max or one number. If only one number, scan will be performed in range (-SCANRANGE*error+central,central+SCANRANGE*error). For multiple POIs, multiple scan ranges can be given, separated by commas. Only relevant for method 'scan'.")
     parser.add_option("-c", "--constant", dest="constant", metavar="CONSTANTPARS",
-                      help="Parameters that are set constant ('all' for all coefficients except nuisance parameters). Can be both nuisance parameters and POIs. Comma separated.")
+                      help="Parameters that are set constant ('all' for all coefficients except nuisance parameters). Can be both nuisance parameters avnd POIs. Comma separated.")
     parser.add_option("-s", "--set", dest="initial", metavar="PARAMETERSETTING",
                       help="Set parameters to specific (initial) values with par1=x,par2=y,... Can be both nuisance parameters and POIs.")
     parser.add_option("-d", "--deactivate-uncertainties",metavar='PATTERN',
@@ -94,10 +94,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         print '--------------------------------------'
     #TODO: make sure all options are used
     main_cfg_name=config
-    SafeConfigParser.getAndRm = Utils.getAndRm
-    SafeConfigParser.getbooleanAndRm = Utils.getbooleanAndRm
-    SafeConfigParser.itemsAndRm = Utils.itemsAndRm
-    main_cfg = SafeConfigParser()
+    main_cfg = MyConfigParser.MyConfigParser()
     main_cfg.optionxform = str
     if override!=None:
         overrides=override.split(',')
@@ -108,7 +105,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         if ovr.split(':')[0]=='main' or ovr.split(':')[0]==main_cfg_name:
             overrides_main+=[ovr.split(':')[1]]
 
-    main_cfg_name=Utils.expandCfg(main_cfg_name,overrides_main)
+    main_cfg_name=MyConfigParser.expandCfg(main_cfg_name,overrides_main)
     main_cfg.read(main_cfg_name)
 
     theory=Theory()
@@ -127,7 +124,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     measurements=[]
     predictions=[]
     for cfg_name in main_cfg.getAndRm('General','measurement_configs').split():
-        cfg=SafeConfigParser()
+        cfg=MyConfigParser.MyConfigParser()
         cfg.optionxform = str
         if not os.path.exists(cfg_name):
             cfg_name_orig=cfg_name
@@ -139,7 +136,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             if ovr.split(':')[0]=='measurements' or ovr.split(':')[0]==cfg_name:
                 overrides_measurement+=[ovr.split(':')[1]]
 
-        cfg.read(Utils.expandCfg(cfg_name,overrides_measurement))
+        cfg.read(MyConfigParser.expandCfg(cfg_name,overrides_measurement))
 
         per_bin_width=False
         if cfg.has_option('Measurement','per_bin_width'):
@@ -345,7 +342,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     #TODO: implement hypotest inverter
         
     else:
-        raise Excpetion("unkown method "+method)
+        raise Exception("unkown method "+method)
     
     f.Close()
 
