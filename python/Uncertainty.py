@@ -1,4 +1,139 @@
 from ROOT import TMatrixDSym
+import Utils
+
+def createUncertaintyFromCfg(reference,name,data):
+    if '{' in name:
+        affected=set(o.strip() for o in name[name.find('{')+1:name.find('}')].split())
+        if 'all' in affected:
+            affected='all'
+        thetaname=name[name.find('}')+1:].strip()
+    else:
+        thetaname=name
+        affected='all'
+
+    options,data=Utils.getOptionsAndData(data)
+    interpol='lin'
+    for o in options:
+        if o in ['lin','exp']:
+            interpol=o
+            options.remove(o)
+            break
+    isrel=None
+    if 'abs' in options:
+        isrel=False
+        options.remove('abs')
+    elif 'rel' in options:
+        isrel=True
+        options.remove('rel')
+    renorm=False
+    if 'renorm' in options:
+        renorm=True
+        options.remove('renorm')
+    elif 'keepnorm' in options:
+        renorm=False
+        options.remove('keepnorm')
+    uncorr=False
+    if 'corr' in options:
+        uncorr=False
+        options.remove('corr')
+    elif 'uncorr' in options:
+        uncorr=True
+        options.remove('uncorr')
+
+    if len(options)>0:
+        raise Exception('unknow/incompatible options in uncertainty '+data+' : '+' '.join(list(options)))
+    if isrel==None:
+        raise Exception('Uncertainty needs to have option rel or abs')
+    releffect=None
+    if '.yaml' in data.lower():
+        createUncertaintyFromYaml(data)
+    if Utils.isFile(data):
+        spl=data.split(',')
+        assert len(spl)==2
+        down_filename,down_histoname=spl[0].split(':')
+        up_filename,up_histoname=spl[1].split(':')
+        return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr)
+    else:
+        effect=[]
+        for e in data.split():
+            if ',' in e:
+                effect+=[ ( float(e.split(',')[0]) , float(e.split(',')[1]) ) ]
+            else:
+                effect+=[ ( -float(e), float(e)) ]
+        if len(effect)==1:
+            effect=effect*reference.nbins
+        if isrel:
+            releffect=effect
+        else:
+            releffect=[(e[0]/s,e[1]/s) for e,s in zip(effect,reference.getNominal())]
+        if renorm:
+            releffect=[(e[0]*s/n,e[1]*s/n) for s,e,n in zip(reference.getNominal(),effect,reference.normhisto)]
+        return createUncertainty(reference,thetaname,releffect=releffect,affected=affected,interpol=interpol,uncorr=uncorr)
+
+def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False):
+    #TODO: one-sided uncertainties
+    if down_filename==None:
+        down=[0.]*reference.nbins
+    else:
+        down=Utils.readFile(down_filename,down_histoname)[0]
+    if up_filename==None:
+        up=[0.]*reference.nbins
+    else:
+        up=Utils.readFile(up_filename,up_histoname)[0]
+    assert len(up)==reference.nbins
+    assert len(down)==reference.nbins
+    if renorm:
+        up=[u/n-1 for u,n in zip(up,reference.normhisto)]
+        down=[d/n-1 for d,n in zip(down,reference.normhisto)]
+    else:
+        up=[u/n-1 for u,n in zip(up,reference.getNominal())]
+        down=[d/n-1 for d,n in zip(down,reference.getNominal())]
+    releffect=zip(up,down)
+    return createUncertainty(name,releffect,affected,interpol,uncorr)
+
+def createUncertainty(reference,name,releffect,affected='all',interpol='exp',uncorr=False):
+    if not isinstance(releffect,list):
+        releffect=[releffect]*reference.nbins
+    assert len(releffect)==reference.nbins
+    return Uncertainty(reference.nbins,affected,name,releffect,interpol,uncorr)
+
+def getErrsFromYaml(reference,filename,err_label,rel=True):
+    import yaml
+    f=open(filename)
+    vals=yaml.load(f)['dependent_variables'][0]['values']
+    assert len(vals)==reference.nbins
+    errs=[]
+    for y,meas in zip(vals,reference.getNominal()):
+        for error in y['errors']:
+            if error['label']==err_label:                    
+                if 'symerror' in error:
+                    if isinstance(error['symerror'],str) and '%' in error['symerror']:
+                        err=float(error['symerror'].replace('%',''))/100.
+                        if not rel:
+                            err*=meas
+                        errs.append((-err,err))
+                    else:
+                        err=float(error['symerror'])
+                        if rel:
+                            err/=meas
+                        errs.append((-err,err))
+                    break
+                elif 'asymerror' in error:
+                    if isinstance(error['asymerror']['minus'],str) and '%' in error['asymerror']['minus']:
+                        asymerr=(float(error['asymerror']['minus'].replace('%',''))/100.,float(error['asymerror']['plus'].replace('%',''))/100.)
+                        if not rel:
+                            errs.append((asymerr[0]*meas,asymerr[1]*meas))
+                        else:
+                            errs.append(asymerr)
+                    else:
+                        asymerr=(float(error['asymerror']['minus']),float(error['asymerror']['plus']))
+                        if rel:
+                            errs.append((asymerr[0]/meas,asymerr[1]/meas))
+                        else:
+                            errs.append(asymerr)
+                    break        
+    f.close()
+    return errs
 
 class Uncertainty:
     def __init__(self,nbins,affected,name,releffect,interpol,uncorr=False):

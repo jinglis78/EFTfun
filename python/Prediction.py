@@ -3,7 +3,7 @@ from math import log
 from array import array
 import os
 import Utils
-from Uncertainty import *
+import Uncertainty 
 
 class Prediction:
     def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None):
@@ -36,7 +36,11 @@ class Prediction:
             elif self.theory.stat_unc_threshold!=None:
                 th=self.theory.stat_unc_threshold
             if th>0 and effect!=0 and abs(error/effect)>th:
-                self.addUncertainty(self.theory.makeMCstatName(self.name,coeff_name,iBin),[0.]*iBin+[error]+[0.]*(self.nbins-iBin-1),affected=coeff_name,interpol='lin')
+                self.addUncertainty(
+                    Uncertainty.Uncertainty(nbins=self.nbins,name=self.theory.makeMCstatName(self.name,coeff_name,iBin),affected=coeff_name,interpol='lin',
+                                releffect=[0.]*iBin+[error]+[0.]*(self.nbins-iBin-1)
+                    )
+                )
         
         for u in self.uncertainties:
             if coeff_name in u.affected:
@@ -204,7 +208,7 @@ class Prediction:
             return self.setSM([float(x) for x in data.split()])
         
     def setSMfromFile(self,filename,histoname,rescale=1.):
-        return self.setSM(self.readFile(filename,histoname)[0],rescale)
+        return self.setSM(Utils.readFile(filename,histoname)[0],rescale)
 
     def setNormHisto(self,normhisto,rescale=1.):
         if self.nbins==None:
@@ -222,7 +226,7 @@ class Prediction:
             return self.setNormHisto([float(x) for x in data.split()])
         
     def setNormHistoFromFile(self,filename,histoname,rescale=1.):
-        return self.setNormHisto(self.readFile(filename,histoname)[0],rescale)
+        return self.setNormHisto(Utils.readFile(filename,histoname)[0],rescale)
         
     def setEffect(self,power,coeff_names,effect,uncertainty=None,rescale=1.,renorm=False,add=False,isrel=False):
         if uncertainty==None:
@@ -272,7 +276,7 @@ class Prediction:
         if not os.path.exists(filename.strip()):
             return False
         else:
-            actual_effect,actual_uncertainty=self.readFile(filename,histoname)
+            actual_effect,actual_uncertainty=Utils.readFile(filename,histoname)
             self.setEffect(power,coeff_names,actual_effect,actual_uncertainty,rescale,renorm,add=add)
             return True
 
@@ -311,7 +315,7 @@ class Prediction:
 
     def setScalingFromCfg(self,data):
         if Utils.isFile(data):
-            scaling=readFile(data)[0]
+            scaling=Utils.readFile(data)[0]
         else:
             scaling=data
             for c in ['+','-','*','/']:
@@ -330,143 +334,12 @@ class Prediction:
         assert len(scaling)==self.nbins
         self.extra_scaling=scaling
 
-    def readFile(self,filename,histoname=None):
-        if histoname==None:
-            assert ":" in filename
-            filename=filename.split(':')[0]
-            histoname=filename.split(':')[1]
-        filename=filename.strip()
-        histoname=histoname.strip()
-        if filename.lower().endswith('.root'):
-            return self.readRoot(filename,histoname)
-        elif filename.lower().endswith('.yoda'):
-            return self.readYoda(filename,histoname)
-        else:
-            pass
-        #TODO: error
-        
-    def readYoda(self,filename,histoname):
-        import yoda
-        histos=yoda.read(filename)
-        hist=histos[histoname]
-        if self.per_bin_width:
-            contents=[b.height for b in hist.bins]
-            uncertainty=[b.heightErr for b in hist.bins]
-        else:
-            contents= [b.area for b in hist.bins]
-            uncertainty=[b.areaErr for b in hist.bins]
-        return contents,uncertainty
-
-    def readRoot(self,filename,histoname):
-        import ROOT
-        f=ROOT.TFile(filename)
-        histo=f.Get(histoname)
-        if self.per_bin_width:
-            contents=[histo.GetBinContent(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
-            uncertainty=[histo.GetBinError(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
-        else:
-            contents=[histo.GetBinContent(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
-            uncertainty=[histo.GetBinError(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
-        return contents,uncertainty
-   
     def addUncertaintyFromCfg(self,name,data):
-        if '{' in name:
-            affected=set(o.strip() for o in name[name.find('{')+1:name.find('}')].split())
-            if 'all' in affected:
-                affected='all'
-            thetaname=name[name.find('}')+1:].strip()
-        else:
-            thetaname=name
-            affected='all'
-
-        if '{' in data:
-            options=set(o.lower() for o in data[data.find('{')+1:data.find('}')].split())
-        else:
-            options=[]
-        data=data[data.find('}')+1:]
-        interpol=None
-        for o in options:
-            if o in ['lin','exp']:
-                interpol=o
-                options.remove(o)
-                break
-        isrel=None
-        if 'abs' in options:
-            isrel=False
-            options.remove('abs')
-        elif 'rel' in options:
-            isrel=True
-            options.remove('rel')
-        renorm=None
-        if 'renorm' in options:
-            renorm=True
-            options.remove('renorm')
-        elif 'keepnorm' in options:
-            renorm=False
-            options.remove('keepnorm')
-        elif self.normhisto==None:
-            renorm=False
-        if len(options)>0:
-            raise Exception('unknow/incompatible options in uncertainty '+data+' : '+' '.join(list(options)))
-        if interpol==None:
-            raise Exception('Need to specify interpolation: lin or exp')
-        if isrel==None:
-            raise Exception('Uncertainty needs to have option rel or abs')
-        if renorm==None:
-            raise Exception('Uncertainty needs to have option renorm or keepnorm')
-        releffect=None
-        if Utils.isFile(data):
-            spl=data.split(',')
-            assert len(spl)==2
-            down_filename,down_histoname=spl[0].split(':')
-            up_filename,up_histoname=spl[1].split(':')
-            return self.addUncertaintyFromFile(thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm)
-        else:
-            effect=[]
-            for e in data.split():
-                if ',' in e:
-                    effect+=[ ( float(e.split(',')[0]) , float(e.split(',')[1]) ) ]
-                else:
-                    effect+=[ ( -float(e), float(e)) ]
-            if len(effect)==1:
-                effect=effect*self.nbins
-            if isrel:
-                releffect=effect
-            else:
-                releffect=[(e[0]/s,e[1]/s) for e,s in zip(effect,self.sm)]
-            if renorm:
-                releffect=[(e[0]*s/n,e[1]*s/n) for s,e,n in zip(self.sm,effect,self.normhisto)]
-            return self.addUncertainty(thetaname,releffect=releffect,affected=affected,interpol=interpol)
-
-    def addUncertaintyFromFile(self,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False):
-        #TODO: one-sided uncertainties
-        #TODO: fix
-        if down_filename==None:
-            down=[0.]*self.nbins
-        else:
-            down=self.readFile(down_filename,down_histoname)[0]
-        if up_filename==None:
-            up=[0.]*self.nbins
-        else:
-            up=self.readFile(up_filename,up_histoname)[0]
-        assert len(up)==self.nbins
-        assert len(down)==self.nbins
-        if renorm:
-            up=[u/n-1 for u,n in zip(up,self.normhisto)]
-            down=[d/n-1 for d,n in zip(down,self.normhisto)]
-        else:
-            up=[u/n-1 for u,n in zip(up,self.sm)]
-            down=[d/n-1 for d,n in zip(down,self.sm)]
-        releffect=zip(up,down)
-        return self.addUncertainty(name,releffect,affected,interpol)
-
-    def addUncertainty(self,parname,releffect,affected='all',interpol='exp'):
-        if not isinstance(releffect,list):
-            releffect=[releffect]*self.nbins
-        assert len(releffect)==self.nbins
-        self.uncertainties.append(Uncertainty(self.nbins,affected,parname,releffect,interpol))
-        self.theory.addTheta(parname)
-        return True
+        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data))
+   
+    def addUncertainty(self,uncertainty):
+        self.uncertainties.append(uncertainty)
+        self.theory.addTheta(uncertainty.name)
 
     def scale(self,s):
         self.sm=[x*s for x in self.sm]
@@ -480,3 +353,6 @@ class Prediction:
         if self.normhisto!=None:
             self.normhisto=[x*s for x in self.normhisto]
         self.rescaled*=s
+
+    def getNominal():
+        return sm

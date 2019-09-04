@@ -39,3 +39,42 @@ def getOptionsAndData(data):
     data=data[data.find('}')+1:].strip()
     return options,data
 
+
+def readFile(filename,histoname=None,per_bin_width=True):
+    if histoname==None:
+        assert ":" in filename
+        filename=filename.split(':')[0]
+        histoname=filename.split(':')[1]
+    filename=filename.strip()
+    histoname=histoname.strip()
+    if filename.lower().endswith('.root'):
+        return readRoot(filename,histoname,per_bin_width)
+    elif filename.lower().endswith('.yoda'):
+        return readYoda(filename,histoname,per_bin_width)
+    else:
+        pass
+    #TODO: error
+
+def readYoda(filename,histoname,per_bin_width):
+    import yoda
+    histos=yoda.read(filename)
+    hist=histos[histoname]
+    if per_bin_width:
+        contents=[b.height for b in hist.bins]
+        uncertainty=[b.heightErr for b in hist.bins]
+    else:
+        contents= [b.area for b in hist.bins]
+        uncertainty=[b.areaErr for b in hist.bins]
+    return contents,uncertainty
+
+def readRoot(filename,histoname,per_bin_width):
+    import ROOT
+    f=ROOT.TFile(filename)
+    histo=f.Get(histoname)
+    if per_bin_width:
+        contents=[histo.GetBinContent(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
+        uncertainty=[histo.GetBinError(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
+    else:
+        contents=[histo.GetBinContent(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
+        uncertainty=[histo.GetBinError(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
+    return contents,uncertainty

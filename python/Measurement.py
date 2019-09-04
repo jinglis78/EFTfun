@@ -1,7 +1,7 @@
 from ROOT import RooRealVar, TMatrixDSym, TH1F
 from array import array
 import Utils
-from Uncertainty import *
+import Uncertainty
 #TODO: allow profiling of experimental systematics
 class Measurement:
     def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None):
@@ -111,7 +111,7 @@ class Measurement:
             label_err=None
             if ':' in data_err:
                 label_err=data_err.split(':')[1]
-                errs=self.getErrsFromYaml(filename_err,label_err,rel=False)
+                errs=Uncertainty.getErrsFromYaml(self,filename_err,label_err,rel=False)
                 errs=[(abs(x[0])+abs(x[1]))/2 for x in errs]
             else:
                 f=open(filename_err)
@@ -158,51 +158,13 @@ class Measurement:
                 cov[i][j]=errs[i]*errs[j]*corr[i][j]
         self.setCov(cov)
 
-    def getErrsFromYaml(self,filename,err_label,rel=True):
-        import yaml
-        f=open(filename)
-        vals=yaml.load(f)['dependent_variables'][0]['values']
-        assert len(vals)==self.nbins
-        errs=[]
-        for y,meas in zip(vals,self.getMeas()):
-            for error in y['errors']:
-                if error['label']==err_label:                    
-                    if 'symerror' in error:
-                        if isinstance(error['symerror'],str) and '%' in error['symerror']:
-                            err=float(error['symerror'].replace('%',''))/100.
-                            if not rel:
-                                err*=meas
-                            errs.append((-err,err))
-                        else:
-                            err=float(error['symerror'])
-                            if rel:
-                                err/=meas
-                            errs.append((-err,err))
-                        break
-                    elif 'asymerror' in error:
-                        if isinstance(error['asymerror']['minus'],str) and '%' in error['asymerror']['minus']:
-                            asymerr=(float(error['asymerror']['minus'].replace('%',''))/100.,float(error['asymerror']['plus'].replace('%',''))/100.)
-                            if not rel:
-                                errs.append((asymerr[0]*meas,asymerr[1]*meas))
-                            else:
-                                errs.append(asymerr)
-                        else:
-                            asymerr=(float(error['asymerror']['minus']),float(error['asymerror']['plus']))
-                            if rel:
-                                errs.append((asymerr[0]/meas,asymerr[1]/meas))
-                            else:
-                                errs.append(asymerr)
-                        break        
-        f.close()
-        return errs
-
     def addUncertaintyFromCfg(self,name,data):
         options,data=Utils.getOptionsAndData(data)
         if ':' in data:
             filename,error_label=data.split(":")
         else:
             filename,error_label=self.hepdata,data
-        rel_errs=self.getErrsFromYaml(filename,error_label)
+        rel_errs=Uncertainty.getErrsFromYaml(self,filename,error_label)
         uncorr='uncorr' in options
         self.addUncertainty(name,rel_errs,uncorr)
             
@@ -211,7 +173,7 @@ class Measurement:
         assert len(rel_errs)==self.nbins
         if name in self.uncertainties:
             raise Exception('Added same uncertainty twice '+name)
-        self.uncertainties[name]=Uncertainty(self.nbins,'exp',name,rel_errs,'lin',uncorr)
+        self.uncertainties[name]=Uncertainty.Uncertainty(self.nbins,'exp',name,rel_errs,'lin',uncorr)
 
     def setMeasuredFromYoda(self,filename,name):
         import yoda
@@ -320,7 +282,8 @@ class Measurement:
                 m[i][j]=m[i][j]/var[i]**0.5/var[j]**0.5
         return m
         
-
-
     def getMeas(self):
+        return [x.getVal() for x in self.central_values]
+
+    def getNominal(self):
         return [x.getVal() for x in self.central_values]
