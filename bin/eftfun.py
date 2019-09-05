@@ -308,8 +308,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         corr=combination.getFitResult().correlationHist()
         corr.Write()
         Plotting.canvasCorrelation('c_correlation',corr,f,outname)
-        if len(pois)>0:
-            corrPOIs=combination.correlationHistPOIs()
+        corrPOIs=combination.correlationHistPOIs()
+        if corrPOIs:
             corrPOIs.Write()
             Plotting.canvasCorrelation('c_correlationPOIs',corrPOIs,f,outname)
         

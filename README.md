@@ -5,17 +5,22 @@ For help:
 ./bin/eftfun.py
 ```
 
-Prerequisites: python2.7, ROOT6 with RooFit, YODA (typically installed with [Rivet](https://rivet.hepforge.org/trac/wiki/GettingStarted))
+Prerequisites: python2.7, ROOT6 with RooFit, optionally YODA (typically installed with [Rivet](https://rivet.hepforge.org/trac/wiki/GettingStarted))
 
-On lxplus (but I would run it on a laptop):
+On lxplus
 ```
 setupATLAS
 asetup 21.6.6,AthGeneration
 source setupRivet.sh
 ```
 
+Config templates with explanations and examples:
+```
+TopCfgExample.cfg
+MeasurementCfgExample.cfg
+```
 
-Examples:
+Fitting Examples:
 ```
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m fit -c all -o example1
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m fit -c all -p cW,cHDD,cHWB,cll1,cHl3 -l -o example2
