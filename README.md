@@ -16,8 +16,8 @@ source setupRivet.sh
 
 Config templates with explanations and examples:
 ```
-configs/TopCfgExample.cfg
-configs/MeasurementCfgExample.cfg
+configs/TopCfgTemplate.cfg
+configs/MeasurementCfgTemplate.cfg
 ```
 
 Fitting Examples:
