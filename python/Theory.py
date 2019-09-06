@@ -157,5 +157,8 @@ class Theory:
         print 'setting initival val for',par_name,'to',val
     
 
-    def makeMCstatName(self,name,coeff_name,iBin):
-        return 'mcstat_'+name+'_'+coeff_name+'_lin_bin'+str(iBin)
+    def makeMCstatName(self,name,coeff_names,iBin):
+        if isinstance(coeff_names,str):
+             return 'mcstat_'+name+'_'+coeff_names+'_lin_bin'+str(iBin)
+        elif isinstance(coeff_names,list):
+            return 'mcstat_'+name+'_'+'_'.join(coeff_names)+'_quad_bin'+str(iBin)

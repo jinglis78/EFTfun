@@ -35,10 +35,11 @@ class Prediction:
                 th=self.stat_unc_threshold
             elif self.theory.stat_unc_threshold!=None:
                 th=self.theory.stat_unc_threshold
-            if th>0 and effect!=0 and abs(error/effect)>th:
+            mcstatname=self.theory.makeMCstatName(self.name,coeff_name,iBin)
+            if th>0 and effect!=0 and abs(error/effect)>th and not mcstatname in self.theory.getThetaNames():
                 self.addUncertainty(
-                    Uncertainty.Uncertainty(nbins=self.nbins,name=self.theory.makeMCstatName(self.name,coeff_name,iBin),affected=coeff_name,interpol='lin',
-                                releffect=[0.]*iBin+[error]+[0.]*(self.nbins-iBin-1)
+                    Uncertainty.Uncertainty(nbins=self.nbins,name=mcstatname,affected=coeff_name,interpol='lin',
+                                releffect=[0.]*iBin+[abs(error/effect)]+[0.]*(self.nbins-iBin-1)
                     )
                 )
         
@@ -70,8 +71,13 @@ class Prediction:
                 th=self.stat_unc_threshold
             elif self.theory.stat_unc_threshold!=None:
                 th=self.theory.stat_unc_threshold
-            if th>0 and effect!=0 and abs(error/effect)>th:
-                self.addUncertainty('mcstat_'+self.name+'_'+coeff_name+'_quad_bin'+str(iBin),[0.]*iBin+[error]+[0.]*(self.nbins-iBin-1),affected=coeff_name,interpol='lin')
+            mcstatname=self.theory.makeMCstatName(self.name,[coeff_name1,coeff_name2],iBin)
+            if th>0 and effect!=0 and abs(error/effect)>th and not mcstatname in self.theory.getThetaNames():
+                self.addUncertainty(
+                    Uncertainty.Uncertainty(nbins=self.nbins,name=mcstatname,affected=coeff_name1+','+coeff_name2,interpol='lin',
+                                            releffect=[0.]*iBin+[abs(error/effect)]+[0.]*(self.nbins-iBin-1)
+                    )
+                )
 
         for u in self.uncertainties:
             if c1+','+c2 in u.affected or c2+','+c1 in u.affected:

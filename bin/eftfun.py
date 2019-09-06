@@ -151,8 +151,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         assert not measurement.name in [m.name for m in measurements]
         
         if asimov:
-            measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','sm'))
-            cfg.remove_option('Measurement','sm')
+            measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
+            measurement.setMeasuredFromCfg(cfg.get('Measurement','sm'))
         else:
             measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
 
