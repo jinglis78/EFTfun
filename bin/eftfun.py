@@ -185,15 +185,18 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             for name,effect in cfg.itemsAndRm('Linear Effects'):
                 if not prediction.setEffectFromCfg(1,name,effect):
                     print "WARNING: Could not find linear effect for "+name+" -- assuming it is zero"
-        if not linear and cfg.has_section('Quadratic Effects'):
-            names_set=[]
-            for name,effect in cfg.items('Quadratic Effects'):
-                if prediction.setEffectFromCfg(2,name,effect):
-                    names_set+=[' '.join(name.split())]
-            for name,effect in cfg.itemsAndRm('Quadratic Effects'):
-                reverse=name.split()[1]+' '+name.split()[0]
-                if not name in names_set and not reverse in names_set:
-                    print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" -- assuming it is zero"
+        if cfg.has_section('Quadratic Effects'):
+            if linear:
+                cfg.remove_section('Quadratic Effects')
+            else:
+                names_set=[]
+                for name,effect in cfg.items('Quadratic Effects'):
+                    if prediction.setEffectFromCfg(2,name,effect):
+                        names_set+=[' '.join(name.split())]
+                for name,effect in cfg.itemsAndRm('Quadratic Effects'):
+                    reverse=name.split()[1]+' '+name.split()[0]
+                    if not name in names_set and not reverse in names_set:
+                        print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" -- assuming it is zero"
 
         for s in cfg.sections():
             if len(cfg.options(s))>0:

@@ -309,7 +309,7 @@ class Combination:
             name=float_pars[ipar].GetName()
             if name in cnames:
                 pois.append(name)
-        if len(pois)==0:
+        if len(pois)<2:
             return None
         h=TH2F('correlationPOIs','correlation POIs',len(pois),0.,len(pois),len(pois),0,len(pois))
         for i,ipoi in enumerate(pois):

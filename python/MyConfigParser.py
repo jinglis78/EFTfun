@@ -55,9 +55,10 @@ def expandCfg(cfg_name,overrides):
                 sections_new[s][o]=replacements[s][o]
 
     for section in sections_new:
-        for option,value in sections_new[section].items():
+        for option in sections_new[section]:
             for wc in wildcards:
-                if '$('+wc+')' in value:
+                if '$('+wc+')' in sections_new[section][option]:
+                    value=sections_new[section][option]
                     replacement = ' '.join(wildcards[wc])
                     new_value=value.replace('$('+wc+')',replacement)
                     sections_new[section][option]=new_value
@@ -70,13 +71,13 @@ def expandCfg(cfg_name,overrides):
 
 
     for section in sections_new:
-        for option,value in sections_new[section].items():
+        for option in sections_new[section]:
             for wc in wildcards:
                 if '@('+wc+')' in option:
                     for replacement in wildcards[wc]:
                         new_option=option.replace('@('+wc+')',replacement)
                         if not new_option in sections_new[section]:
-                            sections_new[section][new_option]=value.replace('@('+wc+')',replacement)
+                            sections_new[section][new_option]=sections_new[section][option].replace('@('+wc+')',replacement)
 
     for section in sections_new:
         for option,value in sections_new[section].items():
