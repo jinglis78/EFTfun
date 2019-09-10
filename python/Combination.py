@@ -211,10 +211,11 @@ class Combination:
             for theta in self.theory.thetas:
                 if theta.isConstant():
                     continue
-                if re.match(self.theory.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):
+                if re.match(self.theory.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()) or re.match(self.theory.makeMCstatName('.+',[c.GetName(),'.+'],'\d+'),theta.GetName()):
                     deactivated[theta]=theta.getVal()
                     theta.setVal(0.)
                     theta.setConstant()
+
         return deactivated
 
 

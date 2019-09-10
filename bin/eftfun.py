@@ -96,6 +96,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     main_cfg_name=config
     main_cfg = MyConfigParser.MyConfigParser()
     main_cfg.optionxform = str
+
     if override!=None:
         overrides=override.split(',')
     else:
@@ -217,8 +218,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             print 'Prediction formulas:'
             for i,s in enumerate(prediction.getPredictionStrings()):
                 print
-                print 'bin {})'.format(i)
-                print s
+                print 'bin {}:'.format(i)
+                print s.replace(')+',')\n+').replace('))','))\n')
             print
             print '------------------------------------------------'
     main_name=main_cfg.getAndRm('General','name')
@@ -261,6 +262,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     elif method=='histo':
         for p in predictions:
             p.plotPrefit(f)
+            p.plotEffects(f)
+            p.plotEffects(f,statonly=True)
         for m in measurements:
             m.plotPrefit(f)
         f.Close()
@@ -319,6 +322,10 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         for p,m,h_p_pre,h_m_pre in zip(predictions,measurements,pred_histos_prefit,data_histos_prefit):
             h_p_post=p.plotPostfit(f,combination.getFitResult())
             Plotting.canvasPostfit('c_postfit_'+m.name,h_m_pre,h_p_pre,h_p_post,outfile=f,outfolder=outname)
+        for p in predictions:
+            p.plotEffects(f)
+            p.plotEffects(f,statonly=True)
+
 
     elif method=='pulls':
         pulls=combination.pulls()

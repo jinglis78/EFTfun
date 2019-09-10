@@ -3,6 +3,7 @@ from collections import OrderedDict
 import itertools,re
 
 class MyConfigParser(SafeConfigParser):
+    
     def getAndRm(self,section,option):
         val=self.get(section,option)
         self.remove_option(section,option)

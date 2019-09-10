@@ -91,7 +91,9 @@ class Theory:
                     print 'setting',coeff,'floating'
                     c.setConstant(False)
                     for theta in self.thetas:
-                        if re.match(self.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):                            
+                        if re.match(self.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):
+                            theta.setConstant(False)
+                        elif re.match(self.makeMCstatName('.+',[c.GetName(),'.+'],'\d+'),theta.GetName()):
                             theta.setConstant(False)
 
         #TODO: drop constraint
@@ -151,8 +153,14 @@ class Theory:
     def getPar(self,par_name):
         return self.pars[par_name]
 
-    def setInitialVal(self,par_name,val):
+    def getVal(self,par_name):
+        return self.pars[par_name].getVal()
+
+    def setVal(self,par_name,val):
         self.pars[par_name].setVal(val)
+
+    def setInitialVal(self,par_name,val):
+        self.setPar(par_name,val)
         self.initial_vals[par_name]=val
         print 'setting initival val for',par_name,'to',val
     

@@ -1,4 +1,4 @@
-import math
+import math,re
 
 #TODO: logger
 
@@ -93,3 +93,8 @@ def isListOfNumbers(data,nbins):
     return True
     
     
+def isMCstat(theory,name):
+    if re.match(theory.makeMCstatName('.+','.*','\d+'),name)!=None:
+        return True
+    if re.match(theory.makeMCstatName('.+',['.*','.*'],'\d+'),name)!=None:
+        return True
