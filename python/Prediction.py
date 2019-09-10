@@ -1,7 +1,7 @@
 from ROOT import RooFormulaVar, RooArgList, RooRealVar, TH1F
 from math import log
 from array import array
-import os,re
+import os
 import Utils
 import Uncertainty 
 
@@ -20,8 +20,6 @@ class Prediction:
         self.binning=binning
         self.linear_effects={}
         self.quadratic_effects={}
-        self.quadratic_effect_sub_factors={}
-        self.quadratic_effect_needs_sub={}
         self.coeff_names=[]
         self.rescaled=1.
     
@@ -83,11 +81,6 @@ class Prediction:
             if self.getUnc(mcstatname):
                 ustr=self.getUnc(mcstatname).getStr(iBin)
                 effect=str(effect)+'*'+ustr
-        if self.quadratic_effect_needs_sub[c1][c2]:
-            c1sq=str(self.quadratic_effect_sub_factors[c1][c2][0]**2)+'*'+str(self.getQuadraticEffect(c1,c1,iBin,incl_syst=False))
-            c2sq=str(self.quadratic_effect_sub_factors[c1][c2][1]**2)+'*'+str(self.getQuadraticEffect(c2,c2,iBin,incl_syst=False))
-            c1c2=str(1/self.quadratic_effect_sub_factors[c1][c2][0]*self.quadratic_effect_sub_factors[c1][c2][1])
-            effect='('+str(effect)+'-'+c1sq+'-'+c2sq+')*'+c1c2
         if incl_syst:
             for u in self.uncertainties:
                 if u.name==mcstatname:
@@ -200,80 +193,6 @@ class Prediction:
         h.Write()
         return h
 
-    def plotEffects(self, outfile,statonly=False):
-        for c in self.theory.getCoeffNames():
-            self.plotEffect(outfile,'lin_effect_'+c,[c],statonly=statonly)
-        for c1 in self.theory.getCoeffNames():
-            for c2 in self.theory.getCoeffNames():
-                if c2<c1:
-                    continue
-                self.plotEffect(outfile,'quad_effect_'+c1+'_'+c2,[c1,c2],statonly=statonly)
-
-    def plotEffect(self, outfile,name,coeff_names,statonly=False):
-        histoname=name
-        if statonly:
-            histoname+='_statonly'
-        if self.binning!=None:
-            h=TH1F(histoname,histoname,self.nbins,array('f',self.binning))
-        else:
-            h=TH1F(histoname,histoname,self.nbins,0,1)
-
-        params=RooArgList()
-        for c in self.theory.coeffs:
-            params.add(c)
-        for t in self.theory.thetas:
-            params.add(t)
-        formulas=[]
-        if len(coeff_names)==1:
-            for iBin in range(self.nbins):
-                f="{}*{}".format(coeff_names[0],self.getLinearEffect(coeff_names[0],iBin))
-                effname="effect_{}_{}".format(coeff_names[0],iBin)
-                formulas+=[RooFormulaVar(effname,effname,f,params)]
-        if len(coeff_names)==2:
-            for iBin in range(self.nbins):
-                f="{}*{}*{}".format(coeff_names[0],coeff_names[1],self.getQuadraticEffect(coeff_names[0],coeff_names[1],iBin))
-                effname="effect_{}_{}_{}".format(coeff_names[0],coeff_names[1],iBin)
-                formulas+=[RooFormulaVar(effname,effname,f,params)]
-        oldvals={}
-        for cn in coeff_names:
-            val=self.theory.getVal(cn)
-            oldvals[cn]=val
-            if val==0:
-                self.theory.setVal(cn,1.)
-        for i,f in enumerate(formulas):
-            h.SetBinContent(i+1,f.getVal()/self.rescaled)
-            uperror2=0.
-            downerror2=0.            
-            for t in self.theory.thetas:
-                if statonly and not Utils.isMCstat(self.theory,t.GetName()):
-                    continue
-                if not t.isConstant():
-                    oldval=t.getVal()
-                    t.setVal(0)
-                    nom=f.getVal()
-                    t.setVal(1)
-                    err1=f.getVal()-nom
-                    t.setVal(-1)
-                    err2=f.getVal()-nom
-                    t.setVal(oldval)
-                    if err1>0 and err1>err2:
-                        uperror2+=err1**2
-                    if err1<0 and err1<err2:
-                        downerror2+=err1**2
-                    if err2>0 and err2>err1:
-                        uperror2+=err2**2
-                    if err2<0 and err2<err1:
-                        downerror2+=err2**2
-            uperror=uperror2**0.5
-            downerror=downerror2**0.5
-            h.SetBinError(i+1,(uperror/2+downerror/2)/self.rescaled)
-        for o in oldvals:
-            self.theory.setVal(o,oldvals[o])
-        outfile.cd()
-        h.Write()
-        return h
-
-        
     def plotPostfit(self, outfile, fitresult):
         hn=self.name+'_postfit'
         if self.binning!=None:
@@ -324,7 +243,7 @@ class Prediction:
     def setNormHistoFromFile(self,filename,histoname,rescale=1.):
         return self.setNormHisto(Utils.readFile(filename,histoname)[0],rescale)
         
-    def setEffect(self,power,coeff_names,effect,uncertainty=None,rescale=1.,renorm=False,add=False,isrel=False,coeff_values={},subtract=False):
+    def setEffect(self,power,coeff_names,effect,uncertainty=None,rescale=1.,renorm=False,add=False,isrel=False):
         if uncertainty==None:
             uncertainty=[0.]*self.nbins
         if len(effect)==1:
@@ -335,16 +254,10 @@ class Prediction:
         for c in coeff_names:
             if not c in self.coeff_names:
                 self.coeff_names+=[c]
-        if len(coeff_values) == 0:
-            for c in coeff_names:
-                coeff_values[c]=1.
         assert len(coeff_names) == power
         assert len(effect)==self.nbins
         assert len(uncertainty)==self.nbins
         actual_effect=[]
-        if not subtract:
-            for v in coeff_names:
-                rescale/=coeff_values[v]
         for x,u in zip(effect,uncertainty):
             actual_effect+=[(x*rescale,u*rescale)]
         if isrel:
@@ -365,32 +278,26 @@ class Prediction:
                 c1,c0=coeff_names[0],coeff_names[1]
             if not c0 in self.quadratic_effects:
                 self.quadratic_effects[c0]=dict()
-                self.quadratic_effect_needs_sub[c0]=dict()
-                self.quadratic_effect_sub_factors[c0]=dict()
             if add:
                 self.quadratic_effects[c0][c1]=[a+b for a,b in zip(self.quadratic_effects[c0][c1],actual_effect)]
             else:
                 self.quadratic_effects[c0][c1]=actual_effect
-            self.quadratic_effect_needs_sub[c0][c1]=subtract
-            if subtract:
-                self.quadratic_effect_sub_factors[c0][c1]=(coeff_values[c0],coeff_values[c1])
         else:
             raise Exception('Only linear or quadratic effects possible')
         return True
     
-    def setEffectFromFile(self,power,coeff_names,filename,histoname,rescale=1.,renorm=False,add=False,coeff_values={},subtract=False):
+    def setEffectFromFile(self,power,coeff_names,filename,histoname,rescale=1.,renorm=False,add=False):
         if not os.path.exists(filename.strip()):
             return False
         else:
             actual_effect,actual_uncertainty=Utils.readFile(filename,histoname)
-            self.setEffect(power,coeff_names,actual_effect,actual_uncertainty,rescale,renorm,add=add,coeff_values=coeff_values,subtract=subtract)
+            self.setEffect(power,coeff_names,actual_effect,actual_uncertainty,rescale,renorm,add=add)
             return True
 
     def setEffectFromCfg(self,power,coeff_names,data,add=False):
-        actual_coeff_names=coeff_names.split()
-        
+        actual_coeff_names=coeff_names.split()        
         if '{' in data:
-            options=set(o for o in data[data.find('{')+1:data.find('}')].split())
+            options=set(o.lower() for o in data[data.find('{')+1:data.find('}')].split())
         else:
             options=set()
         data=data[data.find('}')+1:]
@@ -408,28 +315,16 @@ class Prediction:
         elif 'keepnorm' in options:
             renorm=False
             options.remove('keepnorm')
-        subtract=False
-        if 'subtract' in options:
-            subtract=True
-            options.remove('subtract')
-        coeff_values={}
-        for c in actual_coeff_names:
-            coeff_values[c]=1.
-        for o in list(options):
-            for c in actual_coeff_names:
-                if re.match('^'+c+'=[+-]?([0-9]*[.])?[0-9]+$',o):
-                    coeff_values[c]=float(o.split('=')[1])
-                    options.remove(o)
         if len(options)>0:
             raise Exception('unknow/incompatible options in effect '+data+' : '+' '.join(list(options)))
         
         if Utils.isFile(data):
             filename,histoname=data.split(':')
-            return self.setEffectFromFile(power,actual_coeff_names,filename,histoname,rescale=1.,renorm=renorm,add=add,coeff_values=coeff_values,subtract=subtract)
+            return self.setEffectFromFile(power,actual_coeff_names,filename,histoname,rescale=1.,renorm=renorm,add=add)
                 
         else:
             effect=[float(d) for d in data.split()]
-            return self.setEffect(power,actual_coeff_names,effect,uncertainty=None,rescale=1.,renorm=renorm,add=add,isrel=isrel,coeff_values=coeff_values,subtract=subtract)
+            return self.setEffect(power,actual_coeff_names,effect,uncertainty=None,rescale=1.,renorm=renorm,add=add,isrel=isrel)
 
     def setScalingFromCfg(self,data):
         if Utils.isFile(data):

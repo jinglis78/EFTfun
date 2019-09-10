@@ -262,8 +262,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     elif method=='histo':
         for p in predictions:
             p.plotPrefit(f)
-            p.plotEffects(f)
-            p.plotEffects(f,statonly=True)
         for m in measurements:
             m.plotPrefit(f)
         f.Close()
@@ -322,10 +320,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         for p,m,h_p_pre,h_m_pre in zip(predictions,measurements,pred_histos_prefit,data_histos_prefit):
             h_p_post=p.plotPostfit(f,combination.getFitResult())
             Plotting.canvasPostfit('c_postfit_'+m.name,h_m_pre,h_p_pre,h_p_post,outfile=f,outfolder=outname)
-        for p in predictions:
-            p.plotEffects(f)
-            p.plotEffects(f,statonly=True)
-
 
     elif method=='pulls':
         pulls=combination.pulls()
