@@ -27,6 +27,7 @@ class Prediction:
         x=self.linear_effects[coeff_name][iBin]
         if not isinstance(x,tuple):
             effect=x
+            mcstatname=None
         else:
             effect=x[0]
             error=x[1]
@@ -66,6 +67,7 @@ class Prediction:
             x=0.
         if not isinstance(x,tuple):
             effect=x
+            mcstatname=None
         else:
             effect=x[0]
             error=x[1]
@@ -355,10 +357,10 @@ class Prediction:
             if u.name==uncertainty.name:
                 for a in uncertainty.affected:
                     if a in u.affected:
-                        print 'WARNING, uncertainty with name',uncertainty.name,'affecting',a,'already exists, skipping'
+                        print 'WARNING: uncertainty with name',uncertainty.name,'affecting',a,'already exists, skipping'
                         return False
                     elif ',' in  a and a.split(',')[1]+','+a.split(',')[0] in u.affected:
-                        print 'WARNING, uncertainty with name',uncertainty.name,'affecting',a,'already exists, skipping'
+                        print 'WARNING: uncertainty with name',uncertainty.name,'affecting',a,'already exists, skipping'
                         return False
         
         self.uncertainties.append(uncertainty)

@@ -71,6 +71,8 @@ def readRoot(filename,histoname,per_bin_width):
     import ROOT
     f=ROOT.TFile(filename)
     histo=f.Get(histoname)
+    if not isinstance(histo,ROOT.TH1):
+        raise Exception("Did not find histogram "+histoname+" in file "+filename)
     if per_bin_width:
         contents=[histo.GetBinContent(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
         uncertainty=[histo.GetBinError(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
