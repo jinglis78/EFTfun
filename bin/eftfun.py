@@ -257,14 +257,13 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     if method=='workspace':
         w=combination.createWorkspace()
         w.Write()
-        f.Close()
 
     elif method=='histo':
         for p in predictions:
             p.plotPrefit(f)
+            p.plotPrefit(f,statonly=True)
         for m in measurements:
             m.plotPrefit(f)
-        f.Close()
 
     elif method=='scan':
         extra_outfile=None
