@@ -240,6 +240,9 @@ class Prediction:
             assert len(spl)==2
             return self.setNormHistoFromFile(spl[0],spl[1])
         else:
+            if data.lower()=='none' or data.lower()=='false' or data.lower()=='':
+                self.normhisto=None
+                return True
             return self.setNormHisto([float(x) for x in data.split()])
         
     def setNormHistoFromFile(self,filename,histoname,rescale=1.):
@@ -265,7 +268,10 @@ class Prediction:
         if isrel:
             actual_effect=[(s*e[0],s*e[1]) for s,e in zip(self.sm,actual_effect)]
         if renorm:
-            actual_effect=[(s*(e[0]/n),s*(e[1]/n)) for s,e,n in zip(self.sm,actual_effect,self.normhisto)]
+            if self.normhisto==None:
+                print 'WARNING: cannot use option "renorm", no histogram given to renorm prediction'
+            else:
+                actual_effect=[(s*(e[0]/n),s*(e[1]/n)) for s,e,n in zip(self.sm,actual_effect,self.normhisto)]
         if power==1:
             if add:
                 self.linear_effects[coeff_names[0]]=[a+b for a,b in zip(self.linear_effects[coeff_names[0]],actual_effect)]

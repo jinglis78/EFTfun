@@ -67,7 +67,10 @@ def createUncertaintyFromCfg(reference,name,data):
         else:
             raise Exception('Uncertainty needs to have option rel or abs')
         if renorm==True:
-            releffect=[(e[0]*s/n,e[1]*s/n) for s,e,n in zip(reference.getNominal(),effect,reference.normhisto)]
+            if reference.normhisto==None:
+                print 'WARNING: cannot use option "renorm", no histogram given to renorm prediction'
+            else:
+                releffect=[(e[0]*s/n,e[1]*s/n) for s,e,n in zip(reference.getNominal(),effect,reference.normhisto)]
         return createUncertainty(reference,thetaname,releffect=releffect,affected=affected,interpol=interpol,uncorr=uncorr)
     if isrel!=None:
         print 'WARNING: abs/rel wont have an effect on uncertainties from hepdata'
