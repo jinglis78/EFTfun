@@ -151,16 +151,22 @@ class Theory:
         return [c.GetName() for c in self.thetas]
 
     def getPar(self,par_name):
+        if not par_name in self.pars:
+            raise Exception('Did not find parameter: '+par_name)
         return self.pars[par_name]
 
     def getVal(self,par_name):
+        if not par_name in self.pars:
+            raise Exception('Did not find parameter: '+par_name)
         return self.pars[par_name].getVal()
 
     def setVal(self,par_name,val):
+        if not par_name in self.pars:
+            raise Exception('Did not find parameter: '+par_name)
         self.pars[par_name].setVal(val)
 
     def setInitialVal(self,par_name,val):
-        self.setPar(par_name,val)
+        self.setVal(par_name,val)
         self.initial_vals[par_name]=val
         print 'setting initival val for',par_name,'to',val
     
