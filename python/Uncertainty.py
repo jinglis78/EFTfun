@@ -148,7 +148,8 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
                             errs.append((asymerr[0]/meas,asymerr[1]/meas))
                         else:
                             errs.append(asymerr)
-                    break        
+                    break
+            raise Exception("Did not find error label "+err_label+" in yaml")
     f.close()
     return errs
 
