@@ -20,6 +20,8 @@ configs/TopCfgTemplate.cfg
 configs/MeasurementCfgTemplate.cfg
 ```
 
+[Tutorial](https://gitlab.cern.ch/eft-tools/eft-fun/blob/master/EFTfit.md)
+
 Fitting Examples:
 ```
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m fit -c all -o example1
