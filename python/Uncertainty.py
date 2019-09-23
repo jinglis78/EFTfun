@@ -120,9 +120,11 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
     vals=yaml.load(f)['dependent_variables'][0]['values']
     assert len(vals)==reference.nbins
     errs=[]
+    found=False
     for y,meas in zip(vals,reference.getNominal()):
         for error in y['errors']:
-            if error['label']==err_label:                    
+            if error['label']==err_label:
+                found=True
                 if 'symerror' in error:
                     if isinstance(error['symerror'],str) and '%' in error['symerror']:
                         err=float(error['symerror'].replace('%',''))/100.
@@ -149,7 +151,8 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
                         else:
                             errs.append(asymerr)
                     break
-            raise Exception("Did not find error label "+err_label+" in yaml")
+    if not found:
+        raise Exception("Did not find error label "+err_label+" in yaml")
     f.close()
     return errs
 
