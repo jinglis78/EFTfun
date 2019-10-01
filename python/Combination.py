@@ -49,7 +49,7 @@ class Combination:
         self.minimizer=RooMinuit(self.nll)
         self.last_scan_range=None
         self.all_results=None
-        self.robust=False
+        self.robust=True
 
 
     def getFitResult(self):
@@ -85,7 +85,7 @@ class Combination:
             poi.setConstant(True)
             strategy=0
             if self.robust:
-                strategy=1
+                strategy=2
             if i==0:
                 strategy=2
             result.append( (val,self.minimize(print_level=print_level,hesse=False,strategy=strategy)) )
@@ -171,7 +171,7 @@ class Combination:
                 poi.setConstant(True)            
             strategy=0
             if self.robust:
-                strategy=1
+                strategy=2
             if ipoint==0 or grid[ipoint][-1]<grid[ipoint-1][-1]:
                 strategy=2
             result.append( gridpoint+(self.minimize(print_level=print_level,hesse=False,strategy=strategy),) )
