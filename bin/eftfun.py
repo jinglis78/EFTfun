@@ -344,7 +344,10 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             
 
     elif method=='profilelikelihood':
-        combination.calcProfileLikelihood(pois)
+        limit=combination.calcProfileLikelihood(pois)
+        ftxt=open(outname+'/'+'interval_pl_'+pois[0]+'.txt','w')
+        ftxt.write(','.join([str(x) for x in limit]))
+        ftxt.close()
 
     #TODO: implement hypotest inverter
         

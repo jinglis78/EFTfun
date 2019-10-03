@@ -270,6 +270,7 @@ class Combination:
             lowerLimit = interval.LowerLimit(poi)
             upperLimit = interval.UpperLimit(poi)
             print "95% CL interval on {0} is [{1},{2}]".format(poi.GetName(),lowerLimit,upperLimit)
+            return lowerLimit,upperLimit
 
 
     def createWorkspace(self):
