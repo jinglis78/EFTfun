@@ -198,7 +198,7 @@ class Measurement:
         f=open(filename)
         data=yaml.load(f)
         vals=data['dependent_variables'][0]['values']
-        self.setMeasured([y['value'] for y in vals])                
+        self.setMeasured([float(y['value']) for y in vals])                
 
     def getMatrixFromYoda(self,filename,name):
         import yoda

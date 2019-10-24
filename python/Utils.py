@@ -113,3 +113,6 @@ def ask(question,option1=['yes','y', 'ye', ''],option2=['no','n']):
     else:
         print "Please respond with "+','.join(option1)+" or "+','.join(option2)
         return ask(question,option1,option2)
+
+def strip(s):
+    return s.strip().replace('"','').replace("'",'')
