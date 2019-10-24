@@ -32,7 +32,7 @@ def main():
                       dest="scanrange",default='3',metavar='SCANRANGE',
                       help="Scan range, either given as min:max or one number. If only one number, scan will be performed in range (-SCANRANGE*error+central,central+SCANRANGE*error). For multiple POIs, multiple scan ranges can be given, separated by commas. Only relevant for method 'scan'.")
     parser.add_option("-c", "--constant", dest="constant", metavar="CONSTANTPARS",
-                      help="Parameters that are set constant ('all' for all coefficients except nuisance parameters). Can be both nuisance parameters avnd POIs. Comma separated.")
+                      help="Parameters that are set constant ('all' for all coefficients except nuisance parameters). Can be both nuisance parameters and POIs. Comma separated.")
     parser.add_option("-s", "--set", dest="initial", metavar="PARAMETERSETTING",
                       help="Set parameters to specific (initial) values with par1=x,par2=y,... Can be both nuisance parameters and POIs.")
     parser.add_option("-d", "--deactivate-uncertainties",metavar='PATTERN',
@@ -48,6 +48,9 @@ def main():
     parser.add_option("-l", "--linear",
                       action="store_true", dest="linear", default=False,
                       help="Consider only effects linear in EFT coefficients?")
+    parser.add_option("--quad",
+                      action="store_true", dest="quad", default=False,
+                      help="Consider only effects quadratic in EFT coefficients?")
     parser.add_option("-w", "--write_more",
                       action="store_true", dest="write_more", default=False,
                       help="Save all floating parameter values during scan in TTree? Will also plot non-linear parameter correlations.")
@@ -71,10 +74,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.force,options.override)
+        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.force,options.override)
 
 
-def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivate_uncertainties,constant,initial,verbose,write_more,force,override):
+def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,force,override):
     if verbose:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -86,6 +89,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         print 'ntoys',ntoys
         print 'asimov',asimov
         print 'linear',linear
+        print 'quad',quad
         print 'deactivate_uncertainties',deactivate_uncertainties
         print 'constant',constant
         print 'verbose',verbose
@@ -104,7 +108,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     overrides_main=[]
     for ovr in overrides:
         if ovr.split(':')[0]=='main' or ovr.split(':')[0]==main_cfg_name:
-            overrides_main+=[ovr.split(':')[1]]
+            overrides_main+=[':',join(ovr.split(':')[1:])]
 
     main_cfg_name=MyConfigParser.expandCfg(main_cfg_name,overrides_main)
     main_cfg.read(main_cfg_name)
@@ -141,7 +145,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         overrides_measurement=[]
         for ovr in overrides:
             if ovr.split(':')[0]=='measurements' or ovr.split(':')[0]==cfg_name:
-                overrides_measurement+=[ovr.split(':')[1]]
+                overrides_measurement+=[':'.join(ovr.split(':')[1:])]
 
         cfg.read(MyConfigParser.expandCfg(cfg_name,overrides_measurement))
 
@@ -188,9 +192,12 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             for theo_syst_name,theo_syst in cfg.itemsAndRm('Theo Systs'):
                 prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst)
         if cfg.has_section('Linear Effects'):
-            for name,effect in cfg.itemsAndRm('Linear Effects'):
-                if not prediction.setEffectFromCfg(1,name,effect):
-                    print "WARNING: Could not find linear effect for "+name+" -- assuming it is zero"
+            if quad:
+                cfg.remove_section('Linear Effects')
+            else:
+                for name,effect in cfg.itemsAndRm('Linear Effects'):
+                    if not prediction.setEffectFromCfg(1,name,effect):
+                        print "WARNING: Could not find linear effect for "+name+" -- assuming it is zero"
         if cfg.has_section('Quadratic Effects'):
             if linear:
                 cfg.remove_section('Quadratic Effects')
@@ -233,7 +240,12 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
     outname='results/'+outname
     if not os.path.exists(outname):
         os.makedirs(outname)
-    f=TFile(outname+'.root','RECREATE')
+    if os.path.exists(outname+'.root') and (force or Utils.ask("Outfile {0}.root already exists, update (u) or recreate (r)? You can also ctrl+c and set a different name with the -o flag.".format(outname),['u'],['r'])):        
+        f=TFile(outname+'.root','UPDATE')
+        print 'WARNING: updating',outname+'.root'
+    else:
+        f=TFile(outname+'.root','RECREATE')
+        print 'WARNING: recreating',outname+'.root'
     combination=Combination(theory,predictions,measurements,main_name,verbose=verbose) 
 
     if poi==None:
@@ -267,6 +279,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
         for p in predictions:
             p.plotPrefit(f)
             p.plotPrefit(f,statonly=True)
+            p.plotScaling2D(f)
         for m in measurements:
             m.plotPrefit(f)
 
@@ -301,8 +314,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,deactivat
             nsteps=[int(n) for n in nsteps.split(',')]
             prof=combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile)
             if len(pois)==2:
-                Plotting.graphProfile2D('scan_'+'_'.join(pois),prof,f)
-                Plotting.canvasProfile2D('scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname)
+                Plotting.graphProfile2D('g_scan_'+'_'.join(pois),prof,f)
+                Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname)
 
     elif method=='fit':
         if verbose:

@@ -100,3 +100,16 @@ def isMCstat(theory,name):
         return True
     if re.match(theory.makeMCstatName('.+',['.*','.*'],'\d+'),name)!=None:
         return True
+
+def ask(question,option1=['yes','y', 'ye', ''],option2=['no','n']):
+    print question
+    o1 = set(option1)
+    o2 = set(option2)
+    choice = raw_input().lower()
+    if choice in o1:
+        return True
+    elif choice in o2:
+        return False
+    else:
+        print "Please respond with "+','.join(option1)+" or "+','.join(option2)
+        return ask(question,option1,option2)

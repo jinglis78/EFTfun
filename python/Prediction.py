@@ -1,5 +1,5 @@
-from ROOT import RooFormulaVar, RooArgList, RooRealVar, TH1F
-from math import log
+from ROOT import RooFormulaVar, RooArgList, RooRealVar, TH1F, TH2F
+from math import log,sqrt
 from array import array
 import os
 import Utils
@@ -51,6 +51,23 @@ class Prediction:
                     ustr=u.getStr(iBin)
                     if ustr!=None:
                         effect=str(effect)+'*'+ustr
+        return effect
+
+    def getQuadraticEffectFloat(self,coeff_name1,coeff_name2,iBin):
+        if coeff_name1<coeff_name2:
+            c1=coeff_name1
+            c2=coeff_name2
+        else:
+            c1=coeff_name2
+            c2=coeff_name1
+        if c1 in self.quadratic_effects and c2 in self.quadratic_effects[c1]:
+            x=self.quadratic_effects[c1][c2][iBin]
+        else:
+            x=0.
+        if not isinstance(x,tuple):
+            effect=x
+        else:
+            effect=x[0]
         return effect
 
 
@@ -225,7 +242,7 @@ class Prediction:
             return self.setSM([float(x) for x in data.split()])
         
     def setSMfromFile(self,filename,histoname,rescale=1.):
-        return self.setSM(Utils.readFile(filename,histoname)[0],rescale)
+        return self.setSM(Utils.readFile(filename,histoname,per_bin_width=self.per_bin_width)[0],rescale)
 
     def setNormHisto(self,normhisto,rescale=1.):
         if self.nbins==None:
@@ -246,7 +263,7 @@ class Prediction:
             return self.setNormHisto([float(x) for x in data.split()])
         
     def setNormHistoFromFile(self,filename,histoname,rescale=1.):
-        return self.setNormHisto(Utils.readFile(filename,histoname)[0],rescale)
+        return self.setNormHisto(Utils.readFile(filename,histoname,per_bin_width=self.per_bin_width)[0],rescale)
         
     def setEffect(self,power,coeff_names,effect,uncertainty=None,rescale=1.,renorm=False,add=False,isrel=False):
         if uncertainty==None:
@@ -298,7 +315,7 @@ class Prediction:
         if not os.path.exists(filename.strip()):
             return False
         else:
-            actual_effect,actual_uncertainty=Utils.readFile(filename,histoname)
+            actual_effect,actual_uncertainty=Utils.readFile(filename,histoname,per_bin_width=self.per_bin_width)
             self.setEffect(power,coeff_names,actual_effect,actual_uncertainty,rescale,renorm,add=add)
             return True
 
@@ -336,7 +353,7 @@ class Prediction:
 
     def setScalingFromCfg(self,data):
         if Utils.isFile(data):
-            scaling=Utils.readFile(data)[0]
+            scaling=Utils.readFile(data,per_bin_width=self.per_bin_width)[0]
         else:
             scaling=data
             for c in ['+','-','*','/']:
@@ -381,7 +398,7 @@ class Prediction:
         for k in self.quadratic_effects:
             for kk in self.quadratic_effects[k]:
                 for iBin in range(self.nbins):
-                    self.quadratic_effects[k][kk][iBin]=(self.quadratic_effects[k][kk][iBin][0]*s,self.quadratic_effects[k][kk][iBin][1]*s)
+                   self.quadratic_effects[k][kk][iBin]=(self.quadratic_effects[k][kk][iBin][0]*s,self.quadratic_effects[k][kk][iBin][1]*s)
         if self.normhisto!=None:
             self.normhisto=[x*s for x in self.normhisto]
         self.rescaled*=s
@@ -394,3 +411,25 @@ class Prediction:
             if name==u.name:
                 return u
         return None
+
+    def plotScaling2D(self,outfile):
+        par_names=list(self.quadratic_effects)
+        if len(par_names)<1:
+            return
+        for iBin in range(self.nbins):
+            h=TH2F(self.name+'_QuadEffects_bin'+str(iBin),'Quadratic effects',len(par_names),0.,len(par_names),len(par_names),0,len(par_names))
+            hnorm=TH2F(self.name+'_QuadEffectsNorm_bin'+str(iBin),'Quadratic effects normalized',len(par_names),0.,len(par_names),len(par_names),0,len(par_names))
+            for i,ipar in enumerate(par_names):
+                for j,jpar in enumerate(par_names):
+                    h.SetBinContent(i+1,j+1,self.getQuadraticEffectFloat(ipar,jpar,iBin))
+                    if self.getQuadraticEffectFloat(jpar,jpar,iBin)>0 and self.getQuadraticEffectFloat(ipar,ipar,iBin)>0:
+                        hnorm.SetBinContent(i+1,j+1,self.getQuadraticEffectFloat(ipar,jpar,iBin)/sqrt(self.getQuadraticEffectFloat(ipar,ipar,iBin)*self.getQuadraticEffectFloat(jpar,jpar,iBin)))
+            for i,ipar in enumerate(par_names):
+                h.GetXaxis().SetBinLabel(i+1,ipar)
+                h.GetYaxis().SetBinLabel(i+1,ipar)
+                hnorm.GetXaxis().SetBinLabel(i+1,ipar)
+                hnorm.GetYaxis().SetBinLabel(i+1,ipar)
+            outfile.cd()
+            h.Write()
+            hnorm.Write()
+            

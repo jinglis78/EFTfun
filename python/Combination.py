@@ -63,12 +63,12 @@ class Combination:
         if not isinstance(scan_range,tuple) and not isinstance(scan_range,list) :
             poiIsConst=poi.isConstant()
             poi.setConstant(False)
-            self.minimize()
+            self.minimize(minos=True)
             res=self.getFitResult()
             float_pars=res.floatParsFinal()
             for i in range(float_pars.getSize()):
-                if float_pars[i].GetName()==poi_name:
-                    scan_range=(-scan_range*float_pars[i].getError()+float_pars[i].getVal(),scan_range*float_pars[i].getError()+float_pars[i].getVal())
+                if float_pars[i].GetName()==poi_name:                    
+                    scan_range=(scan_range*float_pars[i].getAsymErrorLo()+float_pars[i].getVal(),scan_range*float_pars[i].getAsymErrorHi()+float_pars[i].getVal())
             poi.setConstant(poiIsConst)
             self.last_scan_range=scan_range
 
@@ -132,7 +132,7 @@ class Combination:
                 for p in pois:
                     poiIsConst+=[p.isConstant()]
                     p.setConstant(False)
-                self.minimize(hesse=False)
+                self.minimize()
                 res=self.getFitResult()
                 float_pars=res.floatParsFinal()
                 for i in range(float_pars.getSize()):

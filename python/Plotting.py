@@ -53,7 +53,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
             imin=i
             x0=xs[i]
     if isNLL:
-        if imin>-1 and ymin<0.01:
+        if imin>0 and ymin<0.01:
             g_inverse1=ROOT.TGraph(imin,ys[:imin],xs[:imin])
             g_inverse2=ROOT.TGraph(g.GetN()-imin,ys[imin:],xs[imin:])
             ci1=g_inverse1.Eval(cl1),g_inverse2.Eval(cl1)
@@ -81,7 +81,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         cl1line.Draw()
         cl2line.Draw()
 
-    if isNLL and imin>-1 and ymin<0.01:
+    if isNLL and imin>0 and ymin<0.01:
         ci2line1=ROOT.TLine(ci2[0],0,ci2[0],cl2)
         ci2line1.SetLineStyle(2)
         ci2line2=ROOT.TLine(ci2[1],0,ci2[1],cl2)
@@ -244,10 +244,10 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
         rescaled={}
         for p in pars:
             rescaled[p]=1.
-            while pulls[p][2]-pulls[p][1]!=0 and pulls[p][2]-pulls[p][1]<20:
+            while pulls[p][2]-pulls[p][1]!=0 and pulls[p][2]-pulls[p][1]<2:
                 pulls[p]=(pulls[p][0]*10,pulls[p][1]*10,pulls[p][2]*10)
                 rescaled[p]=rescaled[p]*10
-            while pulls[p][2]-pulls[p][1]!=0 and pulls[p][2]-pulls[p][1]>20:
+            while pulls[p][2]-pulls[p][1]!=0 and pulls[p][2]-pulls[p][1]>2:
                 pulls[p]=(pulls[p][0]/10,pulls[p][1]/10,pulls[p][2]/10)
                 rescaled[p]=rescaled[p]/10
                 
@@ -261,7 +261,7 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     if not pois:
         h.GetYaxis().SetRangeUser(-3,3)
     elif rescale:
-        h.GetYaxis().SetRangeUser(-15,15)
+        h.GetYaxis().SetRangeUser(-1.5,1.5)
     else:
         ymin=0.
         ymax=0.
