@@ -117,15 +117,17 @@ class Measurement:
                 f=open(filename_err.split(':')[0])
                 vals=yaml.load(f)['dependent_variables'][0]['values']
                 assert len(vals)==self.nbins
-                errs=[]
+                err_labels=[]
                 for y in vals:
-                    total_err2=0.
                     for error in y['errors']:
-                        if 'symerror' in error:
-                            total_err2+=error['symerror']**2
-                        elif 'asymerror' in error:
-                            total_err2+=(abs(error['asymerror']['minus'])+abs(error['asymerror']['plus']))**2/4.
-                    errs.append(total_err2**0.5)
+                        err_labels+=[error['label']]
+                err_labels=list(set(err_labels))
+                total_errs2=[0.]*self.nbins
+                for label_err in err_labels:
+                    this_errs=Uncertainty.getErrsFromYaml(self,filename_err,label_err,rel=False)
+                    for ierr,err in enumerate(this_errs):
+                        total_errs2[ierr]+=(abs(err[0])+abs(err[1]))**2/4.
+                errs=[x**0.5 for x in total_errs2]
                 f.close()
             assert len(errs)==self.nbins
 
