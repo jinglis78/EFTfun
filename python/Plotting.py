@@ -108,7 +108,9 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         ci2text.Draw()    
     c.Draw()
     printAndSave(c,outfile,outfolder)
-
+    if isNLL and imin>0 and ymin<0.01:
+        ftxt=open(outfolder+'/'+c.GetName()+'.txt','w')
+        ftxt.write('{} {},{} {},{}'.format(x0,ci1[0],ci1[1],ci2[0],ci2[1]))
     return c
 
 def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log(L)',linecolor=ROOT.kBlack,outfolder='.',isNLL=True):

@@ -238,7 +238,7 @@ class Measurement:
         for i in range(self.nbins):
             matrix+=[[]]
             for j in range(self.nbins):
-                matrix[-1]+=[vals[i*self.nbins+j]['value']]
+                matrix[-1]+=[float(vals[i*self.nbins+j]['value'])]
         return matrix
 
     def scale(self,s):
