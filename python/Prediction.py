@@ -447,7 +447,7 @@ class Prediction:
                    self.quadratic_effects[k][kk][iBin]=(self.quadratic_effects[k][kk][iBin][0]*s,self.quadratic_effects[k][kk][iBin][1]*s)
         if self.normhisto!=None:
             self.normhisto=[x*s for x in self.normhisto]
-        for b in backgrounds:
+        for b in self.backgrounds:
             self.backgrounds[b]=[x*s for x in self.backgrounds[b]]
         self.rescaled*=s
 

@@ -321,7 +321,6 @@ class Measurement:
         else:
             cov=TMatrixDSym(self.nbins)
         for u in self.uncertainties.values():
-            print u.name
             if incl_np or not u.with_np:
                 cov+=u.getCov(self.getMeas(),incl_np=incl_np)
         return cov

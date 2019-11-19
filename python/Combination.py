@@ -42,7 +42,6 @@ class Combination:
                 for x in measurement.central_values:
                     xVec.add(x)
                 self.data.add(xVec)
-                print xVec, muVec,measurement.getCov()
                 self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec,measurement.getCov())]
 
         self.constraints=[]
