@@ -4,6 +4,7 @@ from array import array
 import os
 import Utils
 import Uncertainty
+from Background import Background
 
 class Prediction:
     def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None):
@@ -22,6 +23,7 @@ class Prediction:
         self.quadratic_effects={}
         self.coeff_names=[]
         self.rescaled=1.
+        self.backgrounds={}
     
     def getLinearEffect(self,coeff_name,iBin,incl_syst=True):
         x=self.linear_effects[coeff_name][iBin]
@@ -156,6 +158,8 @@ class Prediction:
                         sys_scaling[iBin]+='*'+ustr
 
         predictions=['('+e+')'+s for e,s in zip(eftprediction,sys_scaling)]
+        for background in self.backgrounds.values():
+            predictions=[p+'+'+b for p,b in zip(predictions,background.getPredictionStrings())]                
         return predictions                   
 
     def getPredictionFormulas(self):
@@ -212,6 +216,7 @@ class Prediction:
         h.Write()
         return h
 
+
     def plotPostfit(self, outfile, fitresult):
         hn=self.name+'_postfit'
         if self.binning!=None:
@@ -225,6 +230,24 @@ class Prediction:
         outfile.cd()
         h.Write()
         return h
+
+    def plotBkgPostfit(self, outfile, fitresult):
+        hs=[]
+        for b in self.backgrounds.values():
+            hn=self.name+'_'+b.name+'_postfit'
+            if self.binning!=None:
+                h=TH1F(hn,hn,self.nbins,array('f',self.binning))
+            else:
+                h=TH1F(hn,hn,self.nbins,0,1)
+            for i,f in enumerate(b.getPredictionStrings()):
+                form=RooFormulaVar('form_'+self.name+'_'+b.name,f,self.theory.getThetaArgList())
+                h.SetBinContent(i+1,form.getVal()/self.rescaled)
+                h.SetBinError(i+1,form.getPropagatedError(fitresult)/self.rescaled)
+            hs.append(h)           
+            outfile.cd()
+            h.Write()
+        return hs
+
 
     def setSM(self,sm,rescale=1.):
         if self.nbins==None:
@@ -372,10 +395,34 @@ class Prediction:
         assert len(scaling)==self.nbins
         self.extra_scaling=scaling
 
-    def addUncertaintyFromCfg(self,name,data,reco_level):
-        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=reco_level))
+    def addBackgroundFromCfg(self,name,data):
+        if Utils.isFile(data):
+            filename,histoname=data.split(':')
+            values,errors=Utils.readFile(data,per_bin_width=self.per_bin_width)
+        else:
+            values=[float(d) for d in data.split()]
+        self.addBackground(name,values)
+        
+    def addBackground(self,name,values):
+        assert len(values)==self.nbins
+        assert not name in self.backgrounds
+        assert not name in self.theory.getCoeffNames()
+        self.backgrounds[name]=Background(name,values)
+
+    def addUncertaintyFromCfg(self,name,data,reco_level,bkg_unc=False):
+        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=reco_level,bkg_unc=bkg_unc))
    
     def addUncertainty(self,uncertainty):
+        if uncertainty.bkg_unc:
+            found_bkg=False
+            for a in uncertainty.affected:
+                if a in self.backgrounds:
+                    self.backgrounds[a].addUncertainty(uncertainty)
+                    found_bkg=True
+            if found_bkg:
+                self.theory.addTheta(uncertainty.name)
+            return found_bkg
+
         for u in self.uncertainties:
             if u.name==uncertainty.name:
                 for a in uncertainty.affected:
@@ -385,7 +432,6 @@ class Prediction:
                     elif ',' in  a and a.split(',')[1]+','+a.split(',')[0] in u.affected:
                         print 'WARNING: uncertainty with name',uncertainty.name,'affecting',a,'already exists, skipping'
                         return False
-        
         self.uncertainties.append(uncertainty)
         self.theory.addTheta(uncertainty.name)
         return True
@@ -401,6 +447,8 @@ class Prediction:
                    self.quadratic_effects[k][kk][iBin]=(self.quadratic_effects[k][kk][iBin][0]*s,self.quadratic_effects[k][kk][iBin][1]*s)
         if self.normhisto!=None:
             self.normhisto=[x*s for x in self.normhisto]
+        for b in backgrounds:
+            self.backgrounds[b]=[x*s for x in self.backgrounds[b]]
         self.rescaled*=s
 
     def getNominal(self):

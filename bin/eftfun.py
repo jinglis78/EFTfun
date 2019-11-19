@@ -218,7 +218,14 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     reverse=name.split()[1]+' '+name.split()[0]
                     if not name in names_set and not reverse in names_set:
                         print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" and measurement "+measurement.name+" -- assuming it is zero"
-
+        if cfg.has_section('Backgrounds'):
+            assert measurement.reco_level
+            for name,data in cfg.itemsAndRm('Backgrounds'):
+                prediction.addBackgroundFromCfg(name,data)
+            if cfg.has_section('Background Uncertainties'):
+                for bkg_syst_name,bkg_syst in cfg.itemsAndRm('Background Uncertainties'):
+                    prediction.addUncertaintyFromCfg(bkg_syst_name,bkg_syst,reco_level=reco_level,bkg_unc=True)
+    
         for s in cfg.sections():
             if len(cfg.options(s))>0:
                 raise Exception('Unused option '+','.join(cfg.options(s))+' in section '+s)
@@ -350,6 +357,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         
         for p,m,h_p_pre,h_m_pre in zip(predictions,measurements,pred_histos_prefit,data_histos_prefit):
             h_p_post=p.plotPostfit(f,combination.getFitResult())
+            hs_bkg_post=p.plotBkgPostfit(f,combination.getFitResult())
             h_m_post=None
             if m.getMeasurementCorrectionString()!=None:
                 h_m_post=m.plotPostfit(f,combination.getFitResult())
