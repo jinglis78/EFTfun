@@ -236,10 +236,10 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     print
                     print 'bin {}:'.format(i)
                     print s.replace(')+',')\n+').replace('))','))\n')
-
-            print 'Uncertainty (excluding nuisance parameters):', ' '.join(["{:.2f}% ".format(100.*x) for x in measurement.getRelErr()])
-            print 'Correlation matrix:'
-            measurement.getCorr().Print()
+            if not measurement.reco_level:
+                print 'Uncertainty (excluding nuisance parameters):', ' '.join(["{:.2f}% ".format(100.*x) for x in measurement.getRelErr()])
+                print 'Correlation matrix:'
+                measurement.getCorr().Print()
 
             print 'Prediction formulas:'
             for i,s in enumerate(prediction.getPredictionStrings()):
@@ -350,7 +350,10 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         
         for p,m,h_p_pre,h_m_pre in zip(predictions,measurements,pred_histos_prefit,data_histos_prefit):
             h_p_post=p.plotPostfit(f,combination.getFitResult())
-            Plotting.canvasPostfit('c_postfit_'+m.name,h_m_pre,h_p_pre,h_p_post,outfile=f,outfolder=outname)
+            h_m_post=None
+            if m.getMeasurementCorrectionString()!=None:
+                h_m_post=m.plotPostfit(f,combination.getFitResult())
+            Plotting.canvasPostfit('c_postfit_'+m.name,h_m_pre,h_m_post,h_p_pre,h_p_post,outfile=f,outfolder=outname)
 
     elif method=='pulls':
         pulls=combination.pulls()

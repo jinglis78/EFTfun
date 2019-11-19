@@ -14,7 +14,7 @@ class Combination:
         
         assert len(predictions)==len(measurements)
         for p,m in zip(predictions,measurements):
-            if m.getCov()==None:
+            if m.reco_level or m.getCov()==None:
                 continue
             while m.getCov().Determinant()<10e-20:
                 print 'Tiny covariance matrix determinant (',m.name,':',m.getCov().Determinant(),') rescaling measurement and prediction by 10'
@@ -24,12 +24,11 @@ class Combination:
         self.mvgaussians=[]
         self.poissons=[]
         self.corrected_predictions=[]
-        self.dataset=RooArgSet()
-        self.xVecs=RooArgSet()
+        self.data=RooArgSet()
         for prediction,measurement in zip(predictions,measurements):
             if measurement.reco_level:
                 for ibin,(p,n) in enumerate(zip(prediction.getPredictionFormulas(),measurement.central_values)):
-                    self.dataset.add(n)
+                    self.data.add(n)
                     self.poissons+=[RooPoisson(measurement.name+"_bin"+str(ibin)+"_poisson",measurement.name+"_bin"+str(ibin)+"_poisson",n,p)]
             else:
                 muVec=RooArgList()
@@ -42,7 +41,7 @@ class Combination:
                 xVec=RooArgList()
                 for x in measurement.central_values:
                     xVec.add(x)
-                self.xVecs.add(xVec)
+                self.data.add(xVec)
                 print xVec, muVec,measurement.getCov()
                 self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec,measurement.getCov())]
 
@@ -59,9 +58,9 @@ class Combination:
             pdfs.add(constraint)
         self.pdf=RooProdPdf(self.name+'_pdf',self.name+'_pdf',pdfs)
 
-        self.data=RooDataSet(self.name+'_data',self.name+'_data',RooArgSet(self.xVecs))
-        self.data.add(RooArgSet(self.xVecs))
-        self.nll=self.pdf.createNLL(self.data)
+        self.dataset=RooDataSet(self.name+'_data',self.name+'_data',RooArgSet(self.data))
+        self.dataset.add(RooArgSet(self.data))
+        self.nll=self.pdf.createNLL(self.dataset)
 
         self.minimizer=RooMinuit(self.nll)
         self.last_scan_range=None
@@ -280,7 +279,7 @@ class Combination:
             poiIsConst.append(poi.isConstant())
             poi.setConstant(False)
             pois.add(poi)
-        pl = ProfileLikelihoodCalculator(self.data,self.pdf,pois)
+        pl = ProfileLikelihoodCalculator(self.dataset,self.pdf,pois)
         pl.SetConfidenceLevel(0.95)
         interval = pl.GetInterval()
         for poi in [pois.first()]:
@@ -293,7 +292,7 @@ class Combination:
     def createWorkspace(self):
         self.workspace=RooWorkspace('w')
         getattr(self.workspace,'import')(self.pdf)
-        getattr(self.workspace,'import')(self.data)
+        getattr(self.workspace,'import')(self.dataset)
 
         modelconfig=ModelConfig(self.workspace)
         modelconfig.SetName(self.name+'_model')
@@ -306,7 +305,7 @@ class Combination:
             nps.add(t)
 
         modelconfig.SetParametersOfInterest(pois)
-        modelconfig.SetObservables(RooArgSet(self.dataset))
+        modelconfig.SetObservables(RooArgSet(self.data))
         modelconfig.SetNuisanceParameters(nps)
         
         background_model =  modelconfig.Clone(self.name+'_model_background')

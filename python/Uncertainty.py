@@ -212,11 +212,11 @@ class Uncertainty:
     def getEffectSym(self,nominal):
         return [(x[0]-x[1])/2 for x in self.getEffect(nominal)]
 
-    def getCov(self,nominal):
-        if self.with_np:
+    def getCov(self,nominal,incl_np):
+        if self.with_np and not incl_np:
             print "WARNING: this uncertainty should be handled with a nuisance parameter:",self.name
             return TMatrixDSym(self.nbins)
-        if self.interpol=='exp':
+        if self.interpol=='exp' and not incl_np:
             print "WARNING: exponential interpolation wont affect covariance matrix of uncertainty",self.name
         cov = TMatrixDSym(self.nbins)
         if self.uncorr:

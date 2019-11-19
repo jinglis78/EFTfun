@@ -293,35 +293,57 @@ class Measurement:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,0,1)
         for i in range(self.nbins):
             h.SetBinContent(i+1,self.central_values[i].getVal()/self.rescaled)
-            h.SetBinError(i+1,self.getErr()[i]/self.rescaled)
+            #TODO
+            h.SetBinError(i+1,self.getErr(incl_np=True)[i]/self.rescaled)
         outfile.cd()
         h.Write()
         return h
 
-    def getCov(self):
+    def plotPostfit(self, outfile,fitresult):
+        if self.binning!=None:
+            h=TH1F(self.name+'_data',self.name+'_data',self.nbins,array('f',self.binning))
+        else:
+            h=TH1F(self.name+'_data',self.name+'_data',self.nbins,0,1)
+        for i,f in enumerate(self.getMeasurementCorrection()):
+            h.SetBinContent(i+1,(self.central_values[i].getVal()+f.getVal())/self.rescaled)
+            h.SetBinError(i+1,f.getPropagatedError(fitresult)/self.rescaled)
+            #TODO
+#            h.SetBinError
+        outfile.cd()
+        h.Write()
+        return h
+
+    def getCov(self,incl_np=False):
+        if self.reco_level:
+            raise Exception("At reco level, the covariance matrix should not be used")
         if self.covMatrix:
             cov=TMatrixDSym(self.covMatrix)
         else:
             cov=TMatrixDSym(self.nbins)
         for u in self.uncertainties.values():
-            if not u.with_np:
-                cov+=u.getCov(self.getMeas())
+            print u.name
+            if incl_np or not u.with_np:
+                cov+=u.getCov(self.getMeas(),incl_np=incl_np)
         return cov
 
-    def getCorr(self):
-        m=TMatrixDSym(self.getCov())
+    def getCorr(self,incl_np=False):
+        m=TMatrixDSym(self.getCov(incl_np=incl_np))
         var=[m[i][i] for i in range(self.nbins)]
         for i in range(self.nbins):
             for j in range(self.nbins):
                 m[i][j]=m[i][j]/var[i]**0.5/var[j]**0.5
         return m
 
-    def getRelErr(self):
-        cov=self.getCov()
+    def getRelErr(self,incl_np=False):
+        if self.reco_level:
+            return [1/n**0.5 for n in self.getMeas()]
+        cov=self.getCov(incl_np=incl_np)
         return [(cov[i][i])**0.5/self.getNominal()[i] for i in range(self.nbins)]
 
-    def getErr(self):
-        cov=self.getCov()
+    def getErr(self,incl_np=False):
+        if self.reco_level:
+            return [n**0.5 for n in self.getMeas()]
+        cov=self.getCov(incl_np=incl_np)
         return [(cov[i][i])**0.5 for i in range(self.nbins)]
 
     def getMeas(self):

@@ -180,7 +180,7 @@ def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log
     return c
 
 
-def canvasPostfit(name,data_prefit,pred_prefit,pred_postfit,outfile,outfolder):
+def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile,outfolder):
     c=ROOT.TCanvas(name,name,1024,1024 )
     c.SetRightMargin(0.02)
     c.SetTopMargin(0.08)
@@ -193,6 +193,8 @@ def canvasPostfit(name,data_prefit,pred_prefit,pred_postfit,outfile,outfolder):
         for i in range(h.GetNbinsX()):
             ymax=max(ymax,h.GetBinContent(i+1)+h.GetBinError(i+1))
     data_prefit=ROOT.TGraphErrors(data_prefit)
+    if data_postfit!=None:
+        data_postfit=ROOT.TGraphErrors(data_postfit)
     pred_prefit=ROOT.TGraphErrors(pred_prefit)
     pred_postfit=ROOT.TGraphErrors(pred_postfit)
     pred_prefit.SetFillColor(ROOT.kBlue)
@@ -212,10 +214,23 @@ def canvasPostfit(name,data_prefit,pred_prefit,pred_postfit,outfile,outfolder):
     pred_postfit.SetMarkerStyle(22)
     pred_postfit.SetMarkerSize(1.6)
     pred_postfit.Draw('P2')
-    data_prefit.SetLineColor(ROOT.kBlack)
+    if data_postfit!=None:
+        data_prefit.SetLineColor(ROOT.kGray+2)
+        data_prefit.SetMarkerColor(ROOT.kGray+2)
+        data_postfit.SetLineColor(ROOT.kBlack)
+        data_postfit.SetMarkerColor(ROOT.kBlack)
+        data_postfit.SetMarkerStyle(20)
+        data_postfit.SetLineWidth(2)
+    else:
+        data_prefit.SetLineColor(ROOT.kBlack)
+        data_prefit.SetMarkerColor(ROOT.kBlack)
+
     data_prefit.SetMarkerStyle(20)
     data_prefit.SetLineWidth(2)
     data_prefit.Draw('P')
+    if data_postfit!=None:
+        data_postfit.Draw('P')
+
     legend=ROOT.TLegend(0.7,0.65,0.9,0.9)
     legend.SetBorderSize(0)
     legend.SetLineStyle(0)
@@ -225,6 +240,8 @@ def canvasPostfit(name,data_prefit,pred_prefit,pred_postfit,outfile,outfolder):
     legend.AddEntry(pred_prefit,'prefit','PF')
     legend.AddEntry(pred_postfit,'postfit','PF')
     legend.AddEntry(data_prefit,'measurement','PE')
+    if data_postfit!=None:
+        legend.AddEntry(data_postfit,'corrected measurement','PE')
     legend.Draw()
 
     printAndSave(c,outfile,outfolder,alsoLog=True)
