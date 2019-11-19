@@ -3,7 +3,7 @@ from math import log,sqrt
 from array import array
 import os
 import Utils
-import Uncertainty 
+import Uncertainty
 
 class Prediction:
     def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None):
@@ -372,8 +372,8 @@ class Prediction:
         assert len(scaling)==self.nbins
         self.extra_scaling=scaling
 
-    def addUncertaintyFromCfg(self,name,data):
-        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data))
+    def addUncertaintyFromCfg(self,name,data,reco_level):
+        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=reco_level))
    
     def addUncertainty(self,uncertainty):
         for u in self.uncertainties:

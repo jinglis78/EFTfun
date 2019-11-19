@@ -1,10 +1,10 @@
-from ROOT import RooRealVar, TMatrixDSym, TH1F
+from ROOT import RooRealVar, TMatrixDSym, TH1F, RooArgList, RooFormulaVar
 from array import array
 import Utils
 import Uncertainty
 #TODO: allow profiling of experimental systematics
 class Measurement:
-    def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None):
+    def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None):
         self.name=name
         self.nbins=nbins
         if measured!=None:
@@ -18,6 +18,8 @@ class Measurement:
         self.rescaled=1.
         self.uncertainties={}
         self.hepdata=None
+        self.reco_level=reco_level
+        self.theory=theory
         
 
     def setMeasured(self,measured):
@@ -30,6 +32,38 @@ class Measurement:
             x.setVal(x_meas)
             x.setConstant()
             self.central_values.append(x)
+
+    def getCorrectedMeasurementString(self):
+        need_to_correct=False
+        for u in self.uncertainties.values():
+            if u.with_np:
+                need_to_correct=True
+                break
+        if not need_to_correct:
+            return None
+        
+        formulas=[]
+        for i,x in enumerate(self.central_values):
+            form='{}-{}+{}'.format(x.GetName(),x.getVal(),x.getVal())
+            for u in self.uncertainties.values():
+                if u.with_np:
+                    form+='*'+u.getStr(i)
+            formulas+=[form]
+        return formulas
+
+    def getCorrectedMeasurement(self):
+        formulas=self.getCorrectedMeasurementString()
+        if formulas==None:
+            return self.central_values
+        self.correct_measurement=[]
+        params=RooArgList()
+        for t in self.theory.thetas:
+            params.add(t)
+        for c in self.central_values:
+            params.add(c)
+        for i,form in enumerate(formulas):
+            self.correct_measurement+=[RooFormulaVar("corrected_meas_{}_{}".format(self.name,i),"corrected_meas_{}_{}".format(self.name,i),form,params)]
+        return self.correct_measurement
 
     def setCov(self,cov):
         if self.nbins==None:
@@ -161,13 +195,16 @@ class Measurement:
         self.setCov(cov)
 
     def addUncertaintyFromCfg(self,name,data):
-        u=Uncertainty.createUncertaintyFromCfg(self,name,data)
+        if self.reco_level:
+            raise Exception("At reco level, the measurement has no uncertainty, it's a number -- the uncertainty is in the prediction")
+        u=Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=False)
         self.addUncertainty(u)
             
     def addUncertainty(self,uncertainty):
         assert uncertainty.nbins==self.nbins
         if uncertainty.name in self.uncertainties:
             raise Exception('Added same uncertainty twice '+uncertainty.name)
+        self.theory.addTheta(uncertainty.name)
         self.uncertainties[uncertainty.name]=uncertainty
 
     def setMeasuredFromYoda(self,filename,name):
@@ -265,8 +302,9 @@ class Measurement:
             cov=TMatrixDSym(self.covMatrix)
         else:
             cov=TMatrixDSym(self.nbins)
-        for u in self.uncertainties:
-            cov+=self.uncertainties[u].getCov(self.getMeas())
+        for u in self.uncertainties.values():
+            if not u.with_np:
+                cov+=u.getCov(self.getMeas())
         return cov
 
     def getCorr(self):

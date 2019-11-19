@@ -1,4 +1,4 @@
-from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F
+from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson
 from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculator,FrequentistCalculator,HypoTestInverter,ProfileLikelihoodTestStat
 import itertools,re
 import Utils
@@ -14,38 +14,55 @@ class Combination:
         
         assert len(predictions)==len(measurements)
         for p,m in zip(predictions,measurements):
+            if m.getCov()==None:
+                continue
             while m.getCov().Determinant()<10e-20:
                 print 'Tiny covariance matrix determinant (',m.name,':',m.getCov().Determinant(),') rescaling measurement and prediction by 10'
                 p.scale(10)
                 m.scale(10)
 
         self.mvgaussians=[]
-        self.covs=[]
-        self.xVecs=RooArgSet()
+        self.poissons=[]
+        self.dataset=RooArgSet()
         for prediction,measurement in zip(predictions,measurements):
-            muVec=RooArgList()
-            for p in prediction.getPredictionFormulas():
-                muVec.add(p)
-            xVec=RooArgList()
-            for x in measurement.central_values:
-                xVec.add(x)
-            self.xVecs.add(xVec)
-            self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec,measurement.getCov())]
+            if measurement.reco_level:
+                for ibin,(p,n) in enumerate(zip(prediction.getPredictionFormulas(),measurement.central_values)):
+                    self.dataset.add(n)
+                    self.poissons+=[RooPoisson(measurement.name+"_bin"+str(ibin)+"_poisson",measurement.name+"_bin"+str(ibin)+"_poisson",n,p)]
+            else:
+                muVec=RooArgList()
+                for p in prediction.getPredictionFormulas():
+                    muVec.add(p)
+                xVec=RooArgList()
+                dataVec=RooArgList()
+                for x in measurement.getCorrectedMeasurement():
+                    xVec.add(x)
+                for c in measurement.central_values:
+                    dataVec.add(c)
+                self.dataset.add(dataVec)
+                self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec,measurement.getCov())]
 
         self.constraints=[]
         for theta in self.theory.thetas:
             constraint=RooGaussian("constraint_"+theta.GetName(),"constraint_"+theta.GetName(),theta ,RooFit.RooConst(.0) ,RooFit.RooConst(1.))
             self.constraints+=[constraint]
-
         pdfs=RooArgList()
         for mvgaussian in self.mvgaussians:
             pdfs.add(mvgaussian)
+        for poisson in self.poissons:
+            pdfs.add(poisson)
         for constraint in self.constraints:
             pdfs.add(constraint)
         self.pdf=RooProdPdf(self.name+'_pdf',self.name+'_pdf',pdfs)
-        self.data=RooDataSet(self.name+'_data',self.name+'_data',RooArgSet(self.xVecs))
-        self.data.add(RooArgSet(self.xVecs))
+
+        self.data=RooDataSet(self.name+'_data',self.name+'_data',RooArgSet(self.dataset))
+        self.data.add(RooArgSet(self.dataset))
+        print self.pdf.getVal()
         self.nll=self.pdf.createNLL(self.data)
+        print self.pdf.getVal()
+        print self.nll.getVal()
+        raw_input()
+
         self.minimizer=RooMinuit(self.nll)
         self.last_scan_range=None
         self.all_results=None
@@ -289,7 +306,7 @@ class Combination:
             nps.add(t)
 
         modelconfig.SetParametersOfInterest(pois)
-        modelconfig.SetObservables(RooArgSet(self.xVecs))
+        modelconfig.SetObservables(RooArgSet(self.dataset))
         modelconfig.SetNuisanceParameters(nps)
         
         background_model =  modelconfig.Clone(self.name+'_model_background')

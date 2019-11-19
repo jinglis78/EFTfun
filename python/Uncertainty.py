@@ -1,7 +1,7 @@
 from ROOT import TMatrixDSym
 import Utils
 
-def createUncertaintyFromCfg(reference,name,data):
+def createUncertaintyFromCfg(reference,name,data,reco_level):
     if '{' in name:
         affected=set(o.strip() for o in name[name.find('{')+1:name.find('}')].split())
         if 'all' in affected:
@@ -39,7 +39,10 @@ def createUncertaintyFromCfg(reference,name,data):
     elif 'uncorr' in options:
         uncorr=True
         options.remove('uncorr')
-
+    with_np=reco_level
+    if 'np' in options:
+        options.remove('np')
+        with_np=True
     if len(options)>0:
         raise Exception('unknow/incompatible options in uncertainty '+data+' : '+' '.join(list(options)))
     releffect=None
@@ -50,7 +53,7 @@ def createUncertaintyFromCfg(reference,name,data):
         up_filename,up_histoname=spl[1].split(':')
         if isrel!=None:
             print 'WARNING: abs/rel wont have an effect on uncertainties from histograms'
-        return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr)
+        return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr,with_np=with_np)
     if Utils.isListOfNumbers(data,reference.nbins):
         effect=[]
         for e in data.split():
@@ -71,23 +74,23 @@ def createUncertaintyFromCfg(reference,name,data):
                 print 'WARNING: cannot use option "renorm", no histogram given to renorm prediction'
             else:
                 releffect=[(e[0]*s/n,e[1]*s/n) for s,e,n in zip(reference.getNominal(),effect,reference.normhisto)]
-        return createUncertainty(reference,thetaname,releffect=releffect,affected=affected,interpol=interpol,uncorr=uncorr)
+        return createUncertainty(reference,thetaname,releffect=releffect,affected=affected,interpol=interpol,uncorr=uncorr,with_np=with_np)
     if isrel!=None:
         print 'WARNING: abs/rel wont have an effect on uncertainties from hepdata'
     if renorm!=None:
         print 'WARNING: renorm/keepnorm wont have an effect on uncertainties from hepdata'
-    return createUncertaintyFromYaml(reference,thetaname,data,affected=affected,interpol=interpol,uncorr=uncorr)
+    return createUncertaintyFromYaml(reference,thetaname,data,affected=affected,interpol=interpol,uncorr=uncorr,with_np=with_np)
 
 
-def createUncertaintyFromYaml(reference,name,data,affected,interpol,uncorr):
+def createUncertaintyFromYaml(reference,name,data,affected,interpol,uncorr,with_np=False):
     if ':' in data:
         filename,err_label=data.split(':')
     else:
         filename,err_label=reference.hepdata,data
     releffect=getErrsFromYaml(reference,filename,err_label,rel=True)
-    return Uncertainty(reference.nbins,affected=affected,name=name,releffect=releffect,interpol=interpol,uncorr=uncorr)
+    return Uncertainty(reference.nbins,affected=affected,name=name,releffect=releffect,interpol=interpol,uncorr=uncorr,with_np=with_np)
     
-def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False):
+def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False,with_np=False):
     #TODO: one-sided uncertainties
     if down_filename==None:
         down=[0.]*reference.nbins
@@ -106,13 +109,13 @@ def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_hist
         up=[u/n-1 for u,n in zip(up,reference.getNominal())]
         down=[d/n-1 for d,n in zip(down,reference.getNominal())]
     releffect=zip(up,down)
-    return createUncertainty(name,releffect,affected,interpol,uncorr)
+    return createUncertainty(name,releffect,affected,interpol,uncorr,with_np=with_np)
 
-def createUncertainty(reference,name,releffect,affected='all',interpol='exp',uncorr=False):
+def createUncertainty(reference,name,releffect,affected='all',interpol='exp',uncorr=False,with_np=False):
     if not isinstance(releffect,list):
         releffect=[releffect]*reference.nbins
     assert len(releffect)==reference.nbins
-    return Uncertainty(reference.nbins,affected,name,releffect,interpol,uncorr)
+    return Uncertainty(reference.nbins,affected,name,releffect,interpol,uncorr,with_np=with_np)
 
 def getErrsFromYaml(reference,filename,err_label,rel=True):
     import yaml
@@ -157,7 +160,7 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
     return errs
 
 class Uncertainty:
-    def __init__(self,nbins,affected,name,releffect,interpol,uncorr=False):
+    def __init__(self,nbins,affected,name,releffect,interpol,uncorr=False,with_np=False):
         self.nbins=nbins
         self.affected=affected
         self.name=name
@@ -174,6 +177,7 @@ class Uncertainty:
         assert interpol in ['lin','exp']            
         self.interpol=interpol
         self.uncorr=uncorr
+        self.with_np=with_np
 
         
     def getStr(self,iBin):
@@ -209,6 +213,9 @@ class Uncertainty:
         return [(x[0]-x[1])/2 for x in self.getEffect(nominal)]
 
     def getCov(self,nominal):
+        if self.with_np:
+            print "WARNING: this uncertainty should be handled with a nuisance parameter:",self.name
+            return TMatrixDSym(self.nbins)
         if self.interpol=='exp':
             print "WARNING: exponential interpolation wont affect covariance matrix of uncertainty",self.name
         cov = TMatrixDSym(self.nbins)

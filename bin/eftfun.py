@@ -148,7 +148,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 overrides_measurement+=[':'.join(ovr.split(':')[1:])]
 
         cfg.read(MyConfigParser.expandCfg(cfg_name,overrides_measurement))
-
+        reco_level=False
+        if cfg.has_option('Measurement','reco_level'):
+            reco_level=cfg.getbooleanAndRm('Measurement','reco_level')
         per_bin_width=False
         if cfg.has_option('Measurement','per_bin_width'):
             per_bin_width=cfg.getbooleanAndRm('Measurement','per_bin_width')
@@ -157,7 +159,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             binning=[float(x) for x in cfg.getAndRm('Measurement','binning').split()]
 
 
-        measurement=Measurement(cfg.getAndRm('Measurement','name'),per_bin_width=per_bin_width,binning=binning)
+        measurement=Measurement(cfg.getAndRm('Measurement','name'),per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory)
         assert not measurement.name in [m.name for m in measurements]
         
         if asimov:
@@ -174,8 +176,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             print 'WARNING: neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties'
             
 
-        if cfg.has_section('Exp Systs'):
-            for exp_syst_name,exp_syst in cfg.itemsAndRm('Exp Systs'):
+        if cfg.has_section('Measurement Uncertainties'):
+            for exp_syst_name,exp_syst in cfg.itemsAndRm('Measurement Uncertainties'):
                 measurement.addUncertaintyFromCfg(exp_syst_name,exp_syst)
                 
         prediction=Prediction(measurement.name,theory,per_bin_width=per_bin_width,binning=binning)
@@ -188,9 +190,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             prediction.setScalingFromCfg(cfg.getAndRm('Measurement','scaling_factor'))
         if cfg.has_option('Measurement','stat_unc_threshold'):
             prediction.stat_unc_threshold=float(cfg.getAndRm('Measurement','stat_unc_threshold'))
-        if cfg.has_section('Theo Systs'):
-            for theo_syst_name,theo_syst in cfg.itemsAndRm('Theo Systs'):
-                prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst)
+        if cfg.has_section('Prediction Uncertainties'):
+            for theo_syst_name,theo_syst in cfg.itemsAndRm('Prediction Uncertainties'):
+                prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst,reco_level=reco_level)
         if cfg.has_section('Linear Effects'):
             if quad:
                 cfg.remove_section('Linear Effects')
@@ -228,7 +230,14 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'Ingredients ------------------------------------------------'
         for measurement,prediction in zip(measurements,predictions):
             print 'Measurement:',measurement.name
-            print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])            
+            if measurement.getCorrectedMeasurementString()!=None:
+                for i,s in enumerate(measurement.getCorrectedMeasurementString()):
+                    print
+                    print 'bin {}:'.format(i)
+                    print s.replace(')+',')\n+').replace('))','))\n')
+
+            else:
+                print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])            
             print 'Uncertainty:', ' '.join(["{:.2f}% ".format(100.*x) for x in measurement.getRelErr()])
             print 'Correlation matrix:'
             measurement.getCorr().Print()
