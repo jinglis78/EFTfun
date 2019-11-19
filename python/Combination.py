@@ -23,7 +23,9 @@ class Combination:
 
         self.mvgaussians=[]
         self.poissons=[]
+        self.corrected_predictions=[]
         self.dataset=RooArgSet()
+        self.xVecs=RooArgSet()
         for prediction,measurement in zip(predictions,measurements):
             if measurement.reco_level:
                 for ibin,(p,n) in enumerate(zip(prediction.getPredictionFormulas(),measurement.central_values)):
@@ -31,15 +33,17 @@ class Combination:
                     self.poissons+=[RooPoisson(measurement.name+"_bin"+str(ibin)+"_poisson",measurement.name+"_bin"+str(ibin)+"_poisson",n,p)]
             else:
                 muVec=RooArgList()
-                for p in prediction.getPredictionFormulas():
-                    muVec.add(p)
+                for i,(p,c) in enumerate(zip(prediction.getPredictionFormulas(),measurement.getMeasurementCorrection())):
+                    if c!=None:
+                        self.corrected_predictions+=[RooFormulaVar("corrected_prediction_{}_{}".format(measurement.name,i),"@0-@1", RooArgList(p,c))]
+                        muVec.add(self.corrected_predictions[-1])
+                    else:
+                        muVec.add(p)
                 xVec=RooArgList()
-                dataVec=RooArgList()
-                for x in measurement.getCorrectedMeasurement():
+                for x in measurement.central_values:
                     xVec.add(x)
-                for c in measurement.central_values:
-                    dataVec.add(c)
-                self.dataset.add(dataVec)
+                self.xVecs.add(xVec)
+                print xVec, muVec,measurement.getCov()
                 self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec,measurement.getCov())]
 
         self.constraints=[]
@@ -55,13 +59,9 @@ class Combination:
             pdfs.add(constraint)
         self.pdf=RooProdPdf(self.name+'_pdf',self.name+'_pdf',pdfs)
 
-        self.data=RooDataSet(self.name+'_data',self.name+'_data',RooArgSet(self.dataset))
-        self.data.add(RooArgSet(self.dataset))
-        print self.pdf.getVal()
+        self.data=RooDataSet(self.name+'_data',self.name+'_data',RooArgSet(self.xVecs))
+        self.data.add(RooArgSet(self.xVecs))
         self.nll=self.pdf.createNLL(self.data)
-        print self.pdf.getVal()
-        print self.nll.getVal()
-        raw_input()
 
         self.minimizer=RooMinuit(self.nll)
         self.last_scan_range=None

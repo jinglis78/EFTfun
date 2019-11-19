@@ -230,15 +230,14 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'Ingredients ------------------------------------------------'
         for measurement,prediction in zip(measurements,predictions):
             print 'Measurement:',measurement.name
-            if measurement.getCorrectedMeasurementString()!=None:
-                for i,s in enumerate(measurement.getCorrectedMeasurementString()):
+            print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])
+            if measurement.getMeasurementCorrectionString()!=None:
+                for i,s in enumerate(measurement.getMeasurementCorrectionString()):
                     print
                     print 'bin {}:'.format(i)
                     print s.replace(')+',')\n+').replace('))','))\n')
 
-            else:
-                print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])            
-            print 'Uncertainty:', ' '.join(["{:.2f}% ".format(100.*x) for x in measurement.getRelErr()])
+            print 'Uncertainty (excluding nuisance parameters):', ' '.join(["{:.2f}% ".format(100.*x) for x in measurement.getRelErr()])
             print 'Correlation matrix:'
             measurement.getCorr().Print()
 

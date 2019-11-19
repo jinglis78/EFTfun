@@ -33,7 +33,7 @@ class Measurement:
             x.setConstant()
             self.central_values.append(x)
 
-    def getCorrectedMeasurementString(self):
+    def getMeasurementCorrectionString(self):
         need_to_correct=False
         for u in self.uncertainties.values():
             if u.with_np:
@@ -44,26 +44,26 @@ class Measurement:
         
         formulas=[]
         for i,x in enumerate(self.central_values):
-            form='{}-{}+{}'.format(x.GetName(),x.getVal(),x.getVal())
+            form='-{}+{}'.format(x.getVal(),x.getVal())
             for u in self.uncertainties.values():
                 if u.with_np:
                     form+='*'+u.getStr(i)
             formulas+=[form]
         return formulas
 
-    def getCorrectedMeasurement(self):
-        formulas=self.getCorrectedMeasurementString()
+    def getMeasurementCorrection(self):
+        formulas=self.getMeasurementCorrectionString()
         if formulas==None:
-            return self.central_values
-        self.correct_measurement=[]
+            return [None]*self.nbins
+        self.measurement_correction=[]
         params=RooArgList()
         for t in self.theory.thetas:
             params.add(t)
         for c in self.central_values:
             params.add(c)
         for i,form in enumerate(formulas):
-            self.correct_measurement+=[RooFormulaVar("corrected_meas_{}_{}".format(self.name,i),"corrected_meas_{}_{}".format(self.name,i),form,params)]
-        return self.correct_measurement
+            self.measurement_correction+=[RooFormulaVar("meas_correction_{}_{}".format(self.name,i),"meas_correction_{}_{}".format(self.name,i),form,params)]
+        return self.measurement_correction
 
     def setCov(self,cov):
         if self.nbins==None:
@@ -204,7 +204,8 @@ class Measurement:
         assert uncertainty.nbins==self.nbins
         if uncertainty.name in self.uncertainties:
             raise Exception('Added same uncertainty twice '+uncertainty.name)
-        self.theory.addTheta(uncertainty.name)
+        if uncertainty.with_np:
+            self.theory.addTheta(uncertainty.name)
         self.uncertainties[uncertainty.name]=uncertainty
 
     def setMeasuredFromYoda(self,filename,name):
