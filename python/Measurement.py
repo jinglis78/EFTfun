@@ -36,7 +36,7 @@ class Measurement:
     def getMeasurementCorrectionString(self):
         need_to_correct=False
         for u in self.uncertainties.values():
-            if u.with_np:
+            if u.with_nuis_par:
                 need_to_correct=True
                 break
         if not need_to_correct:
@@ -46,7 +46,7 @@ class Measurement:
         for i,x in enumerate(self.central_values):
             form='-{}+{}'.format(x.getVal(),x.getVal())
             for u in self.uncertainties.values():
-                if u.with_np:
+                if u.with_nuis_par:
                     form+='*'+u.getStr(i)
             formulas+=[form]
         return formulas
@@ -204,7 +204,7 @@ class Measurement:
         assert uncertainty.nbins==self.nbins
         if uncertainty.name in self.uncertainties:
             raise Exception('Added same uncertainty twice '+uncertainty.name)
-        if uncertainty.with_np:
+        if uncertainty.with_nuis_par:
             self.theory.addTheta(uncertainty.name)
         self.uncertainties[uncertainty.name]=uncertainty
 
@@ -321,7 +321,7 @@ class Measurement:
         else:
             cov=TMatrixDSym(self.nbins)
         for u in self.uncertainties.values():
-            if incl_np or not u.with_np:
+            if incl_np or not u.with_nuis_par:
                 cov+=u.getCov(self.getMeas(),incl_np=incl_np)
         return cov
 

@@ -60,6 +60,9 @@ def main():
     parser.add_option("--override",
                       dest="override", default=None,
                       help="Override option in config. Syntax: Configname1:Section1.Option1=Value1,Configname2:Section2.Option2=Value2,... . Configname can also be 'measurements' or 'main' as shortcut for all measurments or the main cfg.")
+    parser.add_option("--measurements",
+                      dest="measurements", default='all',
+                      help="Comma separated list of measurements to be included (default: include all measurements)")
 
     #TODO: "robust" option
     options,args=parser.parse_args()
@@ -74,10 +77,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.force,options.override)
+        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.force,options.override,options.measurements)
 
 
-def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,force,override):
+def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,force,override,measurements_included):
     if verbose:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -95,6 +98,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'verbose',verbose
         print 'write_more',write_more
         print 'override',override
+        print 'measurements',measurements_included
         print '--------------------------------------'
     #TODO: make sure all options are used
     main_cfg_name=config
@@ -147,7 +151,10 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             if ovr.split(':')[0]=='measurements' or ovr.split(':')[0]==cfg_name:
                 overrides_measurement+=[':'.join(ovr.split(':')[1:])]
 
-        cfg.read(MyConfigParser.expandCfg(cfg_name,overrides_measurement))
+        cfg.read(MyConfigParser.expandCfg(cfg_name,overrides_measurement))        
+        measurement_name=cfg.getAndRm('Measurement','name')
+        if not measurements_included=='all' and not measurement_name in [x.strip() for x in measurements_included.split(',')]:
+            continue
         reco_level=False
         if cfg.has_option('Measurement','reco_level'):
             reco_level=cfg.getbooleanAndRm('Measurement','reco_level')
@@ -158,8 +165,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         if cfg.has_option('Measurement','binning'):
             binning=[float(x) for x in cfg.getAndRm('Measurement','binning').split()]
 
-
-        measurement=Measurement(cfg.getAndRm('Measurement','name'),per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory)
+        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory)
         assert not measurement.name in [m.name for m in measurements]
         
         if asimov:
@@ -172,7 +178,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             measurement.setCovFromCfg(cfg.getAndRm('Measurement','covariance'))
         elif cfg.has_option('Measurement','correlation') and cfg.has_option('Measurement','correlated_uncertainty'):
             measurement.setErrAndCorrFromCfg(cfg.getAndRm('Measurement','correlated_uncertainty'),cfg.getAndRm('Measurement','correlation'))
-        else:
+        elif not measurement.reco_level:
             print 'WARNING: neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties'
             
 
@@ -224,7 +230,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 prediction.addBackgroundFromCfg(name,data)
             if cfg.has_section('Background Uncertainties'):
                 for bkg_syst_name,bkg_syst in cfg.itemsAndRm('Background Uncertainties'):
-                    prediction.addUncertaintyFromCfg(bkg_syst_name,bkg_syst,reco_level=reco_level,bkg_unc=True)
+                    prediction.addUncertaintyFromCfg(bkg_syst_name,bkg_syst,reco_level=reco_level,is_bkg_unc=True)
     
         for s in cfg.sections():
             if len(cfg.options(s))>0:
@@ -237,14 +243,18 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'Ingredients ------------------------------------------------'
         for measurement,prediction in zip(measurements,predictions):
             print 'Measurement:',measurement.name
+            print
             print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])
+            print
             if measurement.getMeasurementCorrectionString()!=None:
+                print 'Measurement correction formulas:'
                 for i,s in enumerate(measurement.getMeasurementCorrectionString()):
                     print
                     print 'bin {}:'.format(i)
                     print s.replace(')+',')\n+').replace('))','))\n')
             if not measurement.reco_level:
                 print 'Uncertainty (excluding nuisance parameters):', ' '.join(["{:.2f}% ".format(100.*x) for x in measurement.getRelErr()])
+                print
                 print 'Correlation matrix:'
                 measurement.getCorr().Print()
 

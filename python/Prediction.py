@@ -409,11 +409,11 @@ class Prediction:
         assert not name in self.theory.getCoeffNames()
         self.backgrounds[name]=Background(name,values)
 
-    def addUncertaintyFromCfg(self,name,data,reco_level,bkg_unc=False):
-        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=reco_level,bkg_unc=bkg_unc))
+    def addUncertaintyFromCfg(self,name,data,reco_level,is_bkg_unc=False):
+        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=reco_level,is_bkg_unc=is_bkg_unc))
    
     def addUncertainty(self,uncertainty):
-        if uncertainty.bkg_unc:
+        if uncertainty.is_bkg_unc:
             found_bkg=False
             for a in uncertainty.affected:
                 if a in self.backgrounds:
