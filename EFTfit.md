@@ -338,8 +338,8 @@ and the equivalent unfolded measurement:
 ```
 [Measurement]
 name = unfold_measurement1
-measured = 1. 1.
-sm = 0.95 0.98
+measured = 0.9 0.9
+sm = 0.85 0.88
 covariance = 0.001 0, 0 0.001
 
 [Linear Effects]
