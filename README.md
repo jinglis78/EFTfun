@@ -1,4 +1,4 @@
-EFT Fitter for UNfolded measurements.
+EFT Fitter for UNfolded measurements -- now also fitting reco measurements.
 
 For help:
 ```

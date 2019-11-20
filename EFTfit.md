@@ -6,10 +6,11 @@ The EFT fit preparation consists of the following steps:
 1. Setup the fitting code
 1. Download HEP data and include it in fit config
 1. Add Standard Model prediction
-1. Add Experimental uncertainties
-1. Add Theory uncertainties
+1. Add experimental uncertainties
+1. Add theory uncertainties
 1. Add EFT predictions
 1. Perform fits
+1. Reco measurement examples
 
 ## 3.1 Setting Up the Fitting Tool
 
@@ -145,8 +146,8 @@ The `scaling_factor` option can be removed.
 One can add a `binning` but this will only affect plots and isn't always helpful.
 
 ## 3.4 Add Experimental Uncertainties
-We will skip to the `[Exp Systs]` section now.
-By looking at the `Table_18.yaml` file or the [HEPdata page](https://www.hepdata.net/record/ins1467454?version=1&table=Table18) you will see that the measurement has fifteen uncertainty sources. All uncertainties affecting the measurement, including theory uncertainties on background or unfolding, will be classified as experimental uncertainties (maybe measurement uncertainties would have been a better name).
+We will skip to the `[Measurement Uncertainties]` section now.
+By looking at the `Table_18.yaml` file or the [HEPdata page](https://www.hepdata.net/record/ins1467454?version=1&table=Table18) you will see that the measurement has fifteen uncertainty sources. All uncertainties affecting the measurement, including theory uncertainties on background or unfolding, will be classified as measurement uncertainties.
 
 We will let the fitting code construct a covariance matrix from these uncertainties. To do so, it needs to know which uncertainties are correlated and which are uncorrelated between bins (uncertainties that are partially correlated need to be tackled by adding the covariance matrix as described in section 3.2).
 Add uncertainties in the following fashion:
@@ -171,10 +172,11 @@ Instead of just using the label (e.g. `sys,trig cor`) one can also use the full 
 ```
 dy_ee_stat =  {uncorr rel} 0.01 0.02 ...
 ```
+There is also the option to not include the uncertainty in the covariance matrix but to introduce a nuisance parameter in the fit that shifts the measured cross section, with the option 'np'. This nuisance parameter can then be correlated, also with reco level fits.
 
 ## 3.5 Add Theory Uncertainties
 Now we will add theory uncertainties, i.e. uncertainties that affect predictions for dilepton production, be it SM DY or due to dimension-six operator effects.
-These will be included in the fit as nuisance parameters. This is done in the `[Theo Systs]` section.
+These will be included in the fit as nuisance parameters. This is done in the `[Prediction Uncertainties]` section.
 
 In the publication, uncertainties on the SM prediction are estimated to be
 
@@ -307,3 +309,42 @@ w->Print()
 The workspace could be combined with other measurements (also fits of folded data) or used to calculate limits with frequentist methods, e.g. using [this](https://root.cern.ch/doc/v614/StandardHypoTestInvDemo_8C.html) script.
 
 It is also planned to add functions to implement frequentist and hybrid limits using the appropriate RooStats calculator directly to this fitting tool.
+
+## 3.8 Reco measurement examples (not part of tutorial)
+
+A reco level measurement has to be declared with
+```
+reco_level = True
+```
+Measured and predicted values are then given by the number of observed events instead of measured cross section. There is no covariance matrix. There is a new category 'Backgrounds' All uncertainties (experimental and theoretical) are 'Prediction Uncertainties' (if they affect the sm prediction) or 'Background Uncertainties'.
+See below for an example of a reco level measurement:
+```
+[Measurement]
+name = reco_measurement1
+measured = 1000 1000
+sm = 850 880
+reco_level = True
+
+[Linear Effects]
+c1 = 1 0
+
+[Backgrounds]
+b1 = 100 100
+
+[Background Uncertainties]
+{b1} b1_norm = {rel} 0.3 0.3
+```
+and the equivalent unfolded measurement:
+```
+[Measurement]
+name = unfold_measurement1
+measured = 1. 1.
+sm = 0.95 0.98
+covariance = 0.001 0, 0 0.001
+
+[Linear Effects]
+c1 = 0.001 0
+
+[Measurement Uncertainties]
+{all} b1_norm = {rel flip np} 0.03 0.03
+```
