@@ -113,7 +113,7 @@ def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_hist
         up=[u/n-1 for u,n in zip(up,reference.getNominal())]
         down=[d/n-1 for d,n in zip(down,reference.getNominal())]
     releffect=zip(up,down)
-    return createUncertainty(name,releffect,affected,interpol,uncorr,with_nuis_par=with_nuis_par,is_bkg_unc=is_bkg_unc,flip=flip)
+    return createUncertainty(reference,name,releffect,affected,interpol,uncorr,with_nuis_par=with_nuis_par,is_bkg_unc=is_bkg_unc,flip=flip)
 
 def createUncertainty(reference,name,releffect,affected='all',interpol='exp',uncorr=False,with_nuis_par=False,is_bkg_unc=False,flip=False):
     if not isinstance(releffect,list):
