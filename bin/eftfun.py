@@ -95,6 +95,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'quad',quad
         print 'deactivate_uncertainties',deactivate_uncertainties
         print 'constant',constant
+        print 'initial',initial
         print 'verbose',verbose
         print 'write_more',write_more
         print 'override',override
@@ -165,28 +166,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         if cfg.has_option('Measurement','binning'):
             binning=[float(x) for x in cfg.getAndRm('Measurement','binning').split()]
 
-        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory)
-        assert not measurement.name in [m.name for m in measurements]
-        
-        if asimov:
-            measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
-            measurement.setMeasuredFromCfg(cfg.get('Measurement','sm'))
-        else:
-            measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
-
-        if cfg.has_option('Measurement','covariance'):
-            measurement.setCovFromCfg(cfg.getAndRm('Measurement','covariance'))
-        elif cfg.has_option('Measurement','correlation') and cfg.has_option('Measurement','correlated_uncertainty'):
-            measurement.setErrAndCorrFromCfg(cfg.getAndRm('Measurement','correlated_uncertainty'),cfg.getAndRm('Measurement','correlation'))
-        elif not measurement.reco_level:
-            print 'WARNING: neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties'
-            
-
-        if cfg.has_section('Measurement Uncertainties'):
-            for exp_syst_name,exp_syst in cfg.itemsAndRm('Measurement Uncertainties'):
-                measurement.addUncertaintyFromCfg(exp_syst_name,exp_syst)
-                
-        prediction=Prediction(measurement.name,theory,per_bin_width=per_bin_width,binning=binning)
+        prediction=Prediction(measurement_name,theory,per_bin_width=per_bin_width,binning=binning)
         assert prediction.name not in [p.name for p in predictions]
         
         prediction.setSMfromCfg(cfg.getAndRm('Measurement','sm'))
@@ -225,13 +205,39 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     if not name in names_set and not reverse in names_set:
                         print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" and measurement "+measurement.name+" -- assuming it is zero"
         if cfg.has_section('Backgrounds'):
-            assert measurement.reco_level
+            assert reco_level
             for name,data in cfg.itemsAndRm('Backgrounds'):
                 prediction.addBackgroundFromCfg(name,data)
             if cfg.has_section('Background Uncertainties'):
                 for bkg_syst_name,bkg_syst in cfg.itemsAndRm('Background Uncertainties'):
-                    prediction.addUncertaintyFromCfg(bkg_syst_name,bkg_syst,reco_level=reco_level,is_bkg_unc=True)
-    
+                    prediction.addUncertaintyFromCfg(bkg_syst_name,bkg_syst,reco_level=reco_level,is_bkg_unc=True)   
+
+
+        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory)
+        assert not measurement.name in [m.name for m in measurements]
+        
+        if asimov:
+            measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
+            asmimov_data=prediction.getNominal()
+            for b in prediction.backgrounds.values():
+                asmimov_data=[x+y for x,y in zip(asmimov_data,b.getNominal())]
+            measurement.setMeasured(asmimov_data)
+            
+        else:
+            measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
+
+        if cfg.has_option('Measurement','covariance'):
+            measurement.setCovFromCfg(cfg.getAndRm('Measurement','covariance'))
+        elif cfg.has_option('Measurement','correlation') and cfg.has_option('Measurement','correlated_uncertainty'):
+            measurement.setErrAndCorrFromCfg(cfg.getAndRm('Measurement','correlated_uncertainty'),cfg.getAndRm('Measurement','correlation'))
+        elif not measurement.reco_level:
+            print 'WARNING: neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties'
+            
+
+        if cfg.has_section('Measurement Uncertainties'):
+            for exp_syst_name,exp_syst in cfg.itemsAndRm('Measurement Uncertainties'):
+                measurement.addUncertaintyFromCfg(exp_syst_name,exp_syst)
+                
         for s in cfg.sections():
             if len(cfg.options(s))>0:
                 raise Exception('Unused option '+','.join(cfg.options(s))+' in section '+s)
