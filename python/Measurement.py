@@ -2,7 +2,7 @@ from ROOT import RooRealVar, TMatrixDSym, TH1F, RooArgList, RooFormulaVar
 from array import array
 import Utils
 import Uncertainty
-#TODO: allow profiling of experimental systematics
+
 class Measurement:
     def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None):
         self.name=name
@@ -293,7 +293,6 @@ class Measurement:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,0,1)
         for i in range(self.nbins):
             h.SetBinContent(i+1,self.central_values[i].getVal()/self.rescaled)
-            #TODO
             h.SetBinError(i+1,self.getErr(incl_np=True)[i]/self.rescaled)
         outfile.cd()
         h.Write()
@@ -307,8 +306,6 @@ class Measurement:
         for i,f in enumerate(self.getMeasurementCorrection()):
             h.SetBinContent(i+1,(self.central_values[i].getVal()+f.getVal())/self.rescaled)
             h.SetBinError(i+1,f.getPropagatedError(fitresult)/self.rescaled)
-            #TODO
-#            h.SetBinError
         outfile.cd()
         h.Write()
         return h

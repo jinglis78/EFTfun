@@ -1,6 +1,7 @@
 from ConfigParser import ConfigParser,SafeConfigParser
 from collections import OrderedDict
 import itertools,re
+import Utils
 
 class MyConfigParser(SafeConfigParser):
 
@@ -34,7 +35,7 @@ def expandCfg(cfg_name,overrides):
     wildcards={}
     if parser.has_section('Wildcards'):
         for key,values in parser.items('Wildcards'):
-            wildcards[key]=values.split()
+            wildcards[key]=Utils.split(values)
     sections_new=OrderedDict()
     for section in parser.sections():
         section_new=OrderedDict()

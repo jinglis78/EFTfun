@@ -101,7 +101,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'override',override
         print 'measurements',measurements_included
         print '--------------------------------------'
-    #TODO: make sure all options are used
+
     main_cfg_name=config
     main_cfg = MyConfigParser.MyConfigParser()
     main_cfg.optionxform = str

@@ -115,7 +115,7 @@ class Prediction:
 
     def getPredictionStrings(self):
         eftprediction = []
-        #TODO: tuple
+
         for iBin in range(self.nbins):
 
             formula=str(self.sm[iBin])
@@ -171,7 +171,6 @@ class Prediction:
                 params.add(c)
             for t in self.theory.thetas:
                 params.add(t)
-            #TODO: not allowed to be negative
             bin_prediction=RooFormulaVar("pred_{}_{}".format(self.name,iBin),"pred_{}_{}".format(self.name,iBin),formula,params)
             self.predictions.append(bin_prediction)
         return self.predictions
@@ -315,8 +314,6 @@ class Prediction:
         if power==1:
             if add:
                 self.linear_effects[coeff_names[0]]=[a+b for a,b in zip(self.linear_effects[coeff_names[0]],actual_effect)]
-                #TODO: will also add a quadratic effect?
-                #TODO: does'nt work with errors?
             else:
                 self.linear_effects[coeff_names[0]]=actual_effect
         elif power==2:

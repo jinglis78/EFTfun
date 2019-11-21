@@ -3,8 +3,6 @@ from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculat
 import itertools,re
 import Utils
 
-#TODO: allow profiling of experimental systematics or combination of covariance matrices
-
 class Combination:
     def __init__(self, theory=None, predictions=None,measurements=None,name='test',verbose=True):
 
@@ -163,7 +161,7 @@ class Combination:
 
         assert len(actual_scan_ranges)==len(poi_names)
         assert len(nsteps)==len(poi_names)
-        #TODO actual loop
+
         scan_points=[]
         for sr,ns in zip(actual_scan_ranges,nsteps):
             scan_points.append([sr[0]+i*float(sr[1]-sr[0])/(ns-1) for i in range(ns)])
@@ -253,13 +251,6 @@ class Combination:
         for d in deactivated:
             d.setVal(deactivated[d])
         return self.nll.getVal()
-#TODO: Why is this slow?
-#        self.fitresult=self.pdf.fitTo(self.data,RooFit.Save(True),RooFit.PrintLevel(print_level),RooFit.Strategy(strategy),RooFit.Hesse(hesse))
-#        if self.fitresult!=None and self.fitresult.status()==0:
-#            return self.fitresult.minNll()
-#        else:
-#            print 'WARNING: non-zero status, will return nll=999'
-#            return 999.
 
     #TODO: other interval calculators, CLs.
 

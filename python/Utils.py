@@ -116,3 +116,11 @@ def ask(question,option1=['yes','y', 'ye', ''],option2=['no','n']):
 
 def strip(s):
     return s.strip().replace('"','').replace("'",'')
+
+def split(sin):
+    dummy='SPLITTINGPROTECTION'
+    s=sin.replace('\ ',dummy)
+    spl=[x.replace(dummy,' ') for x in s.split()]
+    return spl
+
+    
