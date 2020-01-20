@@ -187,7 +187,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     if name not in theory.getCoeffNames():
                         continue
                     if not prediction.setEffectFromCfg(1,name,effect):
-                        print "WARNING: Could not find linear effect for "+name+" and measurement "+measurement.name+" -- assuming it is zero"
+                        print "WARNING: Could not find linear effect for "+name+" and measurement "+measurement_name+" -- assuming it is zero"
         if cfg.has_section('Quadratic Effects'):
             if linear:
                 cfg.remove_section('Quadratic Effects')
@@ -203,7 +203,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                         continue
                     reverse=name.split()[1]+' '+name.split()[0]
                     if not name in names_set and not reverse in names_set:
-                        print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" and measurement "+measurement.name+" -- assuming it is zero"
+                        print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" and measurement "+measurement_name+" -- assuming it is zero"
         if cfg.has_section('Backgrounds'):
             assert reco_level
             for name,data in cfg.itemsAndRm('Backgrounds'):

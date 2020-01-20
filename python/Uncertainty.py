@@ -47,6 +47,7 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
     if 'flip' in options:
         options.remove('flip')
         flip=True
+    sym=False
     if 'sym' in options:
         options.remove('sym')
         sym=True
@@ -89,7 +90,7 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
     return createUncertaintyFromYaml(reference,thetaname,data,affected=affected,interpol=interpol,uncorr=uncorr,with_nuis_par=with_nuis_par,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym)
 
 
-def createUncertaintyFromYaml(reference,name,data,affected,interpol,uncorr,with_nuis_par=False,is_bkg_unc=False,flip=False):
+def createUncertaintyFromYaml(reference,name,data,affected,interpol,uncorr,with_nuis_par=False,is_bkg_unc=False,flip=False,sym=False):
     if ':' in data:
         filename,err_label=data.split(':')
     else:
