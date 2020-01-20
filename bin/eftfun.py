@@ -210,7 +210,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 prediction.addBackgroundFromCfg(name,data)
             if cfg.has_section('Background Uncertainties'):
                 for bkg_syst_name,bkg_syst in cfg.itemsAndRm('Background Uncertainties'):
-                    prediction.addUncertaintyFromCfg(bkg_syst_name,bkg_syst,reco_level=reco_level,is_bkg_unc=True)   
+                    prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)   
 
 
         measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory)
@@ -277,12 +277,11 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
     outname='results/'+outname
     if not os.path.exists(outname):
         os.makedirs(outname)
-    if os.path.exists(outname+'.root') and (force or Utils.ask("Outfile {0}.root already exists, update (u) or recreate (r)? You can also ctrl+c and set a different name with the -o flag.".format(outname),['u'],['r'])):        
+    if os.path.exists(outname+'.root'): # and (force or Utils.ask("Outfile {0}.root already exists, update (u) or recreate (r)? You can also ctrl+c and set a different name with the -o flag.".format(outname),['u'],['r'])):        
         f=TFile(outname+'.root','UPDATE')
         print 'WARNING: updating',outname+'.root'
     else:
         f=TFile(outname+'.root','RECREATE')
-        print 'WARNING: recreating',outname+'.root'
     combination=Combination(theory,predictions,measurements,main_name,verbose=verbose) 
 
     if poi==None:

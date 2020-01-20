@@ -101,7 +101,8 @@ def expandCfg(cfg_name,overrides):
             for wc in wildcards:
                 res=re.findall('@\('+wc+'\d*\)',option)
                 if '$('+wc+')' in value or '$('+wc+')' in option or len(res)>0:
-                    sections_new[section].pop(option)
+                    if option in sections_new[section]:
+                        sections_new[section].pop(option)
 
 
 

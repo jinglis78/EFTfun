@@ -406,10 +406,18 @@ class Prediction:
         assert not name in self.theory.getCoeffNames()
         self.backgrounds[name]=Background(name,values)
 
+    def addBkgUncertaintyFromCfg(self,name,data):
+        bkgname=name[name.find('{')+1:name.find('}')].strip()
+        assert len(bkgname)>0 and not ' ' in bkgname
+        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self.backgrounds[bkgname],name,data,reco_level=True,is_bkg_unc=True,per_bin_width=self.per_bin_width))
+        
     def addUncertaintyFromCfg(self,name,data,reco_level,is_bkg_unc=False):
-        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=reco_level,is_bkg_unc=is_bkg_unc))
+        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=reco_level,is_bkg_unc=is_bkg_unc,per_bin_width=self.per_bin_width))
    
     def addUncertainty(self,uncertainty):
+        if uncertainty==None:
+            print 'WARNING: empty uncertainty (likely not found in histo file)'
+            return
         if uncertainty.is_bkg_unc:
             found_bkg=False
             for a in uncertainty.affected:
