@@ -53,7 +53,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
             imin=i
             x0=xs[i]
     if isNLL:
-        if imin>0 and ymin<0.01:
+        if imin>0 and ymin<0.01 and ymin>-0.001:
             g_inverse1=ROOT.TGraph(imin,ys[:imin],xs[:imin])
             g_inverse2=ROOT.TGraph(g.GetN()-imin,ys[imin:],xs[imin:])
             ci1=g_inverse1.Eval(cl1),g_inverse2.Eval(cl1)
@@ -81,7 +81,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         cl1line.Draw()
         cl2line.Draw()
 
-    if isNLL and imin>0 and ymin<0.01:
+    if isNLL and imin>0 and ymin<0.01 and ymin>-0.001:
         ci2line1=ROOT.TLine(ci2[0],0,ci2[0],cl2)
         ci2line1.SetLineStyle(2)
         ci2line2=ROOT.TLine(ci2[1],0,ci2[1],cl2)
@@ -108,9 +108,11 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         ci2text.Draw()    
     c.Draw()
     printAndSave(c,outfile,outfolder)
-    if isNLL and imin>0 and ymin<0.01:
+    if isNLL and imin>0 and ymin<0.01 and ymin>-0.001:
         ftxt=open(outfolder+'/'+c.GetName()+'.txt','w')
         ftxt.write('{} {},{} {},{}'.format(x0,ci1[0],ci1[1],ci2[0],ci2[1]))
+    if ymin<-0.001:
+        print "WARNING, fit was unable to find global minimum of likelihood, vary the parameter starting values (with '-s PAR=VAL')"
     return c
 
 def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log(L)',linecolor=ROOT.kBlack,outfolder='.',isNLL=True):

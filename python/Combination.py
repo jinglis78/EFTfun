@@ -279,7 +279,8 @@ class Combination:
             return lowerLimit,upperLimit
 
 
-    def createWorkspace(self):
+    def createWorkspace(self,poi_names):
+        assert poi_names=='all' or isinstance(poi_names,list)
         self.workspace=RooWorkspace('w')
         getattr(self.workspace,'import')(self.pdf)
         getattr(self.workspace,'import')(self.dataset)
@@ -288,15 +289,20 @@ class Combination:
         modelconfig.SetName(self.name+'_model')
         modelconfig.SetPdf(self.pdf)
         pois=RooArgSet()
-        for c in self.theory.coeffs:
-            pois.add(c)
         nps=RooArgSet()
+        for c in self.theory.coeffs:
+            if poi_names=='all' or c.GetName() in poi_names:
+                pois.add(c)
+            elif not c.isConstant():
+                nps.add(c)
+
         for t in self.theory.thetas:
             nps.add(t)
 
         modelconfig.SetParametersOfInterest(pois)
         modelconfig.SetObservables(RooArgSet(self.data))
         modelconfig.SetNuisanceParameters(nps)
+        #TODO: set global observables
         
         background_model =  modelconfig.Clone(self.name+'_model_background')
         oldval = pois.first().getVal()
