@@ -111,7 +111,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
     if isNLL and imin>0 and ymin<0.01 and ymin>-0.001:
         ftxt=open(outfolder+'/'+c.GetName()+'.txt','w')
         ftxt.write('{} {},{} {},{}'.format(x0,ci1[0],ci1[1],ci2[0],ci2[1]))
-    if ymin<-0.001:
+    if isNLL and ymin<-0.001:
         print "WARNING, fit was unable to find global minimum of likelihood, vary the parameter starting values (with '-s PAR=VAL')"
     return c
 
