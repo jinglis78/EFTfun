@@ -33,8 +33,8 @@ def expandCfg(cfg_name,overrides):
     parser.optionxform = str
     parser.read(cfg_name)
     wildcards={}
-    if parser.has_section('Wildcards'):
-        for key,values in parser.items('Wildcards'):
+    if parser.has_section('Variables'):
+        for key,values in parser.items('Variables'):
             wildcards[key]=Utils.split(values)
     sections_new=OrderedDict()
     for section in parser.sections():
@@ -113,7 +113,7 @@ def expandCfg(cfg_name,overrides):
         for key in sections_new[section]:
             config_new.set(section,key,sections_new[section][key])
 
-    config_new.remove_section('Wildcards')
+    config_new.remove_section('Variables')
 
     new_cfg_name=cfg_name+'.exp'
     with open(new_cfg_name, 'wb') as configfile:
