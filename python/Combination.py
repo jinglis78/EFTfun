@@ -27,7 +27,7 @@ class Combination:
             if measurement.reco_level:
                 for ibin,(p,n) in enumerate(zip(prediction.getPredictionFormulas(),measurement.central_values)):
                     self.data.add(n)
-                    self.poissons+=[RooPoisson(measurement.name+"_bin"+str(ibin)+"_poisson",measurement.name+"_bin"+str(ibin)+"_poisson",n,p)]
+                    self.poissons+=[RooPoisson(measurement.name+"_bin"+str(ibin)+"_poisson",measurement.name+"_bin"+str(ibin)+"_poisson",n,p,True)]
             else:
                 muVec=RooArgList()
                 for i,(p,c) in enumerate(zip(prediction.getPredictionFormulas(),measurement.getMeasurementCorrection())):
@@ -78,10 +78,17 @@ class Combination:
             poi.setConstant(False)
             self.minimize(minos=True)
             res=self.getFitResult()
-            float_pars=res.floatParsFinal()
-            for i in range(float_pars.getSize()):
-                if float_pars[i].GetName()==poi_name:                    
-                    scan_range=(scan_range*float_pars[i].getAsymErrorLo()+float_pars[i].getVal(),scan_range*float_pars[i].getAsymErrorHi()+float_pars[i].getVal())
+            if res.status()==0:
+                float_pars=res.floatParsFinal()
+                for i in range(float_pars.getSize()):
+                    if float_pars[i].GetName()==poi_name:                    
+                        scan_range=(scan_range*float_pars[i].getAsymErrorLo()+float_pars[i].getVal(),scan_range*float_pars[i].getAsymErrorHi()+float_pars[i].getVal())
+            else:
+                print 'using profilelikelihood method to determine scan range'
+                prof_range=self.calcProfileLikelihood([poi_name])
+                print prof_range
+                raw_input()
+                scan_range=prof_range[0]*scan_range/2,prof_range[1]*scan_range/2
             poi.setConstant(poiIsConst)
             self.last_scan_range=scan_range
 
