@@ -43,7 +43,7 @@ class Combination:
                     xVec.add(x)
                 self.data.add(xVec)
                 self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec,measurement.getCov())]
-        ###############################
+
         if len(correlated_measurements)>0:
             combined_muVec=RooArgList()
             combined_xVec=RooArgList()
@@ -88,34 +88,12 @@ class Combination:
                     for j in range(combined_nbins):
                         combined_cov[i,j]=combined_cov[i][j]+u[i]*u[j]
             self.data.add(combined_xVec)
-            print 'Uncertainty of combined measurements:', ' '.join(["{:.2f}% ".format(100.*(combined_cov[i][i])**0.5/combined_measured[i]) for i in range(combined_nbins)])
-            print 'Correlation of combined measurements:'
             combined_corr=TMatrixDSym(combined_nbins)
             for i in range(combined_nbins):
                 for j in range(combined_nbins):
                     combined_corr[i,j]=combined_cov[i][j]/(combined_cov[i][i]*combined_cov[j][j])**0.5
-            combined_corr.Print()
-#            hcorr=TH2F('combined_corr','',combined_nbins,0,combined_nbins,combined_nbins,0,combined_nbins)
-#            for i in range(combined_nbins):
-#                if i<6:
-#                    hcorr.GetXaxis().SetBinLabel(i+1,'WZ bin '+str(i))
-#                    hcorr.GetYaxis().SetBinLabel(i+1,'WZ bin '+str(i))
-#                else:
-#                    hcorr.GetXaxis().SetBinLabel(i+1,'WW bin '+str(i-6))
-#                    hcorr.GetYaxis().SetBinLabel(i+1,'WW bin '+str(i-6))
-#                    
-#
-#                for j in range(combined_nbins):
-#                    hcorr.SetBinContent(i+1,j+1,combined_corr[i][j])
-#                    
-#            hcorr.Draw()
-#            hcorr.GetZaxis().SetRangeUser(0,1)
-#            hcorr.SaveAs('measurement_Corr.root')
-
-                    
                     
             self.mvgaussians+=[RooMultiVarGaussian("combined_mvgaussian","combined_mvgaussian", combined_xVec, combined_muVec,combined_cov)]
-            ###############################
                 
 
         self.constraints=[]

@@ -170,7 +170,6 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
 
 class Uncertainty:
     def __init__(self,nbins,affected,name,releffect,interpol,uncorr=False,with_nuis_par=False,already_in_cov=False,is_bkg_unc=False,flip=False):
-        print name,nbins,releffect
         self.nbins=nbins
         self.affected=affected
         self.name=name
