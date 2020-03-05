@@ -7,6 +7,16 @@ def isFile(data):
         return True
     return False
 
+def histoExists(f,h):
+    if f==None or h==None:
+        return False
+    from ROOT import TFile
+    f=TFile(f)
+    htmp=f.Get(h)
+    res=htmp!=None
+    f.Close()
+    return res
+
 def saveToTree(results,outfile):
     from array import array
     from ROOT import TTree
@@ -43,8 +53,7 @@ def getOptionsAndData(data):
 def readFile(filename,histoname=None,per_bin_width=True):
     if histoname==None:
         assert ":" in filename
-        filename=filename.split(':')[0]
-        histoname=filename.split(':')[1]
+        filename,histoname=filename.split(':')[0],filename.split(':')[1]
     filename=filename.strip()
     histoname=histoname.strip()
     if filename.lower().endswith('.root'):

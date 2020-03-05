@@ -29,7 +29,7 @@ class Combination:
                     print 'Warning:',measurement.name,'is in correlated_measurements but this has no effect on reco level'
                 for ibin,(p,n) in enumerate(zip(prediction.getPredictionFormulas(),measurement.central_values)):
                     self.data.add(n)
-                    self.poissons+=[RooPoisson(measurement.name+"_bin"+str(ibin)+"_poisson",measurement.name+"_bin"+str(ibin)+"_poisson",n,p)]
+                    self.poissons+=[RooPoisson(measurement.name+"_bin"+str(ibin)+"_poisson",measurement.name+"_bin"+str(ibin)+"_poisson",n,p,True)]
             elif measurement.name not in correlated_measurements:
                 muVec=RooArgList()
                 for i,(p,c) in enumerate(zip(prediction.getPredictionFormulas(),measurement.getMeasurementCorrection())):
@@ -111,9 +111,10 @@ class Combination:
 
         self.dataset=RooDataSet(self.name+'_data',self.name+'_data',RooArgSet(self.data))
         self.dataset.add(RooArgSet(self.data))
-        self.nll=self.pdf.createNLL(self.dataset)
+        self.nll=self.pdf.createNLL(self.dataset,RooFit.Optimize(False))
 
         self.minimizer=RooMinuit(self.nll)
+        
         self.last_scan_range=None
         self.all_results=None
         self.robust=True
@@ -132,10 +133,15 @@ class Combination:
             poi.setConstant(False)
             self.minimize(minos=True)
             res=self.getFitResult()
-            float_pars=res.floatParsFinal()
-            for i in range(float_pars.getSize()):
-                if float_pars[i].GetName()==poi_name:                    
-                    scan_range=(scan_range*float_pars[i].getAsymErrorLo()+float_pars[i].getVal(),scan_range*float_pars[i].getAsymErrorHi()+float_pars[i].getVal())
+            if res.status()==0:
+                float_pars=res.floatParsFinal()
+                for i in range(float_pars.getSize()):
+                    if float_pars[i].GetName()==poi_name:                    
+                        scan_range=(scan_range*float_pars[i].getAsymErrorLo()+float_pars[i].getVal(),scan_range*float_pars[i].getAsymErrorHi()+float_pars[i].getVal())
+            else:
+                print 'using profilelikelihood method to determine scan range'
+                prof_range=self.calcProfileLikelihood([poi_name])
+                scan_range=prof_range[0]*scan_range/2,prof_range[1]*scan_range/2
             poi.setConstant(poiIsConst)
             self.last_scan_range=scan_range
 
@@ -318,7 +324,7 @@ class Combination:
             return
         pois=RooArgSet()
         poiIsConst=[]
-        for p in poi_names:            
+        for p in poi_names:
             poi=self.theory.getCoeff(p)
             poiIsConst.append(poi.isConstant())
             poi.setConstant(False)
@@ -333,7 +339,8 @@ class Combination:
             return lowerLimit,upperLimit
 
 
-    def createWorkspace(self):
+    def createWorkspace(self,poi_names):
+        assert poi_names=='all' or isinstance(poi_names,list)
         self.workspace=RooWorkspace('w')
         getattr(self.workspace,'import')(self.pdf)
         getattr(self.workspace,'import')(self.dataset)
@@ -342,15 +349,20 @@ class Combination:
         modelconfig.SetName(self.name+'_model')
         modelconfig.SetPdf(self.pdf)
         pois=RooArgSet()
-        for c in self.theory.coeffs:
-            pois.add(c)
         nps=RooArgSet()
+        for c in self.theory.coeffs:
+            if poi_names=='all' or c.GetName() in poi_names:
+                pois.add(c)
+            elif not c.isConstant():
+                nps.add(c)
+
         for t in self.theory.thetas:
             nps.add(t)
 
         modelconfig.SetParametersOfInterest(pois)
         modelconfig.SetObservables(RooArgSet(self.data))
         modelconfig.SetNuisanceParameters(nps)
+        #TODO: set global observables
         
         background_model =  modelconfig.Clone(self.name+'_model_background')
         oldval = pois.first().getVal()

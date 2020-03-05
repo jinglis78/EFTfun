@@ -15,15 +15,13 @@ class Background:
         if uncertainty.name in self.uncertainties:
             raise Exception('Added same uncertainty twice '+uncertainty.name)
         self.uncertainties[uncertainty.name]=uncertainty
-
-    def addUncertaintyFromCfg(self,name,data):
-        u=Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=True)
-        self.addUncertainty(u)
-        
+       
     def getPredictionStrings(self):
         ps=[]
         for iBin,x in enumerate(self.getNominal()):
             ps+=[str(x)]
             for u in self.uncertainties.values():
-                ps[-1]+="*"+u.getStr(iBin)
+                ustr=u.getStr(iBin)
+                if ustr!=None:
+                    ps[-1]+="*"+u.getStr(iBin)
         return ps

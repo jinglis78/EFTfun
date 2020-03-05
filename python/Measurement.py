@@ -204,6 +204,10 @@ class Measurement:
         self.addUncertainty(u)
             
     def addUncertainty(self,uncertainty):
+        if uncertainty==None:
+            print 'WARNING: empty uncertainty (likely not found in histo file)'
+            return
+
         assert uncertainty.nbins==self.nbins
         if uncertainty.name in self.uncertainties:
             raise Exception('Added same uncertainty twice '+uncertainty.name)

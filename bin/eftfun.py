@@ -11,6 +11,7 @@ from ROOT import TFile,RooWorkspace,gROOT,TCanvas
 import Utils,Plotting
 from optparse import OptionParser
 import re,os,time
+from subprocess import call
 gROOT.SetBatch(True)
 
 def main():    
@@ -54,6 +55,9 @@ def main():
     parser.add_option("-w", "--write_more",
                       action="store_true", dest="write_more", default=False,
                       help="Save all floating parameter values during scan in TTree? Will also plot non-linear parameter correlations.")
+    parser.add_option("--cls",
+                      action="store_true", dest="cls", default=False,
+                      help="Do CLs limit (only for frequentist/hybrid/asymptotic calculator)/")
     parser.add_option("-f", "--force",
                       action="store_true", dest="force", default=False,
                       help="Run without user interaction?")
@@ -77,10 +81,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.force,options.override,options.measurements)
+        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements)
 
 
-def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,force,override,measurements_included):
+def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included):
     if verbose:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -98,6 +102,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'initial',initial
         print 'verbose',verbose
         print 'write_more',write_more
+        print 'cls',cls
         print 'override',override
         print 'measurements',measurements_included
         print '--------------------------------------'
@@ -182,9 +187,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             prediction.setScalingFromCfg(cfg.getAndRm('Measurement','scaling_factor'))
         if cfg.has_option('Measurement','stat_unc_threshold'):
             prediction.stat_unc_threshold=float(cfg.getAndRm('Measurement','stat_unc_threshold'))
-        if cfg.has_section('Prediction Uncertainties'):
-            for theo_syst_name,theo_syst in cfg.itemsAndRm('Prediction Uncertainties'):
-                prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst,reco_level=reco_level)
         if cfg.has_section('Linear Effects'):
             if quad:
                 cfg.remove_section('Linear Effects')
@@ -210,13 +212,17 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     reverse=name.split()[1]+' '+name.split()[0]
                     if not name in names_set and not reverse in names_set:
                         print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" and measurement "+measurement_name+" -- assuming it is zero"
+        if cfg.has_section('Prediction Uncertainties'):
+            for theo_syst_name,theo_syst in cfg.itemsAndRm('Prediction Uncertainties'):
+                prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst,reco_level=reco_level)
+
         if cfg.has_section('Backgrounds'):
             assert reco_level
             for name,data in cfg.itemsAndRm('Backgrounds'):
                 prediction.addBackgroundFromCfg(name,data)
             if cfg.has_section('Background Uncertainties'):
                 for bkg_syst_name,bkg_syst in cfg.itemsAndRm('Background Uncertainties'):
-                    prediction.addUncertaintyFromCfg(bkg_syst_name,bkg_syst,reco_level=reco_level,is_bkg_unc=True)   
+                    prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)   
 
 
         measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory,blinded=blinded)
@@ -283,7 +289,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
     outname='results/'+outname
     if not os.path.exists(outname):
         os.makedirs(outname)
-    if os.path.exists(outname+'.root') and (force or Utils.ask("Outfile {0}.root already exists, update (u) or recreate (r)? You can also ctrl+c and set a different name with the -o flag.".format(outname),['u'],['r'])):        
+    if os.path.exists(outname+'.root'): # and (force or Utils.ask("Outfile {0}.root already exists, update (u) or recreate (r)? You can also ctrl+c and set a different name with the -o flag.".format(outname),['u'],['r'])):        
         f=TFile(outname+'.root','UPDATE')
         print 'WARNING: updating',outname+'.root'
     else:
@@ -315,7 +321,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
     start_time = time.time()
                     
     if method=='workspace':
-        w=combination.createWorkspace()
+        if len(pois)==0:
+            pois='all'
+        w=combination.createWorkspace(pois)
         w.Write()
 
     elif method=='histo':
@@ -344,8 +352,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     if par==poi:
                         continue
                     prof2=[(prof[i][0],y) for i,y in enumerate(combination.all_results[par])]
-                    Plotting.graphProfile1D('g_scan_'+par,prof2,f,isNLL=False)
-                    Plotting.canvasProfile1D('c_scan_'+par,prof2,f,poi,par,outfolder=outname,isNLL=False)
+                    Plotting.graphProfile1D('g_scan_'+'_'.join([poi,par]),prof2,f,isNLL=False)
+                    Plotting.canvasProfile1D('c_scan_'+'_'.join([poi,par]),prof2,f,poi,par,outfolder=outname,isNLL=False)
         else:
             scanranges=scanrange.split(',')
             actual_scanranges=[]
@@ -409,7 +417,38 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         ftxt.write(','.join([str(x) for x in limit]))
         ftxt.close()
 
-    #TODO: implement hypotest inverter
+    elif method=='asymptotic' or method=='hybrid' or method=='frequentist':
+        if len(pois)!=1:
+            print "Need exactly one POI to run asymptotic/hybrid/frequentist limits"
+        w=combination.createWorkspace(pois)
+        w.Write()
+        f.Close()
+
+        fn=outname+'.root'
+        ws='w'
+        model=combination.name+'_model'
+        model_bkg=combination.name+'_model_background'
+        data=combination.name+'_data'
+        if method=='asymptotic':
+            calculator=2
+        if method=='hybrid':
+            calculator=1
+        if method=='frequentist':
+            calculator=0
+        teststat=2
+        docls='false'
+        if cls:
+            docls='true'
+        if not ':' in str(scanrange) or len(scanrange.split(':'))!=2:
+            print 'WARNING, need to provide a scan range with "-r xmin:max"'
+            return
+        xmin=scanrange.split(':')[0]
+        xmax=scanrange.split(':')[1]
+        rootcmd='root -l scripts/StandardHypoTestInvDemo.C(\"{0}\",\"{1}\",\"{2}\",\"{3}\",\"{4}\",{5},{6},{7},{8},{9},{10},{11})'.format(
+            fn,ws,model,model_bkg,data,calculator,teststat,docls,nsteps,xmin,xmax,ntoys)
+        print 'Running:',rootcmd
+        print 
+        call(rootcmd.split())
         
     else:
         raise Exception("unkown method "+method)

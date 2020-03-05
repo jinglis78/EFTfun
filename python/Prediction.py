@@ -25,6 +25,34 @@ class Prediction:
         self.coeff_names=[]
         self.rescaled=1.
         self.backgrounds={}
+
+    #TODO: reduce duplication
+    def getEffectFloat(self,coeffs,withUnc=False):
+        if len(coeffs)==2:
+            coeff_name1=coeffs[0]
+            coeff_name2=coeffs[1]
+            if coeff_name1<coeff_name2:
+                c1=coeff_name1
+                c2=coeff_name2
+            else:
+                c1=coeff_name2
+                c2=coeff_name1
+            if c1 in self.quadratic_effects and c2 in self.quadratic_effects[c1]:
+                if not withUnc:
+                    return [x[0] for x in self.quadratic_effects[c1][c2]]
+                return self.quadratic_effects[c1][c2]
+            else:
+                return None
+        elif len(coeffs)==1:
+            c1=coeffs[0]
+            if c1 in self.linear_effects:
+                if not withUnc:
+                    return [x[0] for x in self.linear_effects[c1]]
+                return self.linear_effects[c1]
+            else:
+                return None
+        else:
+            return None
     
     def getLinearEffect(self,coeff_name,iBin,incl_syst=True):
         x=self.linear_effects[coeff_name][iBin]
@@ -407,10 +435,18 @@ class Prediction:
         assert not name in self.theory.getCoeffNames()
         self.backgrounds[name]=Background(name,values)
 
+    def addBkgUncertaintyFromCfg(self,name,data):
+        bkgname=name[name.find('{')+1:name.find('}')].strip()
+        assert len(bkgname)>0 and not ' ' in bkgname
+        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self.backgrounds[bkgname],name,data,reco_level=True,is_bkg_unc=True,per_bin_width=self.per_bin_width,isBkgUnc=True))
+        
     def addUncertaintyFromCfg(self,name,data,reco_level,is_bkg_unc=False):
-        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=reco_level,is_bkg_unc=is_bkg_unc))
+        self.addUncertainty(Uncertainty.createUncertaintyFromCfg(self,name,data,reco_level=reco_level,is_bkg_unc=is_bkg_unc,per_bin_width=self.per_bin_width))
    
     def addUncertainty(self,uncertainty):
+        if uncertainty==None:
+            print 'WARNING: empty uncertainty (likely not found in histo file)'
+            return
         if uncertainty.is_bkg_unc:
             found_bkg=False
             for a in uncertainty.affected:
