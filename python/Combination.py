@@ -57,9 +57,10 @@ class Combination:
 
         self.dataset=RooDataSet(self.name+'_data',self.name+'_data',RooArgSet(self.data))
         self.dataset.add(RooArgSet(self.data))
-        self.nll=self.pdf.createNLL(self.dataset)
+        self.nll=self.pdf.createNLL(self.dataset,RooFit.Optimize(False))
 
         self.minimizer=RooMinuit(self.nll)
+        
         self.last_scan_range=None
         self.all_results=None
         self.robust=True
@@ -86,8 +87,6 @@ class Combination:
             else:
                 print 'using profilelikelihood method to determine scan range'
                 prof_range=self.calcProfileLikelihood([poi_name])
-                print prof_range
-                raw_input()
                 scan_range=prof_range[0]*scan_range/2,prof_range[1]*scan_range/2
             poi.setConstant(poiIsConst)
             self.last_scan_range=scan_range
@@ -271,7 +270,7 @@ class Combination:
             return
         pois=RooArgSet()
         poiIsConst=[]
-        for p in poi_names:            
+        for p in poi_names:
             poi=self.theory.getCoeff(p)
             poiIsConst.append(poi.isConstant())
             poi.setConstant(False)

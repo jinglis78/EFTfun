@@ -21,5 +21,7 @@ class Background:
         for iBin,x in enumerate(self.getNominal()):
             ps+=[str(x)]
             for u in self.uncertainties.values():
-                ps[-1]+="*"+u.getStr(iBin)
+                ustr=u.getStr(iBin)
+                if ustr!=None:
+                    ps[-1]+="*"+u.getStr(iBin)
         return ps

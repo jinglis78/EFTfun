@@ -8,6 +8,8 @@ def isFile(data):
     return False
 
 def histoExists(f,h):
+    if f==None or h==None:
+        return False
     from ROOT import TFile
     f=TFile(f)
     htmp=f.Get(h)

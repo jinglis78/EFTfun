@@ -1,7 +1,7 @@
 from ROOT import TMatrixDSym
 import Utils
 
-def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per_bin_width=True):
+def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per_bin_width=True,isBkgUnc=False):
     if '{' in name:
         affected=set(o.strip() for o in name[name.find('{')+1:name.find('}')].split())
         if 'all' in affected:
@@ -57,11 +57,19 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
     if Utils.isFile(data):
         spl=data.split(',')
         assert len(spl)==2
-        down_filename,down_histoname=spl[0].split(':')
-        up_filename,up_histoname=spl[1].split(':')
+        if len(spl[0].strip())!=0:
+            down_filename,down_histoname=spl[0].split(':')
+        else:
+            down_filename=None
+            down_histoname=None
+        if len(spl[1].strip())!=0:
+            up_filename,up_histoname=spl[1].split(':')
+        else:
+            up_filename=None
+            up_histoname=None
         if isrel!=None:
             print 'WARNING: abs/rel wont have an effect on uncertainties from histograms'
-        return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr,with_nuis_par=with_nuis_par,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym,per_bin_width=per_bin_width)
+        return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr,with_nuis_par=with_nuis_par,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym,per_bin_width=per_bin_width,isBkgUnc=isBkgUnc)
     if Utils.isListOfNumbers(data,reference.nbins):
         effect=[]
         for e in data.split():
@@ -98,30 +106,44 @@ def createUncertaintyFromYaml(reference,name,data,affected,interpol,uncorr,with_
     releffect=getErrsFromYaml(reference,filename,err_label,rel=True)
     return Uncertainty(reference.nbins,affected=affected,name=name,releffect=releffect,interpol=interpol,uncorr=uncorr,with_nuis_par=with_nuis_par,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym)
     
-def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False,with_nuis_par=False,is_bkg_unc=False,flip=False,sym=False,per_bin_width=True):
-    if not Utils.histoExists(down_filename,down_histoname):
-        print 'WARNING: did not find uncertainty in file:',':'.join([down_filename,down_histoname]),'skipping uncertainty...'
+def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False,with_nuis_par=False,is_bkg_unc=False,flip=False,sym=False,per_bin_width=True,isBkgUnc=False):
+    if not Utils.histoExists(down_filename,down_histoname) and not Utils.histoExists(up_filename,up_histoname): 
+        print 'WARNING: did not find uncertainty in file:',':'.join([str(down_filename),str(down_histoname)]),'or',':'.join([str(up_filename),str(up_histoname)]),'skipping uncertainty...'
         return
-    if  not Utils.histoExists(up_filename,up_histoname):
-        print 'WARNING: did not find uncertainty in file:',':'.join([up_filename,up_histoname]),'skipping uncertainty...'
-        return
-    #TODO: one-sided uncertainties
+    assert down_filename!=None or up_filename!=None
+    if not affected=='all' and not len(affected)==1:
+        raise Exception('Uncertainties from histograms can affect only affect the complete signal prediction ("all") or only "sm" or one specific operator')
+    if isBkgUnc:
+        nominal=reference.getNominal()
+    elif affected=='all' or 'sm' in affected:
+        if renorm:
+            nominal=reference.normhisto
+        else:
+            nominal=reference.getNominal()
+    else:       
+        nominal=reference.getEffectFloat(list(affected)[0].split(','))
+    if nominal==None:
+        raise Exception('Could not find nominal effect for systematic affecting {}'.format(' '.join(list(affected))))   
+        
     if down_filename==None:
-        down=[0.]*reference.nbins
+        if sym:
+            down=[2*n-x for n,x in zip(nominal, Utils.readFile(up_filename,up_histoname,per_bin_width=per_bin_width)[0])]
+        else:
+            down=nominal
     else:
         down=Utils.readFile(down_filename,down_histoname,per_bin_width=per_bin_width)[0]
     if up_filename==None:
-        up=[0.]*reference.nbins
+        if sym:
+            up=[2*n-x for n,x in zip(nominal, Utils.readFile(down_filename,down_histoname,per_bin_width=per_bin_width)[0])]
+        else:
+            up=nominal
     else:
         up=Utils.readFile(up_filename,up_histoname,per_bin_width=per_bin_width)[0]
     assert len(up)==reference.nbins
     assert len(down)==reference.nbins
-    if renorm:
-        up=[u/n-1 for u,n in zip(up,reference.normhisto)]
-        down=[d/n-1 for d,n in zip(down,reference.normhisto)]
-    else:
-        up=[u/n-1 for u,n in zip(up,reference.getNominal())]
-        down=[d/n-1 for d,n in zip(down,reference.getNominal())]
+    up=[u/n-1 if n!=0 else 0 for u,n in zip(up,nominal)]
+    down=[d/n-1 if n!=0 else 0 for d,n in zip(down,nominal)]
+    
     releffect=zip(up,down)
     return createUncertainty(reference,name,releffect,affected,interpol,uncorr,with_nuis_par=with_nuis_par,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym)
 
