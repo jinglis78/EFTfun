@@ -32,9 +32,13 @@ do
     ./bin/eftfun.py -i configs/WW_WZ_combi/wz.cfg -c all -p $i -m scan -f -o wz_quad
     ./bin/eftfun.py -i configs/WW_WZ_combi/ww.cfg -c all -p $i -m scan -f -o ww_quad
 done
-./bin/eftfun.py -i configs/WW_WZ_combi/combi.cfg -c all -p cW -m scan -f -o combi_quad -r -0.25:0.25
+./bin/eftfun.py -i configs/WW_WZ_combi/combi.cfg -c all -p cW -m scan -f -o combi_quad -r -0.25:0.25 -s cW=0.1
 ./bin/eftfun.py -i configs/WW_WZ_combi/wz.cfg -c all -p cW -m scan -f -o wz_quad -r -0.25:0.25 -s cW=-0.1
 ./bin/eftfun.py -i configs/WW_WZ_combi/ww.cfg -c all -p cW -m scan -f -o ww_quad -r -0.25:0.25
+
+./bin/eftfun.py -i configs/WW_WZ_combi/combi.cfg -c all -p cHq3 -m scan -f -o combi_quad -r -0.2:0.15 
+./bin/eftfun.py -i configs/WW_WZ_combi/wz.cfg -c all -p cHq3 -m scan -f -o wz_quad -r -0.2:0.15 
+./bin/eftfun.py -i configs/WW_WZ_combi/ww.cfg -c all -p cHq3 -m scan -f -o ww_quad -r -0.4:0.4
 
 for i in cW cHDD cHWB cHq1 cHq3 cHl1 cHl3 cHe cHd cHu cll1 clq1 clq3 ;
 do

@@ -136,6 +136,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 raise Exception("No range given for coefficient "+c+" and no default range set")
             assert len(rng)==2
             theory.addCoeff(c,rng)
+    correlated_measurements=[]
+    if main_cfg.has_option('General','correlated_measurements'):
+        correlated_measurements=main_cfg.getAndRm('General','correlated_measurements').split()
         
     measurements=[]
     predictions=[]
@@ -165,8 +168,11 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         binning=None
         if cfg.has_option('Measurement','binning'):
             binning=[float(x) for x in cfg.getAndRm('Measurement','binning').split()]
+        blinded=[]
+        if cfg.has_option('Measurement','blinded'):
+            blinded=[int(x) for x in cfg.getAndRm('Measurement','blinded').split()]
 
-        prediction=Prediction(measurement_name,theory,per_bin_width=per_bin_width,binning=binning)
+        prediction=Prediction(measurement_name,theory,per_bin_width=per_bin_width,binning=binning,blinded=blinded)
         assert prediction.name not in [p.name for p in predictions]
         
         prediction.setSMfromCfg(cfg.getAndRm('Measurement','sm'))
@@ -213,7 +219,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     prediction.addUncertaintyFromCfg(bkg_syst_name,bkg_syst,reco_level=reco_level,is_bkg_unc=True)   
 
 
-        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory)
+        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory,blinded=blinded)
         assert not measurement.name in [m.name for m in measurements]
         
         if asimov:
@@ -283,7 +289,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
     else:
         f=TFile(outname+'.root','RECREATE')
         print 'WARNING: recreating',outname+'.root'
-    combination=Combination(theory,predictions,measurements,main_name,verbose=verbose) 
+    combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=verbose) 
 
     if poi==None:
         pois=[]

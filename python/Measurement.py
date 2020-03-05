@@ -4,7 +4,7 @@ import Utils
 import Uncertainty
 
 class Measurement:
-    def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None):
+    def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None,blinded=[]):
         self.name=name
         self.nbins=nbins
         if measured!=None:
@@ -20,6 +20,7 @@ class Measurement:
         self.hepdata=None
         self.reco_level=reco_level
         self.theory=theory
+        self.blinded=blinded
         
 
     def setMeasured(self,measured):
@@ -46,8 +47,10 @@ class Measurement:
         for i,x in enumerate(self.central_values):
             form='-{}+{}'.format(x.getVal(),x.getVal())
             for u in self.uncertainties.values():
-                if u.with_nuis_par:
-                    form+='*'+u.getStr(i)
+                if  u.with_nuis_par:
+                    s=u.getStr(i)
+                    if s!=None:
+                        form+='*'+s
             formulas+=[form]
         return formulas
 
@@ -306,11 +309,12 @@ class Measurement:
         for i,f in enumerate(self.getMeasurementCorrection()):
             h.SetBinContent(i+1,(self.central_values[i].getVal()+f.getVal())/self.rescaled)
             h.SetBinError(i+1,f.getPropagatedError(fitresult)/self.rescaled)
+            h.SetBinError(i+1,(self.getErr(incl_np=False)[i]**2/self.rescaled**2+h.GetBinError(i+1)**2)**0.5)
         outfile.cd()
         h.Write()
         return h
 
-    def getCov(self,incl_np=False):
+    def getCov(self,incl_np=False,exclude=[]):
         if self.reco_level:
             raise Exception("At reco level, the covariance matrix should not be used")
         if self.covMatrix:
@@ -318,6 +322,11 @@ class Measurement:
         else:
             cov=TMatrixDSym(self.nbins)
         for u in self.uncertainties.values():
+            if u.already_in_cov:
+                cov-=u.getCov(self.getMeas(),incl_np=incl_np)
+        for u in self.uncertainties.values():
+            if u.name in exclude:
+                continue
             if incl_np or not u.with_nuis_par:
                 cov+=u.getCov(self.getMeas(),incl_np=incl_np)
         return cov

@@ -1,10 +1,10 @@
-from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson
+from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym
 from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculator,FrequentistCalculator,HypoTestInverter,ProfileLikelihoodTestStat
 import itertools,re
 import Utils
 
 class Combination:
-    def __init__(self, theory=None, predictions=None,measurements=None,name='test',verbose=True):
+    def __init__(self, theory=None, predictions=None,measurements=None,name='test',verbose=True,correlated_measurements=[]):
 
         self.name=name
         self.theory=theory
@@ -25,10 +25,12 @@ class Combination:
         self.data=RooArgSet()
         for prediction,measurement in zip(predictions,measurements):
             if measurement.reco_level:
+                if measurement.name in correlated_measurements:
+                    print 'Warning:',measurement.name,'is in correlated_measurements but this has no effect on reco level'
                 for ibin,(p,n) in enumerate(zip(prediction.getPredictionFormulas(),measurement.central_values)):
                     self.data.add(n)
                     self.poissons+=[RooPoisson(measurement.name+"_bin"+str(ibin)+"_poisson",measurement.name+"_bin"+str(ibin)+"_poisson",n,p)]
-            else:
+            elif measurement.name not in correlated_measurements:
                 muVec=RooArgList()
                 for i,(p,c) in enumerate(zip(prediction.getPredictionFormulas(),measurement.getMeasurementCorrection())):
                     if c!=None:
@@ -41,6 +43,80 @@ class Combination:
                     xVec.add(x)
                 self.data.add(xVec)
                 self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec,measurement.getCov())]
+        ###############################
+        if len(correlated_measurements)>0:
+            combined_muVec=RooArgList()
+            combined_xVec=RooArgList()
+            combined_nbins=sum([m.nbins for m in measurements if m.name in correlated_measurements])
+            combined_cov=TMatrixDSym(combined_nbins)
+            combined_ibin=0
+            combined_measured=[]
+            correlated_uncertainty_names=set()
+            for m1 in measurements:
+                for u in m1.uncertainties.values():
+                    if u.uncorr or u.with_nuis_par:
+                        continue
+                    for m2 in measurements:
+                        if m2==m1:
+                            continue
+                        if u.name in m2.uncertainties.keys() and not u.uncorr and not u.with_nuis_par:
+                            correlated_uncertainty_names.add(u.name)
+            correlated_uncertainties={}
+            for u in correlated_uncertainty_names:
+                correlated_uncertainties[u]=[]
+
+            for prediction,measurement in zip(predictions,measurements):
+                if measurement.name not in correlated_measurements:
+                    continue
+                for i,(p,c) in enumerate(zip(prediction.getPredictionFormulas(),measurement.getMeasurementCorrection())):
+                    if c!=None:
+                        self.corrected_predictions+=[RooFormulaVar("corrected_prediction_{}_{}".format(measurement.name,i),"@0-@1", RooArgList(p,c))]
+                        combined_muVec.add(self.corrected_predictions[-1])
+                    else:
+                        combined_muVec.add(p)
+                for x in measurement.central_values:
+                    combined_xVec.add(x)
+                combined_cov.SetSub(combined_ibin,combined_ibin,measurement.getCov(exclude=correlated_uncertainty_names))
+                combined_ibin+=measurement.nbins
+                for u in measurement.uncertainties.values():
+                    if u.name in correlated_uncertainty_names:
+                        correlated_uncertainties[u.name]+=[e*n for e,n in zip(u.getRelEffectSym(),measurement.getNominal())]
+                combined_measured+=measurement.getNominal()
+
+            for u in correlated_uncertainties.values():
+                for i in range(combined_nbins):
+                    for j in range(combined_nbins):
+                        combined_cov[i,j]=combined_cov[i][j]+u[i]*u[j]
+            self.data.add(combined_xVec)
+            print 'Uncertainty of combined measurements:', ' '.join(["{:.2f}% ".format(100.*(combined_cov[i][i])**0.5/combined_measured[i]) for i in range(combined_nbins)])
+            print 'Correlation of combined measurements:'
+            combined_corr=TMatrixDSym(combined_nbins)
+            for i in range(combined_nbins):
+                for j in range(combined_nbins):
+                    combined_corr[i,j]=combined_cov[i][j]/(combined_cov[i][i]*combined_cov[j][j])**0.5
+            combined_corr.Print()
+#            hcorr=TH2F('combined_corr','',combined_nbins,0,combined_nbins,combined_nbins,0,combined_nbins)
+#            for i in range(combined_nbins):
+#                if i<6:
+#                    hcorr.GetXaxis().SetBinLabel(i+1,'WZ bin '+str(i))
+#                    hcorr.GetYaxis().SetBinLabel(i+1,'WZ bin '+str(i))
+#                else:
+#                    hcorr.GetXaxis().SetBinLabel(i+1,'WW bin '+str(i-6))
+#                    hcorr.GetYaxis().SetBinLabel(i+1,'WW bin '+str(i-6))
+#                    
+#
+#                for j in range(combined_nbins):
+#                    hcorr.SetBinContent(i+1,j+1,combined_corr[i][j])
+#                    
+#            hcorr.Draw()
+#            hcorr.GetZaxis().SetRangeUser(0,1)
+#            hcorr.SaveAs('measurement_Corr.root')
+
+                    
+                    
+            self.mvgaussians+=[RooMultiVarGaussian("combined_mvgaussian","combined_mvgaussian", combined_xVec, combined_muVec,combined_cov)]
+            ###############################
+                
 
         self.constraints=[]
         for theta in self.theory.thetas:
