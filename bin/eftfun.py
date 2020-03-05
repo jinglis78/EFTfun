@@ -181,9 +181,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             prediction.setScalingFromCfg(cfg.getAndRm('Measurement','scaling_factor'))
         if cfg.has_option('Measurement','stat_unc_threshold'):
             prediction.stat_unc_threshold=float(cfg.getAndRm('Measurement','stat_unc_threshold'))
-        if cfg.has_section('Prediction Uncertainties'):
-            for theo_syst_name,theo_syst in cfg.itemsAndRm('Prediction Uncertainties'):
-                prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst,reco_level=reco_level)
         if cfg.has_section('Linear Effects'):
             if quad:
                 cfg.remove_section('Linear Effects')
@@ -209,6 +206,10 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     reverse=name.split()[1]+' '+name.split()[0]
                     if not name in names_set and not reverse in names_set:
                         print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" and measurement "+measurement_name+" -- assuming it is zero"
+        if cfg.has_section('Prediction Uncertainties'):
+            for theo_syst_name,theo_syst in cfg.itemsAndRm('Prediction Uncertainties'):
+                prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst,reco_level=reco_level)
+
         if cfg.has_section('Backgrounds'):
             assert reco_level
             for name,data in cfg.itemsAndRm('Backgrounds'):
@@ -344,8 +345,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     if par==poi:
                         continue
                     prof2=[(prof[i][0],y) for i,y in enumerate(combination.all_results[par])]
-                    Plotting.graphProfile1D('g_scan_'+par,prof2,f,isNLL=False)
-                    Plotting.canvasProfile1D('c_scan_'+par,prof2,f,poi,par,outfolder=outname,isNLL=False)
+                    Plotting.graphProfile1D('g_scan_'+'_'.join([poi,par]),prof2,f,isNLL=False)
+                    Plotting.canvasProfile1D('c_scan_'+'_'.join([poi,par]),prof2,f,poi,par,outfolder=outname,isNLL=False)
         else:
             scanranges=scanrange.split(',')
             actual_scanranges=[]
