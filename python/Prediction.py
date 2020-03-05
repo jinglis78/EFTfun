@@ -7,7 +7,7 @@ import Uncertainty
 from Background import Background
 
 class Prediction:
-    def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None):
+    def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None,blinded=[]):
         self.default_range=(-1e9,1e9)
         self.name=name
         self.sm=sm
@@ -19,6 +19,7 @@ class Prediction:
         self.stat_unc_threshold=None
         self.extra_scaling=None
         self.binning=binning
+        self.blinded=blinded
         self.linear_effects={}
         self.quadratic_effects={}
         self.coeff_names=[]
