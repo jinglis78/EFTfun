@@ -118,7 +118,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
     overrides_main=[]
     for ovr in overrides:
         if ovr.split(':')[0]=='main' or ovr.split(':')[0]==main_cfg_name:
-            overrides_main+=[':',join(ovr.split(':')[1:])]
+            overrides_main+=[':'.join(ovr.split(':')[1:])]
 
     main_cfg_name=MyConfigParser.expandCfg(main_cfg_name,overrides_main)
     main_cfg.read(main_cfg_name)
@@ -159,7 +159,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         for ovr in overrides:
             if ovr.split(':')[0]=='measurements' or ovr.split(':')[0]==cfg_name:
                 overrides_measurement+=[':'.join(ovr.split(':')[1:])]
-
         cfg.read(MyConfigParser.expandCfg(cfg_name,overrides_measurement))        
         measurement_name=cfg.getAndRm('Measurement','name')
         if not measurements_included=='all' and not measurement_name in [x.strip() for x in measurements_included.split(',')]:

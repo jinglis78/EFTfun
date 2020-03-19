@@ -365,12 +365,14 @@ class Combination:
         #TODO: set global observables
         
         background_model =  modelconfig.Clone(self.name+'_model_background')
-        oldval = pois.first().getVal()
-        pois.first().setVal(0)
-        background_model.SetSnapshot(pois)
-        pois.first().setVal(oldval)
+        if pois.getSize()!=0:
+            oldval = pois.first().getVal()
+            pois.first().setVal(0)
+            background_model.SetSnapshot(pois)
+            pois.first().setVal(oldval)
+            getattr(self.workspace,'import')(background_model)
         getattr(self.workspace,'import')(modelconfig)
-        getattr(self.workspace,'import')(background_model)
+
 
         return self.workspace
 
