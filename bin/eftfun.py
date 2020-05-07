@@ -201,6 +201,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             else:
                 names_set=[]
                 for name,effect in cfg.items('Quadratic Effects'):
+                    if not len(name.split())==2:
+                        raise Exception('Quadratic effects need to be denoted with two coefficients (e.g. c1 c1 or c1 c2)and not like this: '+name)
                     if name.split()[0] not in theory.getCoeffNames() or  name.split()[1] not in theory.getCoeffNames():
                         continue                    
                     if prediction.setEffectFromCfg(2,name,effect):
@@ -216,11 +218,12 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst,reco_level=reco_level)
 
         if cfg.has_section('Backgrounds'):
-            assert reco_level
             for name,data in cfg.itemsAndRm('Backgrounds'):
+                assert reco_level
                 prediction.addBackgroundFromCfg(name,data)
             if cfg.has_section('Background Uncertainties'):
                 for bkg_syst_name,bkg_syst in cfg.itemsAndRm('Background Uncertainties'):
+                    assert reco_level
                     prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)   
 
 

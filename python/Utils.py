@@ -68,12 +68,18 @@ def readYoda(filename,histoname,per_bin_width):
     import yoda
     histos=yoda.read(filename)
     hist=histos[histoname]
-    if per_bin_width:
-        contents=[b.height for b in hist.bins]
-        uncertainty=[b.heightErr for b in hist.bins]
+    if isinstance(hist,yoda.Scatter2D):
+        points=sorted([(p.x,p.y) for p in hist.points] , key=lambda p: p[0])
+        contents=[p[1] for p in points]
+        uncertainty=[(p.yErrs[0]+p.yErrs[1])/2 for p in hist.points]
+        
     else:
-        contents= [b.area for b in hist.bins]
-        uncertainty=[b.areaErr for b in hist.bins]
+        if per_bin_width:
+            contents=[b.height for b in hist.bins]
+            uncertainty=[b.heightErr for b in hist.bins]
+        else:
+            contents= [b.area for b in hist.bins]
+            uncertainty=[b.areaErr for b in hist.bins]
     return contents,uncertainty
 
 def readRoot(filename,histoname,per_bin_width):

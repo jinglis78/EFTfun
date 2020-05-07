@@ -18,6 +18,12 @@ class Combination:
                 print 'Tiny covariance matrix determinant (',m.name,':',m.getCov().Determinant(),') rescaling measurement and prediction by 10'
                 p.scale(10)
                 m.scale(10)
+                print 'New determinant:', m.getCov().Determinant()
+            while m.getCov().Determinant()>10e20 or m.getCov().Determinant()==float('+inf'):
+                print 'Huge covariance matrix determinant (',m.name,':',m.getCov().Determinant(),') rescaling measurement and prediction by 0.1'
+                p.scale(0.1)
+                m.scale(0.1)
+                print 'New determinant:', m.getCov().Determinant()
 
         self.mvgaussians=[]
         self.poissons=[]

@@ -61,21 +61,18 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
     releffect=None
     if Utils.isFile(data):
         spl=data.split(',')
-        assert len(spl)==2
         if len(spl[0].strip())!=0:
             down_filename,down_histoname=spl[0].split(':')
         else:
             down_filename=None
             down_histoname=None
-        if len(spl[1].strip())!=0:
+        if len(spl)>1 and len(spl[1].strip())!=0:
             up_filename,up_histoname=spl[1].split(':')
         else:
             up_filename=None
             up_histoname=None
-        if isrel!=None:
-            print 'WARNING: abs/rel wont have an effect on uncertainties from histograms'
 
-        return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym,per_bin_width=per_bin_width,isBkgUnc=isBkgUnc)
+        return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym,per_bin_width=per_bin_width,isBkgUnc=isBkgUnc,isrel=isrel)
 
     if Utils.isListOfNumbers(data,reference.nbins):
         effect=[]
@@ -120,7 +117,7 @@ def createUncertaintyFromYaml(reference,name,data,affected,interpol,uncorr,with_
     
     return Uncertainty(reference.nbins,affected=affected,name=name,releffect=releffect,interpol=interpol,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym)
     
-def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False,with_nuis_par=False,already_in_cov=False,is_bkg_unc=False,flip=False,sym=False,per_bin_width=True,isBkgUnc=False):
+def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False,with_nuis_par=False,already_in_cov=False,is_bkg_unc=False,flip=False,sym=False,per_bin_width=True,isBkgUnc=False,isrel=False):
     if not Utils.histoExists(down_filename,down_histoname) and not Utils.histoExists(up_filename,up_histoname): 
         print 'WARNING: did not find uncertainty in file:',':'.join([str(down_filename),str(down_histoname)]),'or',':'.join([str(up_filename),str(up_histoname)]),'skipping uncertainty...'
         return
@@ -137,22 +134,30 @@ def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_hist
     else:       
         nominal=reference.getEffectFloat(list(affected)[0].split(','))
     if nominal==None:
-        raise Exception('Could not find nominal effect for systematic affecting {}'.format(' '.join(list(affected))))   
-        
+        raise Exception('Could not find nominal effect for systematic affecting {}'.format(' '.join(list(affected))))
+    if up_filename!=None:
+        up_variation=Utils.readFile(up_filename,up_histoname,per_bin_width=per_bin_width)[0]
+        if isrel:
+            up_variation=[n*u+n for n,u in zip(nominal,up_variation)]
+    if down_filename!=None:
+        down_variation=Utils.readFile(down_filename,down_histoname,per_bin_width=per_bin_width)[0]
+        if isrel:
+            down_variation=[n*d+n for n,d in zip(nominal,down_variation)]
+
     if down_filename==None:
         if sym:
-            down=[2*n-x for n,x in zip(nominal, Utils.readFile(up_filename,up_histoname,per_bin_width=per_bin_width)[0])]
+            down=[2*n-x for n,x in zip(nominal, up_variation)]
         else:
             down=nominal
     else:
-        down=Utils.readFile(down_filename,down_histoname,per_bin_width=per_bin_width)[0]
+        down=down_variation
     if up_filename==None:
         if sym:
-            up=[2*n-x for n,x in zip(nominal, Utils.readFile(down_filename,down_histoname,per_bin_width=per_bin_width)[0])]
+            up=[2*n-x for n,x in zip(nominal, down_variation)]
         else:
             up=nominal
     else:
-        up=Utils.readFile(up_filename,up_histoname,per_bin_width=per_bin_width)[0]
+        up=up_variation
     assert len(up)==reference.nbins
     assert len(down)==reference.nbins
     up=[u/n-1 if n!=0 else 0 for u,n in zip(up,nominal)]
