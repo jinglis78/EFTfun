@@ -375,9 +375,12 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             print 'doing fit'
         data_histos_prefit=[]
         pred_histos_prefit=[]
+        print 'prefit'
         for p,m in zip(predictions,measurements):
             pred_histos_prefit+=[p.plotPrefit(f)]
+            print '1'
             data_histos_prefit+=[m.plotPrefit(f)]
+        print 'actual fit'
         combination.fit()
         corr=combination.getFitResult().correlationHist()
         corr.Write()

@@ -14,16 +14,20 @@ class Combination:
         for p,m in zip(predictions,measurements):
             if m.reco_level or m.getCov()==None:
                 continue
-            while m.getCov().Determinant()<10e-20:
-                print 'Tiny covariance matrix determinant (',m.name,':',m.getCov().Determinant(),') rescaling measurement and prediction by 10'
-                p.scale(10)
-                m.scale(10)
-                print 'New determinant:', m.getCov().Determinant()
-            while m.getCov().Determinant()>10e20 or m.getCov().Determinant()==float('+inf'):
-                print 'Huge covariance matrix determinant (',m.name,':',m.getCov().Determinant(),') rescaling measurement and prediction by 0.1'
+            det=m.getCov().Determinant()
+            while det>10e20 or det==float('+inf'):
+                print 'Huge covariance matrix determinant (',m.name,':',det,') rescaling measurement and prediction by 0.1'
                 p.scale(0.1)
                 m.scale(0.1)
-                print 'New determinant:', m.getCov().Determinant()
+                det=m.getCov(redo=True).Determinant()
+                print 'New determinant:', det
+            while det<10e-20:
+                print 'Tiny covariance matrix determinant (',m.name,':',det,') rescaling measurement and prediction by 10'
+                p.scale(10)
+                m.scale(10)
+                det=m.getCov(redo=True).Determinant()
+                print 'New determinant:', det
+
 
         self.mvgaussians=[]
         self.poissons=[]

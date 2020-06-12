@@ -298,9 +298,10 @@ class Measurement:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,array('f',self.binning))
         else:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,0,1)
+        errs=self.getErr(incl_np=True)
         for i in range(self.nbins):
             h.SetBinContent(i+1,self.central_values[i].getVal()/self.rescaled)
-            h.SetBinError(i+1,self.getErr(incl_np=True)[i]/self.rescaled)
+            h.SetBinError(i+1,errs[i]/self.rescaled)
         outfile.cd()
         h.Write()
         return h
@@ -310,22 +311,26 @@ class Measurement:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,array('f',self.binning))
         else:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,0,1)
+        errs=self.getErr(incl_np=False)
         for i,f in enumerate(self.getMeasurementCorrection()):
             h.SetBinContent(i+1,(self.central_values[i].getVal()+f.getVal())/self.rescaled)
             h.SetBinError(i+1,f.getPropagatedError(fitresult)/self.rescaled)
-            h.SetBinError(i+1,(self.getErr(incl_np=False)[i]**2/self.rescaled**2+h.GetBinError(i+1)**2)**0.5)
+            h.SetBinError(i+1,(errs[i]**2/self.rescaled**2+h.GetBinError(i+1)**2)**0.5)
         outfile.cd()
         h.Write()
         return h
 
-    def getCov(self,incl_np=False,exclude=[]):
+    def getCov(self,incl_np=False,exclude=[],redo=True):
+        if incl_np==False and len(exclude)==0 and not redo:
+            if hasattr(self,'bufferedCov'):
+                return self.bufferedCov
         if self.reco_level:
             raise Exception("At reco level, the covariance matrix should not be used")
         if self.covMatrix:
             cov=TMatrixDSym(self.covMatrix)
         else:
             cov=TMatrixDSym(self.nbins)
-        for u in self.uncertainties.values():
+        for u in self.uncertainties.values():            
             if u.already_in_cov:
                 cov-=u.getCov(self.getMeas(),incl_np=incl_np)
         for u in self.uncertainties.values():
@@ -333,6 +338,8 @@ class Measurement:
                 continue
             if incl_np or not u.with_nuis_par:
                 cov+=u.getCov(self.getMeas(),incl_np=incl_np)
+        if incl_np==False and len(exclude)==0:
+            self.bufferedCov=cov
         return cov
 
     def getCorr(self,incl_np=False):

@@ -10,7 +10,6 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
     else:
         thetaname=name
         affected='all'
-
     options,data=Utils.getOptionsAndData(data)
     interpol='lin'
     for o in options:
@@ -61,16 +60,20 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
     releffect=None
     if Utils.isFile(data):
         spl=data.split(',')
-        if len(spl[0].strip())!=0:
-            down_filename,down_histoname=spl[0].split(':')
+        if len(spl)==1:
+            up_filename,up_histoname=spl[0].split(':')
+            down_filename,down_histoname=None,None
         else:
-            down_filename=None
-            down_histoname=None
-        if len(spl)>1 and len(spl[1].strip())!=0:
-            up_filename,up_histoname=spl[1].split(':')
-        else:
-            up_filename=None
-            up_histoname=None
+            if len(spl[0].strip())!=0:
+                down_filename,down_histoname=spl[0].split(':')
+            else:
+                down_filename=None
+                down_histoname=None
+            if len(spl)>1 and len(spl[1].strip())!=0:
+                up_filename,up_histoname=spl[1].split(':')
+            else:
+                up_filename=None
+                up_histoname=None
 
         return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym,per_bin_width=per_bin_width,isBkgUnc=isBkgUnc,isrel=isrel)
 
@@ -94,7 +97,6 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
                 print 'WARNING: cannot use option "renorm", no histogram given to renorm prediction'
             else:
                 releffect=[(e[0]*s/n,e[1]*s/n) for s,e,n in zip(reference.getNominal(),effect,reference.normhisto)]
-
         return createUncertainty(reference,thetaname,releffect=releffect,affected=affected,interpol=interpol,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym)
 
     if isrel!=None:
@@ -163,7 +165,7 @@ def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_hist
     up=[u/n-1 if n!=0 else 0 for u,n in zip(up,nominal)]
     down=[d/n-1 if n!=0 else 0 for d,n in zip(down,nominal)]
     
-    releffect=zip(up,down)
+    releffect=zip(down,up)
 
     return createUncertainty(reference,name,releffect,affected,interpol,uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym)
 
@@ -285,12 +287,13 @@ class Uncertainty:
         if self.interpol=='exp' and not incl_np:
             print "WARNING: exponential interpolation wont affect covariance matrix of uncertainty",self.name
         cov = TMatrixDSym(self.nbins)
+        effect=self.getEffectSym(nominal)
         if self.uncorr:
             for i in range(self.nbins):
-                cov[i,i]=self.getEffectSym(nominal)[i]**2
+                cov[i,i]=effect[i]**2
         else:
             for i in range(self.nbins):
                 for j in range(self.nbins):
-                    cov[i,j]=self.getEffectSym(nominal)[i]*self.getEffectSym(nominal)[j]
+                    cov[i,j]=effect[i]*effect[j]
 
         return cov
