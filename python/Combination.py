@@ -1,4 +1,4 @@
-from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym
+from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH2D, TCanvas
 from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculator,FrequentistCalculator,HypoTestInverter,ProfileLikelihoodTestStat
 import itertools,re
 import Utils
@@ -15,6 +15,8 @@ class Combination:
             if m.reco_level or m.getCov()==None:
                 continue
             det=m.getCov().Determinant()
+            if det==0:
+                raise Exception("Covariance degenerate")
             while det>10e20 or det==float('+inf'):
                 print 'Huge covariance matrix determinant (',m.name,':',det,') rescaling measurement and prediction by 0.1'
                 p.scale(0.1)
@@ -88,9 +90,15 @@ class Combination:
                     combined_xVec.add(x)
                 combined_cov.SetSub(combined_ibin,combined_ibin,measurement.getCov(exclude=correlated_uncertainty_names))
                 combined_ibin+=measurement.nbins
+                found=[]
                 for u in measurement.uncertainties.values():
                     if u.name in correlated_uncertainty_names:
                         correlated_uncertainties[u.name]+=[e*n for e,n in zip(u.getRelEffectSym(),measurement.getNominal())]
+                        found+=[u.name]
+                for uname in correlated_uncertainty_names:
+                    if not uname in found:
+                        correlated_uncertainties[uname]+=[0.]*measurement.nbins
+                    
                 combined_measured+=measurement.getNominal()
 
             for u in correlated_uncertainties.values():
@@ -102,7 +110,12 @@ class Combination:
             for i in range(combined_nbins):
                 for j in range(combined_nbins):
                     combined_corr[i,j]=combined_cov[i][j]/(combined_cov[i][i]*combined_cov[j][j])**0.5
-                    
+#            mdraw=TH2D(combined_corr)
+#            print combined_corr
+#            c=TCanvas()
+#            mdraw.Draw('COLZ')
+#            c.SaveAs('fullcorr.root')
+#            raw_input()
             self.mvgaussians+=[RooMultiVarGaussian("combined_mvgaussian","combined_mvgaussian", combined_xVec, combined_muVec,combined_cov)]
                 
 
@@ -124,6 +137,18 @@ class Combination:
         self.nll=self.pdf.createNLL(self.dataset,RooFit.Optimize(False))
 
         self.minimizer=RooMinuit(self.nll)
+        unused_pars=theory.getCoeffNames()
+        for pred in predictions:
+            for l in pred.linear_effects:
+                if l in unused_pars:
+                    unused_pars.remove(l)
+            for q in pred.linear_effects:
+                if q in unused_pars:
+                    unused_pars.remove(q)
+        for p in unused_pars:
+            print 'setting unused parameter',p,'constant'
+            theory.getCoeff(p).setConstant()
+            
         
         self.last_scan_range=None
         self.all_results=None
@@ -135,6 +160,9 @@ class Combination:
                
     def profile1D(self,poi_name,scan_range=3,nsteps=101,inclOffset=False,extra_outfile=None):
         poi=self.theory.getCoeff(poi_name)
+        if poi.isConstant():
+            raise Exception("Cannot fit "+poi_name+", is the parameter implemented for this measurement?")
+
         result=[]
         print_level=-1
         # auto range
@@ -142,40 +170,46 @@ class Combination:
             poiIsConst=poi.isConstant()
             poi.setConstant(False)
             self.minimize(minos=True)
-            res=self.getFitResult()
+            res=self.getFitResult()            
             if res.status()==0:
                 float_pars=res.floatParsFinal()
                 for i in range(float_pars.getSize()):
-                    if float_pars[i].GetName()==poi_name:                    
-                        scan_range=(scan_range*float_pars[i].getAsymErrorLo()+float_pars[i].getVal(),scan_range*float_pars[i].getAsymErrorHi()+float_pars[i].getVal())
+                    if float_pars[i].GetName()==poi_name:
+                        actual_scan_range=(scan_range*float_pars[i].getAsymErrorLo()+float_pars[i].getVal(),scan_range*float_pars[i].getAsymErrorHi()+float_pars[i].getVal())
+               
             else:
                 print 'using profilelikelihood method to determine scan range'
                 prof_range=self.calcProfileLikelihood([poi_name])
-                scan_range=prof_range[0]*scan_range/2,prof_range[1]*scan_range/2
+                actual_scan_range=prof_range[0]*scan_range/2,prof_range[1]*scan_range/2
             poi.setConstant(poiIsConst)
-            self.last_scan_range=scan_range
-
-        step=float(scan_range[1]-scan_range[0])/(nsteps-1)
+            self.last_scan_range=actual_scan_range
+        else:
+            actual_scan_range=scan_range
+        step=float(actual_scan_range[1]-actual_scan_range[0])/(nsteps-1)
         more_results={}
         percent=0
-        for i in range(nsteps):
-            if 100*i/nsteps>=percent:
+        i_step=0
+        steps=range(nsteps)[nsteps/2:]+list(reversed(range(nsteps)[:nsteps/2]))
+        for i_step,i in enumerate(steps):
+#            if i==nsteps/2-1:
+            self.theory.reset()
+            if 100*i_step/nsteps>=percent:
                 print percent,'%'
                 percent+=10
-            val=scan_range[0]+step*i
+            val=actual_scan_range[0]+step*i
             poi.setVal(val)
             poiIsConst=poi.isConstant()
             poi.setConstant(True)
             strategy=0
             if self.robust:
                 strategy=2
-            if i==0:
+            if i_step==0:
                 strategy=2
             result.append( (val,self.minimize(print_level=print_level,hesse=False,strategy=strategy)) )
             if extra_outfile!=None:
                 res=self.getFitResult()
                 float_pars=res.floatParsFinal()
-                if i==0:
+                if i_step==0:
                     more_results[poi.GetName()]=[]
                     for ipar in range(float_pars.getSize()):
                         more_results[float_pars[ipar].GetName()]=[]
@@ -195,6 +229,33 @@ class Combination:
             minNLL=self.minimize(print_level=print_level)
             poi.setConstant(poiIsConst)
             result =[(r[0],r[1]-minNLL) for r in result]
+        if min(x[1] for x in result)<-0.01:
+            print 'found better minimum, redoing scan with this starting point'            
+            y0=999
+            for x in result:
+                if x[1]<y0:
+                    x0=x[0]
+                    y0=x[1]
+            self.theory.reset()
+            self.theory.setInitialVal(poi_name,x0)
+            if not isinstance(scan_range,tuple) and not isinstance(scan_range,list) :
+                xlow=(x0-result[0][0])
+                ylow=(result[0][1]-y0)
+                xhigh=(result[-1][0]-x0)
+                yhigh=(result[-1][1]-y0)
+                newlow=xlow*(5/ylow)**0.5 if ylow>0 else None
+                newhigh=xhigh*(5/yhigh)**0.5 if ylow>0 else None
+                if newlow is None and  not newhigh is None:
+                    newlow=newhigh
+                elif newhigh is None and not newlow is None:
+                    newhigh=newlow
+                elif newlow is None and newhigh is None:
+                    newhigh=actual_scan_range[1]-actual_scan_range[0]
+                    newlow=actual_scan_range[1]-actual_scan_range[0]
+                new_range=(x0-newlow,x0+newhigh)
+            else:
+                new_range=scan_range
+            return self.profile1D(poi_name,new_range,nsteps,inclOffset,extra_outfile)
         return result
 
     #TODO: unify with 1D
@@ -298,11 +359,10 @@ class Combination:
                     deactivated[theta]=theta.getVal()
                     theta.setVal(0.)
                     theta.setConstant()
-
         return deactivated
 
 
-    def minimize(self,strategy=2,hesse=True,minos=False,print_level=None):
+    def minimize(self,strategy=2,hesse=True,minos=False,print_level=2):
         deactivated=self.deactivateIrrelevantThetas()
         self.minimizer.setPrintLevel(1)
         if print_level!=None:
@@ -391,20 +451,27 @@ class Combination:
         float_pars=res.floatParsFinal()
         cnames=self.theory.getCoeffNames()
         pois=[]
+        errors=[]
         for ipar in range(float_pars.getSize()):
             name=float_pars[ipar].GetName()
             if name in cnames:
                 pois.append(name)
+                errors.append(float_pars[ipar].getError())
         if len(pois)<2:
-            return None
+            return None,None
         h=TH2F('correlationPOIs','correlation POIs',len(pois),0.,len(pois),len(pois),0,len(pois))
+        hcov=TH2F('covariancePOIs','covariance POIs',len(pois),0.,len(pois),len(pois),0,len(pois))
         for i,ipoi in enumerate(pois):
             for j,jpoi in enumerate(pois):
                 h.SetBinContent(i+1,j+1,res.correlation(ipoi,jpoi))
+                hcov.SetBinContent(i+1,j+1,res.correlation(ipoi,jpoi)*errors[i]*errors[j])
         for i,ipoi in enumerate(pois):
             h.GetXaxis().SetBinLabel(i+1,ipoi)
             h.GetYaxis().SetBinLabel(i+1,ipoi)
-        return h
+            hcov.GetXaxis().SetBinLabel(i+1,ipoi)
+            hcov.GetYaxis().SetBinLabel(i+1,ipoi)
+
+        return h,hcov
         
             
         

@@ -33,6 +33,7 @@ def graphProfile2D(name,result,outfile=None,isNLL=True):
 
 
 def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',linecolor=ROOT.kRed+1,linewidth=2,linestyle=1,outfolder='.',isNLL=True):
+    result=sorted(result)
     cl1=1
     cl2=3.841
     c=ROOT.TCanvas(name,name,1024,1024 )
@@ -63,7 +64,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
     g.SetLineWidth(linewidth)
     g.Draw('AL')
     if isNLL :
-        g.GetHistogram().GetYaxis().SetRangeUser(0.,g.GetHistogram().GetYaxis().GetXmax())
+        g.GetHistogram().GetYaxis().SetRangeUser(0.,min(100,g.GetHistogram().GetYaxis().GetXmax()))
     g.GetHistogram().GetXaxis().SetTitleSize(0.05)
     g.GetHistogram().GetYaxis().SetTitleSize(0.05)
     g.GetHistogram().GetXaxis().SetLabelSize(0.04)
@@ -91,11 +92,13 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         ci1line2=ROOT.TLine(ci1[1],0,ci1[1],cl1)
         ci1line2.SetLineStyle(2)
         ci1text=ROOT.TLatex(0.5,0.85,'Best fit: {}_{{ #minus{} }}^{{ #plus{} }}'.format(Utils.round2(x0,3),Utils.round2(abs(ci1[0]-x0),3),Utils.round2(abs(ci1[1]-x0),3)))
+        print '68% CL:',ci1[0],ci1[1]
         ci1text.SetNDC()
         ci1text.SetTextSize(0.04)
         ci1text.SetTextFont(42)
         ci1text.SetTextAlign(21)
         ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],3)))
+        print '95% CL:',ci2[0],ci2[1]
         ci2text.SetNDC()
         ci2text.SetTextSize(0.04)
         ci2text.SetTextFont(42)
@@ -209,6 +212,7 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     pred_prefit.SetMarkerSize(1.3)
     pred_prefit.Draw('PA2')
     pred_prefit.GetYaxis().SetRangeUser(0,ymax*1.1)
+    pred_prefit.GetXaxis().SetTitle("Bins of "+name.replace("c_postfit_",""))
     pred_postfit.SetFillColor(ROOT.kRed)
     pred_postfit.SetMarkerColor(ROOT.kRed+1)
     pred_postfit.SetLineColor(ROOT.kWhite)
@@ -282,8 +286,8 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     h.Draw()
     if not pois:
         h.GetYaxis().SetRangeUser(-3,3)
-    elif rescale:
-        h.GetYaxis().SetRangeUser(-1.5,1.5)
+#    elif rescale:
+#        h.GetYaxis().SetRangeUser(-2.5,2.5)
     else:
         ymin=0.
         ymax=0.
@@ -319,7 +323,7 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     h.Draw('axissame')
     printAndSave(c,outfile,outfolder)
 
-def canvasCorrelation(name,h,outfile,outfolder):
+def canvasCorrelation(name,h,outfile,outfolder,log=False):
     c=ROOT.TCanvas(name,name,1024,1024 )
     c.SetRightMargin(0.15)
     c.SetTopMargin(0.1)
@@ -327,7 +331,10 @@ def canvasCorrelation(name,h,outfile,outfolder):
     c.SetBottomMargin(0.1)
     c.cd()
     h.SetStats(False)
-    h.GetZaxis().SetRangeUser(-1,1)
+    if not log:
+        h.GetZaxis().SetRangeUser(-1,1)
+    if log:
+        c.SetLogz()
     h.Draw('COLZ')
     printAndSave(c,outfile,outfolder)
     

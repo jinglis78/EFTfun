@@ -137,12 +137,15 @@ def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_hist
         nominal=reference.getEffectFloat(list(affected)[0].split(','))
     if nominal==None:
         raise Exception('Could not find nominal effect for systematic affecting {}'.format(' '.join(list(affected))))
+    pbw=per_bin_width
+    if isrel:
+        pbw=False    
     if up_filename!=None:
-        up_variation=Utils.readFile(up_filename,up_histoname,per_bin_width=per_bin_width)[0]
+        up_variation=Utils.readFile(up_filename,up_histoname,per_bin_width=pbw)[0]
         if isrel:
             up_variation=[n*u+n for n,u in zip(nominal,up_variation)]
     if down_filename!=None:
-        down_variation=Utils.readFile(down_filename,down_histoname,per_bin_width=per_bin_width)[0]
+        down_variation=Utils.readFile(down_filename,down_histoname,per_bin_width=pbw)[0]
         if isrel:
             down_variation=[n*d+n for n,d in zip(nominal,down_variation)]
 
@@ -182,9 +185,12 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
     assert len(vals)==reference.nbins
     errs=[]
     found=False
+    if err_label==None:
+        total_errs2=[]
     for y,meas in zip(vals,reference.getNominal()):
-        for error in y['errors']:
-            if error['label']==err_label:
+        total_err2=0.
+        for error in y['errors']:               
+            if err_label is None or error['label']==err_label:
                 found=True
                 if 'symerror' in error:
                     if isinstance(error['symerror'],str) and '%' in error['symerror']:
@@ -197,7 +203,6 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
                         if rel:
                             err/=meas
                         errs.append((-err,err))
-                    break
                 elif 'asymerror' in error:
                     if isinstance(error['asymerror']['minus'],str) and '%' in error['asymerror']['minus']:
                         asymerr=(float(error['asymerror']['minus'].replace('%',''))/100.,float(error['asymerror']['plus'].replace('%',''))/100.)
@@ -211,11 +216,20 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
                             errs.append((asymerr[0]/meas,asymerr[1]/meas))
                         else:
                             errs.append(asymerr)
+                if not err_label is None:
                     break
+                else:
+                    total_err2+=(abs(errs[-1][0])+abs(errs[-1][1]))**2/4.
+        if err_label is None:
+            total_errs2+=[total_err2]
+
     if not found:
         raise Exception("Did not find error label "+err_label+" in yaml")
     f.close()
-    return errs
+    if err_label is None:
+        return [x**0.5 for x in total_errs2]
+    else:
+        return errs
 
 class Uncertainty:
     def __init__(self,nbins,affected,name,releffect,interpol,uncorr=False,with_nuis_par=False,already_in_cov=False,is_bkg_unc=False,flip=False,sym=False):

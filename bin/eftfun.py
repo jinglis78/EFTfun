@@ -68,7 +68,6 @@ def main():
                       dest="measurements", default='all',
                       help="Comma separated list of measurements to be included (default: include all measurements)")
 
-    #TODO: "robust" option
     options,args=parser.parse_args()
 
     if  options.method==None:
@@ -172,11 +171,12 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         binning=None
         if cfg.has_option('Measurement','binning'):
             binning=[float(x) for x in cfg.getAndRm('Measurement','binning').split()]
-        blinded=[]
-        if cfg.has_option('Measurement','blinded'):
-            blinded=[int(x) for x in cfg.getAndRm('Measurement','blinded').split()]
-
-        prediction=Prediction(measurement_name,theory,per_bin_width=per_bin_width,binning=binning,blinded=blinded)
+        blind=None
+        if cfg.has_option('Measurement','blind'):
+            blind=[int(x) for x in cfg.getAndRm('Measurement','blind').split()]
+        if verbose:
+            print "creating prediction for", measurement_name
+        prediction=Prediction(measurement_name,theory,per_bin_width=per_bin_width,binning=binning,blind=blind)
         assert prediction.name not in [p.name for p in predictions]
         
         prediction.setSMfromCfg(cfg.getAndRm('Measurement','sm'))
@@ -186,6 +186,14 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             prediction.setScalingFromCfg(cfg.getAndRm('Measurement','scaling_factor'))
         if cfg.has_option('Measurement','stat_unc_threshold'):
             prediction.stat_unc_threshold=float(cfg.getAndRm('Measurement','stat_unc_threshold'))
+        linear_corrections={}
+        if cfg.has_section('Linear Corrections'):
+            for name,effect in cfg.itemsAndRm('Linear Corrections'):
+                if name not in theory.getCoeffNames():
+                    continue
+                else:
+                    linear_corrections[name]=float(effect)
+            
         if cfg.has_section('Linear Effects'):
             if quad:
                 cfg.remove_section('Linear Effects')
@@ -193,7 +201,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 for name,effect in cfg.itemsAndRm('Linear Effects'):
                     if name not in theory.getCoeffNames():
                         continue
-                    if not prediction.setEffectFromCfg(1,name,effect):
+                    if not prediction.setEffectFromCfg(1,name,effect,corrections=linear_corrections):
                         print "WARNING: Could not find linear effect for "+name+" and measurement "+measurement_name+" -- assuming it is zero"
         if cfg.has_section('Quadratic Effects'):
             if linear:
@@ -212,6 +220,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                         continue
                     reverse=name.split()[1]+' '+name.split()[0]
                     if not name in names_set and not reverse in names_set:
+                        theory.setConstantFromCfg(name)
                         print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" and measurement "+measurement_name+" -- assuming it is zero"
         if cfg.has_section('Prediction Uncertainties'):
             for theo_syst_name,theo_syst in cfg.itemsAndRm('Prediction Uncertainties'):
@@ -225,11 +234,10 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 for bkg_syst_name,bkg_syst in cfg.itemsAndRm('Background Uncertainties'):
                     assert reco_level
                     prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)   
-
-
-        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory,blinded=blinded)
+        if verbose:
+            print "creating measurement for", measurement_name
+        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory,blind=blind)
         assert not measurement.name in [m.name for m in measurements]
-        
         if asimov:
             measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
             asmimov_data=prediction.getNominal()
@@ -239,23 +247,21 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             
         else:
             measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
-
         if cfg.has_option('Measurement','covariance'):
             measurement.setCovFromCfg(cfg.getAndRm('Measurement','covariance'))
         elif cfg.has_option('Measurement','correlation') and cfg.has_option('Measurement','correlated_uncertainty'):
             measurement.setErrAndCorrFromCfg(cfg.getAndRm('Measurement','correlated_uncertainty'),cfg.getAndRm('Measurement','correlation'))
         elif not measurement.reco_level:
             print 'WARNING: neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties'
-            
-
         if cfg.has_section('Measurement Uncertainties'):
+            if verbose:
+                print "adding uncertainties for",measurement_name
             for exp_syst_name,exp_syst in cfg.itemsAndRm('Measurement Uncertainties'):
                 measurement.addUncertaintyFromCfg(exp_syst_name,exp_syst)
                 
         for s in cfg.sections():
             if len(cfg.options(s))>0:
                 raise Exception('Unused option '+','.join(cfg.options(s))+' in section '+s)
-        
         measurements+=[measurement]
         predictions+=[prediction]
                     
@@ -296,7 +302,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'WARNING: updating',outname+'.root'
     else:
         f=TFile(outname+'.root','RECREATE')
-        print 'WARNING: recreating',outname+'.root'
     combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=verbose) 
 
     if poi==None:
@@ -321,7 +326,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
 
     start_time = time.time()
-                    
+                   
     if method=='workspace':
         if len(pois)==0:
             pois='all'
@@ -375,20 +380,19 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             print 'doing fit'
         data_histos_prefit=[]
         pred_histos_prefit=[]
-        print 'prefit'
         for p,m in zip(predictions,measurements):
             pred_histos_prefit+=[p.plotPrefit(f)]
-            print '1'
             data_histos_prefit+=[m.plotPrefit(f)]
-        print 'actual fit'
         combination.fit()
-        corr=combination.getFitResult().correlationHist()
+        corr=combination.getFitResult().correlationHist()        
         corr.Write()
         Plotting.canvasCorrelation('c_correlation',corr,f,outname)
-        corrPOIs=combination.correlationHistPOIs()
+        corrPOIs,covPOIs=combination.correlationHistPOIs()
         if corrPOIs:
             corrPOIs.Write()
+            covPOIs.Write()
             Plotting.canvasCorrelation('c_correlationPOIs',corrPOIs,f,outname)
+            Plotting.canvasCorrelation('c_covariancePOIs',covPOIs,f,outname,log=True)
         
         for p,m,h_p_pre,h_m_pre in zip(predictions,measurements,pred_histos_prefit,data_histos_prefit):
             h_p_post=p.plotPostfit(f,combination.getFitResult())

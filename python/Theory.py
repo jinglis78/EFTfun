@@ -182,3 +182,9 @@ class Theory:
              return 'mcstat_'+name+'_'+coeff_names+'_lin_bin'+str(iBin)
         elif isinstance(coeff_names,list):
             return 'mcstat_'+name+'_'+'_'.join(coeff_names)+'_quad_bin'+str(iBin)
+
+    def dumpPars(self):
+        for c in self.coeffs:
+            print c.GetName(),c.getVal(),c.isConstant()
+        for c in self.thetas:
+            print c.GetName(),c.getVal(),c.isConstant()

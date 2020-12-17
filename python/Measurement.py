@@ -4,7 +4,7 @@ import Utils
 import Uncertainty
 
 class Measurement:
-    def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None,blinded=[]):
+    def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None,blind=None):
         self.name=name
         self.nbins=nbins
         if measured!=None:
@@ -20,17 +20,23 @@ class Measurement:
         self.hepdata=None
         self.reco_level=reco_level
         self.theory=theory
-        self.blinded=blinded
+        self.blind=blind
         
 
     def setMeasured(self,measured):
         if self.nbins==None:
             self.nbins=len(measured)
         assert len(measured)==self.nbins
+        if self.blind is None:
+            self.blind=self.nbins*[1]
+
         self.central_values = []
-        for i,x_meas in enumerate(measured):
+        for i,(x_meas,b) in enumerate(zip(measured,self.blind)):
             x=RooRealVar(self.name+"_meas_"+str(i),self.name+"_meas_"+str(i),0,1e9)
-            x.setVal(x_meas)
+            if b==1:
+                x.setVal(x_meas)
+            else:
+                x.setVal(0)
             x.setConstant()
             self.central_values.append(x)
 
@@ -80,7 +86,9 @@ class Measurement:
         for i in range(self.nbins):
             for j in range(self.nbins):
                 self.covMatrix[i,j]=cov[i][j]
-
+                if i==j and cov[i][j]==0:
+                    self.covMatrix[i,j]=1
+                    print "Warning, covariance matrix element 0"
     def setMeasuredFromCfg(self,data):
         if data.split(':')[0].endswith('.yoda'):
             spl=data.split(':')
@@ -145,27 +153,27 @@ class Measurement:
         elif data_err.split(':')[0].endswith('.yaml'):
             import yaml
             filename_err=data_err.split(':')[0]
-            label_err=None
             if ':' in data_err and data_err.split(':')[1].lower()!='all':
                 label_err=data_err.split(':')[1]
                 errs=Uncertainty.getErrsFromYaml(self,filename_err,label_err,rel=False)
                 errs=[(abs(x[0])+abs(x[1]))/2 for x in errs]
             else:
-                f=open(filename_err.split(':')[0])
-                vals=yaml.load(f)['dependent_variables'][0]['values']
-                assert len(vals)==self.nbins
-                err_labels=[]
-                for y in vals:
-                    for error in y['errors']:
-                        err_labels+=[error['label']]
-                err_labels=list(set(err_labels))
-                total_errs2=[0.]*self.nbins
-                for label_err in err_labels:
-                    this_errs=Uncertainty.getErrsFromYaml(self,filename_err,label_err,rel=False)
-                    for ierr,err in enumerate(this_errs):
-                        total_errs2[ierr]+=(abs(err[0])+abs(err[1]))**2/4.
-                errs=[x**0.5 for x in total_errs2]
-                f.close()
+                errs=Uncertainty.getErrsFromYaml(self,filename_err,err_label=None,rel=False)
+#                f=open(filename_err.split(':')[0])
+#                vals=yaml.load(f)['dependent_variables'][0]['values']
+#                assert len(vals)==self.nbins
+#                err_labels=[]
+#                for y in vals:
+#                    for error in y['errors']:
+#                        err_labels+=[error['label']]
+#                err_labels=list(set(err_labels))
+#                total_errs2=[0.]*self.nbins
+#                for label_err in err_labels:
+#                    this_errs=Uncertainty.getErrsFromYaml(self,filename_err,label_err,rel=False)
+#                    for ierr,err in enumerate(this_errs):
+#                        total_errs2[ierr]+=(abs(err[0])+abs(err[1]))**2/4.
+#                errs=[x**0.5 for x in total_errs2]
+#                f.close()
             assert len(errs)==self.nbins
 
         else:
@@ -347,14 +355,14 @@ class Measurement:
         var=[m[i][i] for i in range(self.nbins)]
         for i in range(self.nbins):
             for j in range(self.nbins):
-                m[i][j]=m[i][j]/var[i]**0.5/var[j]**0.5
+                m[i][j]=m[i][j]/var[i]**0.5/var[j]**0.5 if var[i]!=0 and var[j]!=0 else 0
         return m
 
     def getRelErr(self,incl_np=False):
         if self.reco_level:
             return [1/n**0.5 for n in self.getMeas()]
         cov=self.getCov(incl_np=incl_np)
-        return [(cov[i][i])**0.5/self.getNominal()[i] for i in range(self.nbins)]
+        return [(cov[i][i])**0.5/self.getNominal()[i] if self.getNominal()[i]!=0. else 0. for i in range(self.nbins)]
 
     def getErr(self,incl_np=False):
         if self.reco_level:

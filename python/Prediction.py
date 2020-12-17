@@ -1,13 +1,14 @@
 from ROOT import RooFormulaVar, RooArgList, RooRealVar, TH1F, TH2F
 from math import log,sqrt
 from array import array
+import re
 import os
 import Utils
 import Uncertainty
 from Background import Background
 
 class Prediction:
-    def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None,blinded=[]):
+    def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None,blind=None):
         self.default_range=(-1e9,1e9)
         self.name=name
         self.sm=sm
@@ -19,7 +20,7 @@ class Prediction:
         self.stat_unc_threshold=None
         self.extra_scaling=None
         self.binning=binning
-        self.blinded=blinded
+        self.blind=blind
         self.linear_effects={}
         self.quadratic_effects={}
         self.coeff_names=[]
@@ -197,9 +198,11 @@ class Prediction:
         for iBin,formula in enumerate(formulas):
             params=RooArgList()
             for c in self.theory.coeffs:
-                params.add(c)
+                if re.match('.*\\b'+c.GetName()+'\\b.*',formula):
+                    params.add(c)
             for t in self.theory.thetas:
-                params.add(t)
+                if re.match('.*\\b'+t.GetName()+'\\b.*',formula):
+                    params.add(t)
             bin_prediction=RooFormulaVar("pred_{}_{}".format(self.name,iBin),"pred_{}_{}".format(self.name,iBin),formula,params)
             self.predictions.append(bin_prediction)
         return self.predictions
@@ -280,8 +283,11 @@ class Prediction:
     def setSM(self,sm,rescale=1.):
         if self.nbins==None:
             self.nbins=len(sm)
+        if self.blind==None:
+            self.blind=self.nbins*[1]
         assert len(sm)==self.nbins
-        self.sm=[x*rescale for x in sm]
+        assert len(self.blind)==self.nbins
+        self.sm=[x*rescale if b==1 else 0 for x,b in zip(sm,self.blind)]
         return True
 
     def setSMfromCfg(self,data):
@@ -316,7 +322,10 @@ class Prediction:
     def setNormHistoFromFile(self,filename,histoname,rescale=1.):
         return self.setNormHisto(Utils.readFile(filename,histoname,per_bin_width=self.per_bin_width)[0],rescale)
         
-    def setEffect(self,power,coeff_names,effect,uncertainty=None,rescale=1.,renorm=False,add=False,isrel=False):
+    def setEffect(self,power,coeff_names,effect,uncertainty=None,rescale=1.,renorm=False,add=False,isrel=False,corrections={}):
+        if self.blind is None:
+            self.blind==self.nbins*[1]
+        effect=[e if b==1 else 0 for e,b in zip(effect,self.blind)]
         if uncertainty==None:
             uncertainty=[0.]*self.nbins
         if len(effect)==1:
@@ -340,6 +349,10 @@ class Prediction:
                 print 'WARNING: cannot use option "renorm", no histogram given to renorm prediction'
             else:
                 actual_effect=[(s*(e[0]/n),s*(e[1]/n)) for s,e,n in zip(self.sm,actual_effect,self.normhisto)]
+        if len(coeff_names)==1 and coeff_names[0] in corrections:
+            corr=corrections[coeff_names[0]]
+            actual_effect=[(e[0]+s*corr,e[1]) for s,e in zip(self.sm,actual_effect)]
+
         if power==1:
             if add:
                 self.linear_effects[coeff_names[0]]=[a+b for a,b in zip(self.linear_effects[coeff_names[0]],actual_effect)]
@@ -360,15 +373,15 @@ class Prediction:
             raise Exception('Only linear or quadratic effects possible')
         return True
     
-    def setEffectFromFile(self,power,coeff_names,filename,histoname,rescale=1.,renorm=False,add=False):
+    def setEffectFromFile(self,power,coeff_names,filename,histoname,rescale=1.,renorm=False,add=False,corrections={}):
         if not os.path.exists(filename.strip()):
             return False
         else:
             actual_effect,actual_uncertainty=Utils.readFile(filename,histoname,per_bin_width=self.per_bin_width)
-            self.setEffect(power,coeff_names,actual_effect,actual_uncertainty,rescale,renorm,add=add)
+            self.setEffect(power,coeff_names,actual_effect,actual_uncertainty,rescale,renorm,add=add,corrections=corrections)
             return True
 
-    def setEffectFromCfg(self,power,coeff_names,data,add=False):
+    def setEffectFromCfg(self,power,coeff_names,data,add=False,corrections={}):
         actual_coeff_names=coeff_names.split()        
         if '{' in data:
             options=set(o.lower() for o in data[data.find('{')+1:data.find('}')].split())
@@ -394,11 +407,13 @@ class Prediction:
         
         if Utils.isFile(data):
             filename,histoname=data.split(':')
-            return self.setEffectFromFile(power,actual_coeff_names,filename,histoname,rescale=1.,renorm=renorm,add=add)
+            if isrel:
+                raise Exception('Effect from file shouldnt be relative')
+            return self.setEffectFromFile(power,actual_coeff_names,filename,histoname,rescale=1.,renorm=renorm,add=add,corrections=corrections)
                 
         else:
             effect=[float(d) for d in data.split()]
-            return self.setEffect(power,actual_coeff_names,effect,uncertainty=None,rescale=1.,renorm=renorm,add=add,isrel=isrel)
+            return self.setEffect(power,actual_coeff_names,effect,uncertainty=None,rescale=1.,renorm=renorm,add=add,isrel=isrel,corrections=corrections)
 
     def setScalingFromCfg(self,data):
         if Utils.isFile(data):
