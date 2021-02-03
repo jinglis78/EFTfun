@@ -2,6 +2,7 @@ from ROOT import RooRealVar, TMatrixDSym, TH1F, RooArgList, RooFormulaVar
 from array import array
 import Utils
 import Uncertainty
+import re
 
 class Measurement:
     def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None,blind=None):
@@ -65,13 +66,16 @@ class Measurement:
         if formulas==None:
             return [None]*self.nbins
         self.measurement_correction=[]
-        params=RooArgList()
-        for t in self.theory.thetas:
-            params.add(t)
-        for c in self.central_values:
-            params.add(c)
         for i,form in enumerate(formulas):
+            params=RooArgList()
+            for t in self.theory.thetas:
+                if re.match('.*\\b'+t.GetName()+'\\b.*',form):
+                    params.add(t)
+            for c in self.central_values:
+                if re.match('.*\\b'+c.GetName()+'\\b.*',form):
+                    params.add(c)
             self.measurement_correction+=[RooFormulaVar("meas_correction_{}_{}".format(self.name,i),"meas_correction_{}_{}".format(self.name,i),form,params)]
+
         return self.measurement_correction
 
     def setCov(self,cov):
