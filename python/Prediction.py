@@ -8,7 +8,7 @@ import Uncertainty
 from Background import Background
 
 class Prediction:
-    def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None,blind=None):
+    def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None,blind=None,binlabels=None):
         self.default_range=(-1e9,1e9)
         self.name=name
         self.sm=sm
@@ -20,6 +20,7 @@ class Prediction:
         self.stat_unc_threshold=None
         self.extra_scaling=None
         self.binning=binning
+        self.binlabels=binlabels
         self.blind=blind
         self.linear_effects={}
         self.quadratic_effects={}
@@ -193,9 +194,11 @@ class Prediction:
         return predictions                   
 
     def getPredictionFormulas(self):
+        if self.binlabels is None:
+            self.binlabels=range(self.nbins)
         self.predictions = []
         formulas=self.getPredictionStrings()
-        for iBin,formula in enumerate(formulas):
+        for binlabel,formula in zip(self.binlabels,formulas):
             params=RooArgList()
             for c in self.theory.coeffs:
                 if re.match('.*\\b'+c.GetName()+'\\b.*',formula):
@@ -203,7 +206,7 @@ class Prediction:
             for t in self.theory.thetas:
                 if re.match('.*\\b'+t.GetName()+'\\b.*',formula):
                     params.add(t)
-            bin_prediction=RooFormulaVar("pred_{}_{}".format(self.name,iBin),"pred_{}_{}".format(self.name,iBin),formula,params)
+            bin_prediction=RooFormulaVar("pred_{}_{}".format(self.name,binlabel),"pred_{}_{}".format(self.name,binlabel),formula,params)
             self.predictions.append(bin_prediction)
         return self.predictions
 

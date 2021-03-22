@@ -5,7 +5,7 @@ import Uncertainty
 import re
 
 class Measurement:
-    def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None,blind=None):
+    def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None,blind=None,binlabels=None):
         self.name=name
         self.nbins=nbins
         if measured!=None:
@@ -16,6 +16,7 @@ class Measurement:
             self.covMatrix=None
         self.per_bin_width=per_bin_width
         self.binning=binning
+        self.binlabels=binlabels
         self.rescaled=1.
         self.uncertainties={}
         self.hepdata=None
@@ -30,10 +31,11 @@ class Measurement:
         assert len(measured)==self.nbins
         if self.blind is None:
             self.blind=self.nbins*[1]
-
+        if self.binlabels is None:
+            self.binlabels=range(self.nbins)
         self.central_values = []
-        for i,(x_meas,b) in enumerate(zip(measured,self.blind)):
-            x=RooRealVar(self.name+"_meas_"+str(i),self.name+"_meas_"+str(i),0,1e9)
+        for i,(x_meas,b,binlabel) in enumerate(zip(measured,self.blind,self.binlabels)):
+            x=RooRealVar(self.name+"_meas_"+str(binlabel),self.name+"_meas_"+str(binlabel),0,1e9)
             if b==1:
                 x.setVal(x_meas)
             else:
@@ -66,7 +68,9 @@ class Measurement:
         if formulas==None:
             return [None]*self.nbins
         self.measurement_correction=[]
-        for i,form in enumerate(formulas):
+        if self.binlabels is None:
+            self.binlabels=range(self.nbins)
+        for binlabel,form in zip(self.binlabels,formulas):
             params=RooArgList()
             for t in self.theory.thetas:
                 if re.match('.*\\b'+t.GetName()+'\\b.*',form):
@@ -74,7 +78,7 @@ class Measurement:
             for c in self.central_values:
                 if re.match('.*\\b'+c.GetName()+'\\b.*',form):
                     params.add(c)
-            self.measurement_correction+=[RooFormulaVar("meas_correction_{}_{}".format(self.name,i),"meas_correction_{}_{}".format(self.name,i),form,params)]
+            self.measurement_correction+=[RooFormulaVar("meas_correction_{}_{}".format(self.name,binlabel),"meas_correction_{}_{}".format(self.name,binlabel),form,params)]
 
         return self.measurement_correction
 

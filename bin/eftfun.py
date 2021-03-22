@@ -171,12 +171,15 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         binning=None
         if cfg.has_option('Measurement','binning'):
             binning=[float(x) for x in cfg.getAndRm('Measurement','binning').split()]
+        binlabels=None
+        if cfg.has_option('Measurement','binlabels'):
+            binlabels=cfg.getAndRm('Measurement','binlabels').split()
         blind=None
         if cfg.has_option('Measurement','blind'):
             blind=[int(x) for x in cfg.getAndRm('Measurement','blind').split()]
         if verbose:
             print "creating prediction for", measurement_name
-        prediction=Prediction(measurement_name,theory,per_bin_width=per_bin_width,binning=binning,blind=blind)
+        prediction=Prediction(measurement_name,theory,per_bin_width=per_bin_width,binning=binning,blind=blind,binlabels=binlabels)
         assert prediction.name not in [p.name for p in predictions]
         
         prediction.setSMfromCfg(cfg.getAndRm('Measurement','sm'))
@@ -236,7 +239,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)   
         if verbose:
             print "creating measurement for", measurement_name
-        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory,blind=blind)
+        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory,blind=blind,binlabels=binlabels)
         assert not measurement.name in [m.name for m in measurements]
         if asimov:
             measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
