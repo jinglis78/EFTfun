@@ -9,6 +9,9 @@ class Combination:
         self.name=name
         self.theory=theory
         self.verbose=verbose
+
+        self.predictions=predictions
+        self.measurements=measurements
         
         assert len(predictions)==len(measurements)
         for p,m in zip(predictions,measurements):
@@ -117,7 +120,10 @@ class Combination:
 #            c.SaveAs('fullcorr.root')
 #            raw_input()
             self.mvgaussians+=[RooMultiVarGaussian("combined_mvgaussian","combined_mvgaussian", combined_xVec, combined_muVec,combined_cov)]
-                
+            self.combined_cov=combined_cov
+        else:
+            self.combined_cov=None
+    
 
         self.constraints=[]
         for theta in self.theory.thetas:
@@ -529,3 +535,53 @@ class Combination:
         for par in pars:
             par.setConstant(False)
         return pulls
+
+    def PCA(self):
+        assert not self.combined_cov is None
+        import numpy as np
+        coeffs=self.theory.getCoeffNames()
+        m_para=[]
+        for c in coeffs:
+            m_para.append([])
+            for p in self.predictions:
+                # m_para.append([0. if x is None or n==0. else x/n for x,n in zip(p.getEffectFloat(c),p.getNominal())])
+                m_para[-1]+=[0. if x is None else x for x in (p.getEffectFloat(c) if not p.getEffectFloat(c) is None else [0.]*p.nbins) ]
+        m_para=np.matrix(m_para)
+        m_cov=[]
+        for i in range(self.combined_cov.GetNrows()):
+            m_cov.append([])
+            for j in range(self.combined_cov.GetNcols()):
+                m_cov[-1].append(self.combined_cov(i,j))
+        m_cov=np.matrix(m_cov)
+        print 'covariance matrix'
+        print m_cov
+        print 'parametrization matrix'
+        print self.theory.getCoeffNames()
+        print m_para
+
+        c_inv=m_cov.getI()
+        a=m_para*c_inv*m_para.getT()
+        w,v=np.linalg.eigh(a)
+        res=zip(w,v.getT())
+        for r in res:
+            print r
+        res.sort(reverse=True, key=lambda x : x[0])
+        res=[(r[0],sorted(zip(r[1].tolist()[0],coeffs),key=lambda x: abs(x[0]),reverse=True)) for r in res]
+        for r in res:
+            print Utils.round2(r[0],3)
+            #print r[1][0]
+            print ' + '.join(["{}*{}".format(round(x[0],3),x[1]) for x in r[1] if abs(x[0])>0.1]).replace('+ -','- ')
+            print
+        resmap=[]
+        for r in res:
+            d={}
+            for v,c in r[1]:
+                d[c]=v
+            resmap+=[(r[0],d)]
+        print '#'+' '.join(coeffs)
+        for i,r in enumerate(resmap):
+            print 'c'+str(i)+' = ',
+            for c in coeffs:
+                print r[1][c],
+            print 
+        

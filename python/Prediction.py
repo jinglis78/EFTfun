@@ -30,6 +30,8 @@ class Prediction:
 
     #TODO: reduce duplication
     def getEffectFloat(self,coeffs,withUnc=False):
+        if isinstance(coeffs,str):
+            coeffs=[coeffs]
         if len(coeffs)==2:
             coeff_name1=coeffs[0]
             coeff_name2=coeffs[1]
@@ -533,3 +535,24 @@ class Prediction:
             h.Write()
             hnorm.Write()
             
+    def rePara(self,cs_new,mapping):
+        cs_old=self.coeff_names
+        lin_old=self.linear_effects
+        quad_old=self.quadratic_effects
+        self.coeff_names=cs_new
+        self.linear_effects={}
+        for c in cs_new:
+            sum_effect=[0.]*self.nbins
+            sum_err=[0.]*self.nbins
+            for cold in cs_old:
+                scale=mapping[c][cold]
+                sum_effect=[x+y[0]*scale for x,y in zip(sum_effect,lin_old[cold])]
+                sum_err=[(x**2+(y[1]*scale)**2)**0.5 for x,y in zip(sum_err,lin_old[cold])]
+            self.linear_effects[c]=[(x,y) for x,y in zip(sum_effect,sum_err)]
+        self.quadratic_effects={}
+        for c in cs_new:
+            self.quadratic_effects[c]={}
+        #TODO
+
+
+        

@@ -67,6 +67,9 @@ def main():
     parser.add_option("--measurements",
                       dest="measurements", default='all',
                       help="Comma separated list of measurements to be included (default: include all measurements)")
+    parser.add_option("--repara",
+                      action="store_true", dest="repara", default=False,
+                      help="Use reparametrization?")
 
     options,args=parser.parse_args()
 
@@ -80,10 +83,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements)
+        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements,options.repara)
 
 
-def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included):
+def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included,repara):
     if verbose:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -104,6 +107,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'cls',cls
         print 'override',override
         print 'measurements',measurements_included
+        print 'repara',repara
         print '--------------------------------------'
 
     main_cfg_name=config
@@ -143,7 +147,14 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
     correlated_measurements=[]
     if main_cfg.has_option('General','correlated_measurements'):
         correlated_measurements=main_cfg.getAndRm('General','correlated_measurements').split()
-        
+    c_mapping={}
+    cs_new=[]
+    if main_cfg.has_section('Reparameterization'):
+        for cnew,para in main_cfg.itemsAndRm('Reparameterization'):
+            cs_new.append(cnew)
+            c_mapping[cnew]={}
+            for cold,x in zip(theory.getCoeffNames(),[float(x) for x in para.split()]):
+                c_mapping[cnew][cold]=x
     measurements=[]
     predictions=[]
     for cfg_name in main_cfg.getAndRm('General','measurement_configs').split():
@@ -267,7 +278,10 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 raise Exception('Unused option '+','.join(cfg.options(s))+' in section '+s)
         measurements+=[measurement]
         predictions+=[prediction]
-                    
+    if repara and c_mapping!=None:
+        theory.rePara(cs_new,c_mapping)
+        for p in predictions:
+            p.rePara(cs_new,c_mapping)
     if verbose:
         print 'Ingredients ------------------------------------------------'
         for measurement,prediction in zip(measurements,predictions):
@@ -275,6 +289,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             print
             print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])
             print
+            if measurement.binlabels and isinstance(measurement.binlabels[0],str):
+                print "Labels: "+' '.join(measurement.binlabels)
+                print
             if measurement.getMeasurementCorrectionString()!=None:
                 print 'Measurement correction formulas:'
                 for i,s in enumerate(measurement.getMeasurementCorrectionString()):
@@ -305,6 +322,12 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'WARNING: updating',outname+'.root'
     else:
         f=TFile(outname+'.root','RECREATE')
+        
+    if method=='pca':
+        print 'Combining covariances of measurements for PCA'
+        correlated_measurements=[]
+        for m in measurements:
+            correlated_measurements.append(m.name)
     combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=verbose) 
 
     if poi==None:
@@ -429,7 +452,11 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         ftxt.write(','.join([str(x) for x in limit]))
         ftxt.close()
 
+    elif method=='pca':
+        combination.PCA()
+
     elif method=='asymptotic' or method=='hybrid' or method=='frequentist':
+        raw_input('WARNING, the method '+method+' is experimental and work in progress, press enter to proceed')
         if len(pois)!=1:
             print "Need exactly one POI to run asymptotic/hybrid/frequentist limits"
         w=combination.createWorkspace(pois)

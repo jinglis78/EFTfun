@@ -11,6 +11,7 @@ class Theory:
         self.initial_vals={}
         self.theta_range=theta_range
         self.stat_unc_threshold=stat_unc_threshold
+        self.mapping=None
 
     def reset(self):
         for par in self.pars:
@@ -21,7 +22,7 @@ class Theory:
 
     def addCoeff(self,coeff_name,coeff_range=None):
         if coeff_range==None:
-            coeff_range=default_range
+            coeff_range=self.default_range
         self.coeffs.append(RooRealVar(coeff_name,coeff_name,coeff_range[0],coeff_range[1]))
         self.pars[self.coeffs[-1].GetName()]=self.coeffs[-1]
 
@@ -188,3 +189,17 @@ class Theory:
             print c.GetName(),c.getVal(),c.isConstant()
         for c in self.thetas:
             print c.GetName(),c.getVal(),c.isConstant()
+
+    def rePara(self,cs_new,mapping):
+        print 'reparametrizing:'
+        print 'Note: parameter range will be:',self.default_range
+        cs_old=self.getCoeffNames()
+        self.coeffs=[]
+        for cnew in cs_new:
+            if cnew in cs_old:
+                raise Exception('Need new parameter name for '+cnew)
+            print cnew,'=',mapping[cnew]
+            self.addCoeff(cnew)
+        self.mapping=mapping
+
+
