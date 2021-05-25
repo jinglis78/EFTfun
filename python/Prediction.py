@@ -27,6 +27,7 @@ class Prediction:
         self.coeff_names=[]
         self.rescaled=1.
         self.backgrounds={}
+        self.scaling_pars=[]
 
     #TODO: reduce duplication
     def getEffectFloat(self,coeffs,withUnc=False):
@@ -351,7 +352,7 @@ class Prediction:
             actual_effect=[(s*e[0],s*e[1]) for s,e in zip(self.sm,actual_effect)]
         if renorm:
             if self.normhisto==None:
-                print 'WARNING: cannot use option "renorm", no histogram given to renorm prediction'
+                raise Exception('cannot use option "renorm", no histogram given to renorm prediction')
             else:
                 actual_effect=[(s*(e[0]/n),s*(e[1]/n)) for s,e,n in zip(self.sm,actual_effect,self.normhisto)]
         if len(coeff_names)==1 and coeff_names[0] in corrections:
@@ -359,8 +360,8 @@ class Prediction:
             actual_effect=[(e[0]+s*corr,e[1]) for s,e in zip(self.sm,actual_effect)]
 
         if power==1:
-            if add:
-                self.linear_effects[coeff_names[0]]=[a+b for a,b in zip(self.linear_effects[coeff_names[0]],actual_effect)]
+            if add and coeff_names[0] in self.linear_effects:
+                self.linear_effects[coeff_names[0]]=[(a[0]+b[0],(a[1]**2+b[1]**2)**0.5) for a,b in zip(self.linear_effects[coeff_names[0]],actual_effect)]
             else:
                 self.linear_effects[coeff_names[0]]=actual_effect
         elif power==2:
@@ -370,8 +371,8 @@ class Prediction:
                 c1,c0=coeff_names[0],coeff_names[1]
             if not c0 in self.quadratic_effects:
                 self.quadratic_effects[c0]=dict()
-            if add:
-                self.quadratic_effects[c0][c1]=[a+b for a,b in zip(self.quadratic_effects[c0][c1],actual_effect)]
+            if add and c1 in self.quadratic_effects[c0]:                
+                self.quadratic_effects[c0][c1]=[(a[0]+b[0],(a[1]**2+b[1]**2)**0.5) for a,b in zip(self.quadratic_effects[c0][c1],actual_effect)]
             else:
                 self.quadratic_effects[c0][c1]=actual_effect
         else:
@@ -382,7 +383,10 @@ class Prediction:
         if not os.path.exists(filename.strip()):
             return False
         else:
-            actual_effect,actual_uncertainty=Utils.readFile(filename,histoname,per_bin_width=self.per_bin_width)
+            out=Utils.readFile(filename,histoname,per_bin_width=self.per_bin_width)
+            if out is None:
+                return False
+            actual_effect,actual_uncertainty=out
             self.setEffect(power,coeff_names,actual_effect,actual_uncertainty,rescale,renorm,add=add,corrections=corrections)
             return True
 
@@ -421,6 +425,9 @@ class Prediction:
             return self.setEffect(power,actual_coeff_names,effect,uncertainty=None,rescale=1.,renorm=renorm,add=add,isrel=isrel,corrections=corrections)
 
     def setScalingFromCfg(self,data):
+        assert '{' in data
+        pars=list(set(d.lower() for d in data[data.find('{')+1:data.find('}')].split()))
+        data=data[data.find('}')+1:]
         if Utils.isFile(data):
             scaling=Utils.readFile(data,per_bin_width=self.per_bin_width)[0]
         else:
@@ -433,13 +440,14 @@ class Prediction:
                     else:
                         scaling=replaced
             scaling=scaling.split()
-        self.setScaling(scaling)
+        self.setScaling(scaling,pars)
 
-    def setScaling(self,scaling):
+    def setScaling(self,scaling,pars):
         if len(scaling)==1:
             scaling=scaling*self.nbins
         assert len(scaling)==self.nbins
         self.extra_scaling=scaling
+        self.scaling_pars+=pars
 
     def addBackgroundFromCfg(self,name,data):
         if Utils.isFile(data):
@@ -534,25 +542,73 @@ class Prediction:
             outfile.cd()
             h.Write()
             hnorm.Write()
-            
+
+    def getQuadParaMatrix(self,ibin):
+        import numpy as np
+        m=[]
+        for c1 in self.coeff_names:
+            m.append([])
+            for c2 in self.coeff_names:
+                es=self.getEffectFloat([c1,c2])
+                e=es[ibin] if es is not None else 0.
+                if c1==c2:
+                    m[-1].append(e)
+                else:
+                    m[-1].append(e/2)
+        matrix=np.matrix(m)
+        return matrix
+    # M*old = new
+    def getReParaMatrix(self,cs_new,cs_old,mapping):
+        import numpy as np
+        m=[]
+        for cnew in cs_new:
+            m.append([])
+            for cold in cs_old:
+                m[-1].append(mapping[cnew][cold])
+        matrix=np.matrix(m)
+        return matrix
+                    
     def rePara(self,cs_new,mapping):
-        cs_old=self.coeff_names
+        print 'Warning, during reparametrization, statistical uncertainties are currently not propagated for quadratic effects'
+       
         lin_old=self.linear_effects
-        quad_old=self.quadratic_effects
+        effects_matrices_old=[]
+        for ibin in range(self.nbins):
+            effects_matrices_old.append(self.getQuadParaMatrix(ibin))
+        
+        cs_old=self.coeff_names
         self.coeff_names=cs_new
+            
+        repara_matrix=self.getReParaMatrix(cs_new,cs_old,mapping)
+        RI=repara_matrix.getI()
+
         self.linear_effects={}
-        for c in cs_new:
+        for inew,cnew in enumerate(cs_new):
             sum_effect=[0.]*self.nbins
             sum_err=[0.]*self.nbins
-            for cold in cs_old:
-                scale=mapping[c][cold]
+            for iold,cold in enumerate(cs_old):
+                if not cold in lin_old:
+                    continue
+                scale=RI[iold,inew]
                 sum_effect=[x+y[0]*scale for x,y in zip(sum_effect,lin_old[cold])]
                 sum_err=[(x**2+(y[1]*scale)**2)**0.5 for x,y in zip(sum_err,lin_old[cold])]
-            self.linear_effects[c]=[(x,y) for x,y in zip(sum_effect,sum_err)]
-        self.quadratic_effects={}
-        for c in cs_new:
-            self.quadratic_effects[c]={}
-        #TODO
+            self.setEffect(1,cnew,sum_effect,sum_err)
+            #self.linear_effects[c]=[(x,y) for x,y in zip(sum_effect,sum_err)]
 
+        self.quadratic_effects={}
+        effects_matrices_new=[RI.getT()*M*RI for M in effects_matrices_old]
+        for i1,cnew1 in enumerate(cs_new):
+            for i2,cnew2 in enumerate(cs_new):
+                if i2<i1:
+                    continue
+                new_effect=[x[i1,i2] for x in effects_matrices_new]
+                if not i1==i2:
+                    new_effect=[2*x for x in new_effect]
+                self.setEffect(2,[cnew1,cnew2],new_effect)
+                    
+                    
+                
+
+        
 
         

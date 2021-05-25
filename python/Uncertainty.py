@@ -76,7 +76,6 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
                 up_histoname=None
 
         return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym,per_bin_width=per_bin_width,isBkgUnc=isBkgUnc,isrel=isrel)
-
     if Utils.isListOfNumbers(data,reference.nbins):
         effect=[]
         for e in data.split():
@@ -89,7 +88,7 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
         if isrel==True:
             releffect=effect
         elif isrel==False:
-            releffect=[(e[0]/s,e[1]/s) for e,s in zip(effect,reference.getNominal())]
+            releffect=[(e[0]/s,e[1]/s) if s!=0 else (0,0) for e,s in zip(effect,reference.getNominal())]
         else:
             raise Exception('Uncertainty needs to have option rel or abs')
         if renorm==True:
@@ -237,7 +236,6 @@ class Uncertainty:
         self.affected=affected
         self.name=name
         assert len(releffect)==self.nbins
-
         actual_releffect=[]
         for e in releffect:
             if isinstance(e,float):
@@ -251,7 +249,7 @@ class Uncertainty:
                 else:
                     actual_releffect+=[e]
         if sym:
-            actual_releffect = [ ( -(e[1]-e[0])/2. ,(e[1]-e[0])/2. ) for e in actual_releffect]
+            actual_releffect = [ ( -(e[1]-e[0])/2. ,(e[1]-e[0])/2. ) for e in actual_releffect]            
         assert len(actual_releffect)==self.nbins
         self.releffect=actual_releffect
         assert interpol in ['lin','exp']            
@@ -286,13 +284,13 @@ class Uncertainty:
         return self.releffect
 
     def getRelEffectSym(self):
-        return [(x[0]-x[1])/2 for x in self.releffect]
+        return [(x[1]-x[0])/2 for x in self.releffect]
 
     def getEffect(self,nominal):
         return [(n*x[0],n*x[1]) for x,n in zip(self.releffect,nominal)]
 
     def getEffectSym(self,nominal):
-        return [(x[0]-x[1])/2 for x in self.getEffect(nominal)]
+        return [(x[1]-x[0])/2 for x in self.getEffect(nominal)]
 
     def getCov(self,nominal,incl_np):
         if self.with_nuis_par and not incl_np:

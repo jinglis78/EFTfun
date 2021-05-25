@@ -1,4 +1,4 @@
-from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH2D, TCanvas
+from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH1D, TH2D, TCanvas
 from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculator,FrequentistCalculator,HypoTestInverter,ProfileLikelihoodTestStat
 import itertools,re
 import Utils
@@ -18,7 +18,7 @@ class Combination:
             if m.reco_level or m.getCov()==None:
                 continue
             det=m.getCov().Determinant()
-            if det==0:
+            if det<=1e-200:
                 raise Exception("Covariance degenerate")
             while det>10e20 or det==float('+inf'):
                 print 'Huge covariance matrix determinant (',m.name,':',det,') rescaling measurement and prediction by 0.1'
@@ -60,6 +60,9 @@ class Combination:
                 self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec,measurement.getCov())]
 
         if len(correlated_measurements)>0:
+            print 'combining covariance matrices of:'
+            for m in measurements:
+                print "{} ({} bins)".format(m.name,m.nbins)
             combined_muVec=RooArgList()
             combined_xVec=RooArgList()
             combined_nbins=sum([m.nbins for m in measurements if m.name in correlated_measurements])
@@ -104,7 +107,10 @@ class Combination:
                     
                 combined_measured+=measurement.getNominal()
 
-            for u in correlated_uncertainties.values():
+            for uname in correlated_uncertainties:
+                u=correlated_uncertainties[uname]
+                print "adding correlated uncertainty",uname
+                print [x/n if n!=0 else 0 for x,n in zip(u,combined_measured)]
                 for i in range(combined_nbins):
                     for j in range(combined_nbins):
                         combined_cov[i,j]=combined_cov[i][j]+u[i]*u[j]
@@ -148,9 +154,12 @@ class Combination:
             for l in pred.linear_effects:
                 if l in unused_pars:
                     unused_pars.remove(l)
-            for q in pred.linear_effects:
+            for q in pred.quadratic_effects:
                 if q in unused_pars:
                     unused_pars.remove(q)
+            for s in pred.scaling_pars:
+                if s in unused_pars:
+                    unused_pars.remove(s)
         for p in unused_pars:
             print 'setting unused parameter',p,'constant'
             theory.getCoeff(p).setConstant()
@@ -463,6 +472,7 @@ class Combination:
             if name in cnames:
                 pois.append(name)
                 errors.append(float_pars[ipar].getError())
+                
         if len(pois)<2:
             return None,None
         h=TH2F('correlationPOIs','correlation POIs',len(pois),0.,len(pois),len(pois),0,len(pois))
@@ -476,7 +486,6 @@ class Combination:
             h.GetYaxis().SetBinLabel(i+1,ipoi)
             hcov.GetXaxis().SetBinLabel(i+1,ipoi)
             hcov.GetYaxis().SetBinLabel(i+1,ipoi)
-
         return h,hcov
         
             
@@ -536,52 +545,144 @@ class Combination:
             par.setConstant(False)
         return pulls
 
-    def PCA(self):
-        assert not self.combined_cov is None
+    def PCA(self,groups=[]):
         import numpy as np
-        coeffs=self.theory.getCoeffNames()
-        m_para=[]
-        for c in coeffs:
-            m_para.append([])
-            for p in self.predictions:
-                # m_para.append([0. if x is None or n==0. else x/n for x,n in zip(p.getEffectFloat(c),p.getNominal())])
-                m_para[-1]+=[0. if x is None else x for x in (p.getEffectFloat(c) if not p.getEffectFloat(c) is None else [0.]*p.nbins) ]
-        m_para=np.matrix(m_para)
-        m_cov=[]
-        for i in range(self.combined_cov.GetNrows()):
-            m_cov.append([])
-            for j in range(self.combined_cov.GetNcols()):
-                m_cov[-1].append(self.combined_cov(i,j))
-        m_cov=np.matrix(m_cov)
-        print 'covariance matrix'
-        print m_cov
-        print 'parametrization matrix'
-        print self.theory.getCoeffNames()
-        print m_para
+        scaling_pars=[]
+        for p in self.predictions:
+            for s in p.scaling_pars:
+                scaling_pars.append(s)
 
+
+        self.theory.setConstant()
+        for s in scaling_pars:
+            self.theory.setVal(s,1.)
+            self.theory.setFloating(s)
+        self.fit()
+        res=self.getFitResult()
+        float_pars=res.floatParsFinal()
+        errs={}
+        corr={}
+        for ipar in range(float_pars.getSize()):
+            name=float_pars[ipar].GetName()
+            errs[name]=float_pars[ipar].getError()
+            corr[name]={}
+            for jpar in range(float_pars.getSize()):
+                name2=float_pars[jpar].GetName()
+                corr[name][name2]=res.correlation(name,name2)
+        
+        m_cov=[]
+        for iparx,parx in enumerate(scaling_pars):
+            m_cov.append([])
+            for ipary,pary in enumerate(scaling_pars):
+                m_cov[-1].append(errs[parx]*errs[pary]*corr[parx][pary])
+        m_cov=np.matrix(m_cov)
+
+        #print 'Covariance Matrix'
+        #print m_cov
         c_inv=m_cov.getI()
-        a=m_para*c_inv*m_para.getT()
-        w,v=np.linalg.eigh(a)
-        res=zip(w,v.getT())
-        for r in res:
-            print r
-        res.sort(reverse=True, key=lambda x : x[0])
-        res=[(r[0],sorted(zip(r[1].tolist()[0],coeffs),key=lambda x: abs(x[0]),reverse=True)) for r in res]
-        for r in res:
-            print Utils.round2(r[0],3)
-            #print r[1][0]
+        
+        all_coeffs=[c for c in self.theory.getCoeffNames() if not c in scaling_pars]
+        remaining_coeffs=list(all_coeffs)
+        for g in groups:
+            for c in g:
+                remaining_coeffs.remove(c)
+
+        results=[]
+        for coeffs in groups+[remaining_coeffs]:
+            m_para=[]
+            for c in coeffs:
+                m_para.append([])
+                for p in self.predictions:
+                    m_para[-1]+=[0. if x is None else x for x in ([e/n if not n==0 else 0 for e,n in zip(p.getEffectFloat(c),p.getNominal())] if not p.getEffectFloat(c) is None else [0.]*p.nbins) ]
+            m_para=np.matrix(m_para)
+
+            #print 'Parametrization Matrix'
+            #print m_para
+            a=m_para*c_inv*m_para.getT()
+            w,v=np.linalg.eigh(a)
+            res=zip(w,v.getT())
+            res.sort(reverse=True, key=lambda x : x[0])
+            results+=[(r[0],sorted(zip(r[1].tolist()[0],coeffs),key=lambda x: abs(x[0]),reverse=True)) for r in res]
+            
+        for ir,r in enumerate(results):
+            print 'EV {}:'.format(ir),Utils.round2(r[0],3),'({})'.format(Utils.round2(1/r[0]**0.5,3) if r[0]>0 else 999999.)
             print ' + '.join(["{}*{}".format(round(x[0],3),x[1]) for x in r[1] if abs(x[0])>0.1]).replace('+ -','- ')
             print
         resmap=[]
-        for r in res:
+        for r in results:
             d={}
+            norm=0.
+            vmax=0.
+            vmin=0.
             for v,c in r[1]:
+                if abs(v)<0.01:
+                    v=0
+                norm+=v**2
                 d[c]=v
+                vmax=max(vmax,v)
+                vmin=min(vmin,v)
+            norm=norm**0.5
+            if abs(vmin)>abs(vmax):
+                norm*=-1
+            for c in d:
+                d[c]=d[c]/norm
             resmap+=[(r[0],d)]
-        print '#'+' '.join(coeffs)
+        print '#'+' '.join(all_coeffs)
         for i,r in enumerate(resmap):
             print 'c'+str(i)+' = ',
-            for c in coeffs:
-                print r[1][c],
-            print 
-        
+            for c in all_coeffs:
+                if c in r[1]:
+                    print r[1][c],
+                else:
+                    print 0.,
+            print
+        n=len(scaling_pars)
+        h_cov=TH2D('h_total_cov','Total Covariance',n,0,n,n,0,n)
+        for i,c in enumerate(scaling_pars):
+            h_cov.GetXaxis().SetBinLabel(i+1,c)
+            h_cov.GetYaxis().SetBinLabel(i+1,c)
+        h_corr=h_cov.Clone('h_total_corr')
+        h_corr.SetTitle('Total Correlation')
+        for i in range(n):
+            for j in range(n):
+                h_cov.SetBinContent(i+1,j+1,m_cov[i,j])
+                h_corr.SetBinContent(i+1,j+1,m_cov[i,j]/(m_cov[i,i]*m_cov[j,j])**0.5)
+        n=len(all_coeffs)
+        #h_para=TH2D('h_para','Parametrization Matrix',n,0,n,n,0,n)
+        h_ev=TH2D('h_ev','Parametrization Matrix',n,0,n,n,0,n)
+        h_ev_abs=TH2D('h_ev_abs','Parametrization Matrix (abs)',n,0,n,n,0,n)
+        for iy,r in enumerate(resmap):
+            for ix,c in enumerate(all_coeffs):
+                h_ev.GetXaxis().SetBinLabel(ix+1,c)
+                h_ev_abs.GetXaxis().SetBinLabel(ix+1,c)            
+                if c in r[1]:
+                    h_ev.SetBinContent(ix+1,iy+1,r[1][c])
+                    h_ev_abs.SetBinContent(ix+1,iy+1,abs(r[1][c]))
+            h_ev.GetYaxis().SetBinLabel(iy+1,'c_{'+str(iy)+'} '+'({})'.format(Utils.round2(1/r[0]**0.5,3) if r[0]>0 else 999999))
+            h_ev_abs.GetYaxis().SetBinLabel(iy+1,'c_{'+str(iy)+'} '+'({})'.format(Utils.round2(1/r[0]**0.5,3) if r[0]>0 else 999999))
+
+        ev_effects=[]
+        for i,r in enumerate(resmap):
+            ev_effects.append([])
+            s=1/r[0]**0.5 if r[0]>0. else 0.
+            if s>1000:
+                s=0
+            for p in self.predictions:
+                effect=[0.]*p.nbins
+                for c in all_coeffs:
+                    if c in r[1] and p.getEffectFloat(c) is not None:
+                        s1=r[1][c]
+                        ceffect=[s1*s*e/n if not n==0 else 0 for e,n in zip(p.getEffectFloat(c),p.getNominal())]
+                        effect=[x+y for x,y in zip(effect,ceffect)]
+                ev_effects[-1].append(effect)
+
+                        
+        hs_effects=[]
+        for i,ev_effect in enumerate(ev_effects):
+            hs_effects.append([])
+            for p,effect in zip(self.predictions,ev_effect):
+                h=TH1D('h_effect{}_{}'.format(i,p.name),'effect of EV {} on {}'.format(i,p.name),len(effect),0,1)
+                for ie,e in enumerate(effect):
+                    h.SetBinContent(ie+1,e)
+                hs_effects[-1].append(h)
+        return h_cov,h_corr,h_ev,h_ev_abs,hs_effects

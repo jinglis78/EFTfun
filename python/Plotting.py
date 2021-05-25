@@ -28,7 +28,6 @@ def graphProfile2D(name,result,outfile=None,isNLL=True):
     if outfile!=None:
         outfile.cd()
         g.Write()
-
     return g
 
 
@@ -81,7 +80,6 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         cl2line=ROOT.TLine(xmin,cl2,xmax,cl2)
         cl1line.Draw()
         cl2line.Draw()
-
     if isNLL and imin>0 and ymin<0.01 and ymin>-0.001:
         ci2line1=ROOT.TLine(ci2[0],0,ci2[0],cl2)
         ci2line1.SetLineStyle(2)

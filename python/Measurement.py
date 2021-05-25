@@ -97,20 +97,33 @@ class Measurement:
                 if i==j and cov[i][j]==0:
                     self.covMatrix[i,j]=1
                     print "Warning, covariance matrix element 0"
-    def setMeasuredFromCfg(self,data):
-        if data.split(':')[0].endswith('.yoda'):
-            spl=data.split(':')
-            assert len(spl)==2
-            self.setMeasuredFromYoda(spl[0],spl[1])
-        elif data.split(':')[0].endswith('.root'):
-            spl=data.split(':')
-            assert len(spl)==2
-            self.setMeasuredFromRoot(spl[0],spl[1])
-        elif data.endswith('.yaml'):
-            self.hepdata=data
-            self.setMeasuredFromYaml(data)
+    def setMeasuredFromCfg(self,alldata):
+        fromFile=False
+        for e in ['.yoda','.yaml','.root']:
+            if e in alldata:
+                fromFile=True
+                break
+        if not fromFile:
+            x=[float(x) for x in alldata.split()]
         else:
-            self.setMeasured([float(x) for x in data.split()])
+            x=[]
+            for data in alldata.split():
+                if data.split(':')[0].endswith('.yoda'):
+                    spl=data.split(':')
+                    assert len(spl)==2
+                    x+=self.getMeasuredFromYoda(spl[0],spl[1])
+                elif data.split(':')[0].endswith('.root'):
+                    spl=data.split(':')
+                    assert len(spl)==2
+                    x+=self.getMeasuredFromRoot(spl[0],spl[1])
+                elif data.split(':')[0].endswith('.yaml'):
+                    spl=data.split(':')
+                    if len(spl)==1:
+                        spl.append(0)
+                    assert len(spl)<=2
+                    self.hepdata=data
+                    x+=self.getMeasuredFromYaml(spl[0],int(spl[1]))
+        self.setMeasured(x)
 
     def setCovFromCfg(self,data):
         if data.split(':')[0].endswith('.yoda'):
@@ -195,15 +208,18 @@ class Measurement:
             import ROOT
             filename_corr,histoname_corr=[s.strip() for s in data.split(':')]
             corr=self.getMatrixFromRoot(filename_corr,histoname_corr)
-        elif data_corr.endswith('.yaml'):
-            corr=self.getMatrixFromYaml(data_corr)
+        elif data_corr.split(':')[0].endswith('.yaml'):
+            corr=self.getMatrixFromYaml(*(data_corr.split(':')))
+        elif data_corr.lower()=='none':
+            corr=[]
+            for i in range(self.nbins):
+                corr.append([1 if j==i else 0 for j in range(self.nbins)])
         else:
             corr=[]
-            for y in data.split(','):
+            for y in data_corr.split(','):
                 corr+=[[float(x) for x in y.split()]]
-            if not ',' in data:
-                corr=[float(data)]
-
+            if not ',' in data_corr:
+                corr+=[float(data_corr)]
         assert len(corr)==self.nbins
         assert len(errs)==self.nbins
         cov=[]
@@ -231,7 +247,7 @@ class Measurement:
             self.theory.addTheta(uncertainty.name)
         self.uncertainties[uncertainty.name]=uncertainty
 
-    def setMeasuredFromYoda(self,filename,name):
+    def getMeasuredFromYoda(self,filename,name):
         import yoda
         
         hist=yoda.read(filename)[name]
@@ -243,9 +259,9 @@ class Measurement:
                 measured=[b.height for b in hist.bins]
             else:
                 measured=[b.area for b in hist.bins]
-        self.setMeasured(measured)
+        return measured
 
-    def setMeasuredFromRoot(self,filename,name):
+    def getMeasuredFromRoot(self,filename,name):
         import ROOT
         f=ROOT.TFile(filename)
         histo=f.Get(name)
@@ -253,15 +269,15 @@ class Measurement:
             contents=[histo.GetBinContent(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
         else:
             contents=[histo.GetBinContent(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
-        self.setMeasured(contents)
         f.Close()
+        return contents
 
-    def setMeasuredFromYaml(self,filename):
+    def getMeasuredFromYaml(self,filename,index):
         import yaml
         f=open(filename)
         data=yaml.load(f)
-        vals=data['dependent_variables'][0]['values']
-        self.setMeasured([float(y['value']) for y in vals])                
+        vals=data['dependent_variables'][int(index)]['values']
+        return [float(y['value']) for y in vals]
 
     def getMatrixFromYoda(self,filename,name):
         import yoda
@@ -289,11 +305,11 @@ class Measurement:
                 matrix[-1]+=[histo.GetBinContent(i,j)]
         return matrix
 
-    def getMatrixFromYaml(self,filename):
+    def getMatrixFromYaml(self,filename,index=0):
         import yaml
         f=open(filename)
         data=yaml.load(f)
-        vals=data['dependent_variables'][0]['values']
+        vals=data['dependent_variables'][index]['values']
         assert len(vals)==self.nbins*self.nbins
         matrix=[]
         for i in range(self.nbins):

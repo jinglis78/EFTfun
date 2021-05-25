@@ -138,6 +138,14 @@ class Theory:
                 cs.append(c)
         return cs
 
+    def getNonConstCoeffs(self):
+        cs=[]
+        for c in self.coeffs:
+            if not c.isConstant():
+                cs.append(c)
+        return cs
+
+    
     def getConstantThetas(self):
         cs=[]
         for c in self.thetas:

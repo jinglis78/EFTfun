@@ -70,7 +70,8 @@ def main():
     parser.add_option("--repara",
                       action="store_true", dest="repara", default=False,
                       help="Use reparametrization?")
-
+    parser.add_option("-g", "--groups",dest="groups",default=None,
+                      help="Parameter groups for PCA, e.g. c1,c2:c2,c3,c4:c5.")
     options,args=parser.parse_args()
 
     if  options.method==None:
@@ -83,10 +84,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements,options.repara)
+        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements,options.repara,options.groups)
 
 
-def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included,repara):
+def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included,repara,groups):
     if verbose:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -108,6 +109,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'override',override
         print 'measurements',measurements_included
         print 'repara',repara
+        print 'groups',groups
         print '--------------------------------------'
 
     main_cfg_name=config
@@ -200,13 +202,14 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             prediction.setScalingFromCfg(cfg.getAndRm('Measurement','scaling_factor'))
         if cfg.has_option('Measurement','stat_unc_threshold'):
             prediction.stat_unc_threshold=float(cfg.getAndRm('Measurement','stat_unc_threshold'))
-        linear_corrections={}
-        if cfg.has_section('Linear Corrections'):
-            for name,effect in cfg.itemsAndRm('Linear Corrections'):
-                if name not in theory.getCoeffNames():
-                    continue
-                else:
-                    linear_corrections[name]=float(effect)
+
+        #linear_corrections={}
+        #if cfg.has_section('Linear Corrections'):
+        #    for name,effect in cfg.itemsAndRm('Linear Corrections'):
+        #        if name not in theory.getCoeffNames():
+        #            continue
+        #        else:                    
+        #            linear_corrections[name]=float(effect)
             
         if cfg.has_section('Linear Effects'):
             if quad:
@@ -215,8 +218,19 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 for name,effect in cfg.itemsAndRm('Linear Effects'):
                     if name not in theory.getCoeffNames():
                         continue
-                    if not prediction.setEffectFromCfg(1,name,effect,corrections=linear_corrections):
+                    if not prediction.setEffectFromCfg(1,name,effect):
                         print "WARNING: Could not find linear effect for "+name+" and measurement "+measurement_name+" -- assuming it is zero"
+
+        if cfg.has_section('Linear Corrections'):
+            if quad:
+                cfg.remove_section('Linear Corrections')
+            else:
+                for name,effect in cfg.itemsAndRm('Linear Corrections'):
+                    if name not in theory.getCoeffNames():
+                        continue
+                    if not prediction.setEffectFromCfg(1,name,effect,add=True):
+                        print "WARNING: Could not find linear correction for "+name+" and measurement "+measurement_name+" -- assuming it is zero"
+
         if cfg.has_section('Quadratic Effects'):
             if linear:
                 cfg.remove_section('Quadratic Effects')
@@ -234,7 +248,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                         continue
                     reverse=name.split()[1]+' '+name.split()[0]
                     if not name in names_set and not reverse in names_set:
-                        theory.setConstantFromCfg(name)
                         print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" and measurement "+measurement_name+" -- assuming it is zero"
         if cfg.has_section('Prediction Uncertainties'):
             for theo_syst_name,theo_syst in cfg.itemsAndRm('Prediction Uncertainties'):
@@ -247,7 +260,17 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             if cfg.has_section('Background Uncertainties'):
                 for bkg_syst_name,bkg_syst in cfg.itemsAndRm('Background Uncertainties'):
                     assert reco_level
-                    prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)   
+                    prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)
+
+        if method=='pca':
+            print 'Modify model for PCA: add extra scaling factors'
+            scaling=[]
+            for i in range(prediction.nbins):
+                s='mu_{}_{}'.format(prediction.name,i)
+                scaling.append(s)
+                theory.addCoeff(s,(-100,100))
+            prediction.setScaling(scaling,scaling)
+                    
         if verbose:
             print "creating measurement for", measurement_name
         measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory,blind=blind,binlabels=binlabels)
@@ -323,11 +346,11 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
     else:
         f=TFile(outname+'.root','RECREATE')
         
-    if method=='pca':
-        print 'Combining covariances of measurements for PCA'
-        correlated_measurements=[]
-        for m in measurements:
-            correlated_measurements.append(m.name)
+#    if method=='pca':
+#        print 'Combining covariances of measurements for PCA'
+#        correlated_measurements=[]
+#        for m in measurements:
+#            correlated_measurements.append(m.name)
     combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=verbose) 
 
     if poi==None:
@@ -400,7 +423,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             if len(pois)==2:
                 Plotting.graphProfile2D('g_scan_'+'_'.join(pois),prof,f)
                 Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname)
-
     elif method=='fit':
         if verbose:
             print 'doing fit'
@@ -453,7 +475,16 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         ftxt.close()
 
     elif method=='pca':
-        combination.PCA()
+        if groups==None:
+            grouping=[]
+        else:
+            grouping=[g.split(',') for g in groups.split(":")]
+        h_cov,h_corr,h_ev,h_ev_abs,hs_effects=combination.PCA(grouping)
+        for h in h_cov,h_corr,h_ev,h_ev_abs:
+            h.Write()
+        for ev in hs_effects:
+            for h in ev:
+                h.Write()
 
     elif method=='asymptotic' or method=='hybrid' or method=='frequentist':
         raw_input('WARNING, the method '+method+' is experimental and work in progress, press enter to proceed')
