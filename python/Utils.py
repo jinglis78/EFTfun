@@ -117,8 +117,6 @@ def readRoot(filename,histoname,per_bin_width):
 
 def isListOfNumbers(data,nbins):
     splt=data.split()
-    if not len(splt)==1 and not len(splt)==nbins:
-        return False
     for s in splt:
         numbers=s.split(',')
         for n in numbers:
@@ -126,6 +124,8 @@ def isListOfNumbers(data,nbins):
                 float(n)
             except ValueError:
                 return False
+    if not len(splt)==1 and not len(splt)==nbins:
+        raise Exception('List of numbers with wrong length ({}): '.format(len(splt))+data)
     return True
     
     

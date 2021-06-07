@@ -1,10 +1,10 @@
-from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH1D, TH2D, TCanvas
+from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH1D, TH2D, TCanvas, TRandom3
 from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculator,FrequentistCalculator,HypoTestInverter,ProfileLikelihoodTestStat
-import itertools,re
+import itertools,re,math
 import Utils
 
 class Combination:
-    def __init__(self, theory=None, predictions=None,measurements=None,name='test',verbose=True,correlated_measurements=[]):
+    def __init__(self, theory=None, predictions=None,measurements=None,name='test',verbose=True,correlated_measurements=[],robust=1):
 
         self.name=name
         self.theory=theory
@@ -12,7 +12,11 @@ class Combination:
 
         self.predictions=predictions
         self.measurements=measurements
+
+        self.robust=int(robust)
         
+        self.maxreprofile=3
+      
         assert len(predictions)==len(measurements)
         for p,m in zip(predictions,measurements):
             if m.reco_level or m.getCov()==None:
@@ -167,13 +171,12 @@ class Combination:
         
         self.last_scan_range=None
         self.all_results=None
-        self.robust=True
-
 
     def getFitResult(self):
         return self.minimizer.save()
                
-    def profile1D(self,poi_name,scan_range=3,nsteps=101,inclOffset=False,extra_outfile=None):
+    def profile1D(self,poi_name,scan_range=3,nsteps=101,inclOffset=False,extra_outfile=None,nretries=0):
+        nretry=nretries+1
         poi=self.theory.getCoeff(poi_name)
         if poi.isConstant():
             raise Exception("Cannot fit "+poi_name+", is the parameter implemented for this measurement?")
@@ -220,7 +223,17 @@ class Combination:
                 strategy=2
             if i_step==0:
                 strategy=2
-            result.append( (val,self.minimize(print_level=print_level,hesse=False,strategy=strategy)) )
+            if self.robust==3 and len(result)>0 and result[-1][1]<min(x[1] for x in result)+2:
+                oldpars={}
+                for c in self.theory.getNonConstCoeffs():
+                    oldpars[c.GetName()]=c.getVal()
+                tobeat=(result[-1][1]+1,oldpars)
+            else:
+                tobeat=None
+
+            nll=self.minimize(print_level=print_level,hesse=False,strategy=strategy,tobeat=tobeat)
+            if not nll is None:
+                result.append( (val,nll) )
             if extra_outfile!=None:
                 res=self.getFitResult()
                 float_pars=res.floatParsFinal()
@@ -238,13 +251,13 @@ class Combination:
         
                         
         if not inclOffset:
-            self.theory.reset()
+            self.theory.reset()                
             poiIsConst=poi.isConstant()
             poi.setConstant(False)
             minNLL=self.minimize(print_level=print_level)
             poi.setConstant(poiIsConst)
             result =[(r[0],r[1]-minNLL) for r in result]
-        if min(x[1] for x in result)<-0.01:
+        if nretry<self.maxreprofile and min(x[1] for x in result)<-0.01:
             print 'found better minimum, redoing scan with this starting point'            
             y0=999
             for x in result:
@@ -270,7 +283,7 @@ class Combination:
                 new_range=(x0-newlow,x0+newhigh)
             else:
                 new_range=scan_range
-            return self.profile1D(poi_name,new_range,nsteps,inclOffset,extra_outfile)
+            return self.profile1D(poi_name,new_range,nsteps,inclOffset,extra_outfile,nretries=nretry)
         return result
 
     #TODO: unify with 1D
@@ -354,6 +367,8 @@ class Combination:
             for poi in pois:
                 poi.setConstant(False)
             minNLL=self.minimize(print_level=print_level)
+            for r in result:
+                minNLL=min(minNLL,r[-1])
             for pisc,poi in zip(poiIsConst,pois):
                 poi.setConstant(pisc)
             result =[r[:-1]+((r[-1]-minNLL),) for r in result]
@@ -377,7 +392,8 @@ class Combination:
         return deactivated
 
 
-    def minimize(self,strategy=2,hesse=True,minos=False,print_level=2):
+    def minimize(self,strategy=2,hesse=True,minos=False,print_level=2,nshuffle=0,tobeat=None):
+       
         deactivated=self.deactivateIrrelevantThetas()
         self.minimizer.setPrintLevel(1)
         if print_level!=None:
@@ -385,17 +401,94 @@ class Combination:
         if not self.verbose or print_level<0:
             self.minimizer.setPrintLevel(-1)
             self.minimizer.setPrintEvalErrors(-1)
+            self.minimizer.setNoWarn()
             self.minimizer.setVerbose(False)
         self.minimizer.setStrategy(strategy)
         self.minimizer.setErrorLevel(0.5)
+        
+        nan=False
+        if math.isnan(self.nll.getVal()):
+            nan=True
+        for c in self.theory.getNonConstCoeffs():
+            if math.isnan(c.getVal()):
+                nan=True
+        if nan:
+            'something is nan, this is bad, how did we get here???'
+            self.theory.dumpPars()
+            print 'nll:',self.nll.getVal()
+            print 'setting everything to zero, hope that helps...'
+            for c in self.theory.getNonConstCoeffs():
+                c.setVal(0.)
+            return None
+
+        #print 'doing Migrad'
         self.minimizer.migrad()
+        if self.robust==2:
+            res=self.getFitResult()
+            if (res.status()!=0 or res.covQual()!=3):
+                #print 'doing Simplex'
+                self.minimizer.simplex()
+                #print 'doing Migrad (2)'
+                self.minimizer.migrad()
+        if self.robust==3 or self.robust==4:
+            res=self.getFitResult()
+            bad=(res.status()!=0 or res.covQual()!=3 or tobeat is not None and self.nll.getVal()>tobeat[0])
+            if nshuffle>0:
+                print 'new nll after shuffle',self.nll.getVal()
+            if (bad and nshuffle<20) or self.robust==4 and nshuffle<5:
+                if nshuffle==0 and bad:
+                    print "WARNING: trouble finding good minimum"
+                #self.theory.dumpPars()
+                print 'nll:',self.nll.getVal()
+                print "Shuffling pars to obtain better min, attempt",nshuffle+1
+                if tobeat is not None and not self.nll.getVal()<tobeat[0]:
+                    for x in tobeat[1]:
+                        self.theory.setVal(x,tobeat[1][x])
+                oldpars=self.shuffle(nshuffle+(int(1e9*self.nll.getVal()) if self.nll.getVal()!=float("inf") else 0 ) )
+                self.minimize(nshuffle=nshuffle+1,tobeat=(self.nll.getVal()+0.05,oldpars),strategy=strategy,hesse=hesse,minos=minos,print_level=print_level)
+            if not tobeat is None and self.nll.getVal()>tobeat[0]:
+                for x in tobeat[1]:
+                    self.theory.setVal(x,tobeat[1][x])
+                    self.minimizer.migrad()
+            
         if hesse:
+            #print 'doing Hesse'
             self.minimizer.hesse()
+
         if minos:
+            #print 'doing Minos'
             self.minimizer.minos()
         for d in deactivated:
             d.setVal(deactivated[d])
         return self.nll.getVal()
+
+    def shuffle(self,seed):
+        #TODO: print result even if quiet
+        rand=TRandom3(seed)
+        oldpars={}
+        newpars={}
+        for c in self.theory.getNonConstCoeffs():
+            old=c.getVal()
+            oldpars[c.GetName()]=old
+            nll0=self.nll.getVal()
+            step0=0.1
+            c.setVal(old+step0)
+            nllup=self.nll.getVal()
+            c.setVal(old-step0)
+            nlldown=self.nll.getVal()
+            c.setVal(old)
+            dnll=abs(min(nllup-nll0,nlldown-nll0))
+            if dnll==0:
+                step=1.
+            else:
+                step=step0/dnll**0.5
+            x=rand.Exp(step)*(1-rand.Integer(2)*2)
+            #print c.GetName(),":",c.getVal(),'-->',c.getVal()+x
+            newpars[c.GetName()]=c.getVal()+x
+        for c in self.theory.getNonConstCoeffs():
+            c.setVal(newpars[c.GetName()])
+        return oldpars
+
 
     #TODO: other interval calculators, CLs.
 
@@ -489,8 +582,6 @@ class Combination:
         return h,hcov
         
             
-        
-
     def pulls(self,thetas=True,pois=True,skipMCstat=True):
         pulls={}
         if self.verbose:
@@ -540,7 +631,7 @@ class Combination:
                     hi=float_pars[ipar].getAsymErrorHi()
                     lo=float_pars[ipar].getAsymErrorLo()            
                     pulls[thepar.GetName()]=(val,lo,hi)
-                break
+                    break
         for par in pars:
             par.setConstant(False)
         return pulls

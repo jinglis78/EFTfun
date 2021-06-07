@@ -72,6 +72,17 @@ def main():
                       help="Use reparametrization?")
     parser.add_option("-g", "--groups",dest="groups",default=None,
                       help="Parameter groups for PCA, e.g. c1,c2:c2,c3,c4:c5.")
+    parser.add_option("--robust",
+                      dest="robust", default=1,
+                      help="Robustness. Best to be kept at 1 or 2. Should the fit be hard use 3. 0 for faster fits.")
+    parser.add_option("--offset",
+                      action="store_true", dest="offset", default=False,
+                      help="Don't subtract min NLL")
+    parser.add_option("--implicitscan",
+                      dest="implicitscan", default=None,
+                      help="Profile variable manually, syntax: paramter:steps:min:max")
+
+
     options,args=parser.parse_args()
 
     if  options.method==None:
@@ -84,10 +95,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements,options.repara,options.groups)
+        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan)
 
 
-def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included,repara,groups):
+def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included,repara,groups,robust,offset,implicitscan):
     if verbose:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -110,6 +121,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'measurements',measurements_included
         print 'repara',repara
         print 'groups',groups
+        print 'robust',robust
+        print 'offset',offset
+        print 'implicitscan',implicitscan
         print '--------------------------------------'
 
     main_cfg_name=config
@@ -124,7 +138,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
     for ovr in overrides:
         if ovr.split(':')[0]=='main' or ovr.split(':')[0]==main_cfg_name:
             overrides_main+=[':'.join(ovr.split(':')[1:])]
-
+   
     main_cfg_name=MyConfigParser.expandCfg(main_cfg_name,overrides_main)
     main_cfg.read(main_cfg_name)
 
@@ -345,13 +359,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'WARNING: updating',outname+'.root'
     else:
         f=TFile(outname+'.root','RECREATE')
-        
-#    if method=='pca':
-#        print 'Combining covariances of measurements for PCA'
-#        correlated_measurements=[]
-#        for m in measurements:
-#            correlated_measurements.append(m.name)
-    combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=verbose) 
+
+    combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=verbose,robust=robust) 
 
     if poi==None:
         pois=[]
@@ -400,7 +409,25 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 actual_scanrange=[float(x) for x in scanrange.split(':')]
             else:        
                 actual_scanrange=float(scanrange)
-            prof=combination.profile1D(poi,actual_scanrange,int(nsteps),extra_outfile=extra_outfile)
+            if implicitscan is None:
+                prof=combination.profile1D(poi,actual_scanrange,int(nsteps),extra_outfile=extra_outfile,inclOffset=offset)
+            else:
+                profs=[]
+                impl_par,impl_n,impl_min,impl_max=implicitscan.split(':')
+                print 'repeating scan with',impl_par,'set from',impl_min,'to',impl_max,'in',impl_n,'steps'
+                for impl_x in [float(impl_min)+float(x)*(float(impl_max)-float(impl_min))/(int(impl_n)-1) for x in range(int(impl_n))]:
+                    theory.setConstant(impl_par,impl_x)
+                    theory.setInitialVal(impl_par,impl_x)
+                    profs.append(combination.profile1D(poi,actual_scanrange,int(nsteps),extra_outfile=extra_outfile,inclOffset=True))
+                prof=[]
+                total_min=1e9
+                for pointresults in map(list, zip(*profs)):
+                    best=1e9
+                    for x in pointresults:
+                        best=min(x[1],best)
+                    total_min=min(best,total_min)
+                    prof.append((pointresults[0][0],best))
+                prof=[(x[0],x[1]-total_min) for x in prof]
             Plotting.graphProfile1D('g_scan_'+poi,prof,f)
             Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname)
             if write_more:
@@ -419,7 +446,25 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 else:
                     actual_scanranges.append(float(s))
             nsteps=[int(n) for n in nsteps.split(',')]
-            prof=combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile)
+            if implicitscan is None:
+                prof=combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile,inclOffset=offset)
+            else:
+                profs=[]
+                impl_par,impl_n,impl_min,impl_max=implicitscan.split(':')
+                print 'repeating scan with',impl_par,'set from',impl_min,'to',impl_max,'in',impl_n,'steps'
+                for impl_x in [float(impl_min)+float(x)*(float(impl_max)-float(impl_min))/(int(impl_n)-1) for x in range(int(impl_n))]:
+                    theory.setConstant(impl_par,impl_x)
+                    theory.setInitialVal(impl_par,impl_x)
+                    profs.append(combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile,inclOffset=True))
+                prof=[]
+                total_min=1e9
+                for pointresults in map(list, zip(*profs)):
+                    best=1e9
+                    for x in pointresults:
+                        best=min(x[-1],best)
+                    total_min=min(best,total_min)
+                    prof.append(pointresults[0][:-1]+(best,))
+                prof=[x[:-1]+((x[-1]-total_min),) for x in prof]
             if len(pois)==2:
                 Plotting.graphProfile2D('g_scan_'+'_'.join(pois),prof,f)
                 Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname)

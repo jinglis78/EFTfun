@@ -53,6 +53,8 @@ class Theory:
                 else:
                     c,v=c,0.
                 self.setConstant(c,float(v))
+                if float(v)!=0.:
+                    self.initial_vals[c]=float(v)
 #                for theta in self.thetas:
 #                    if re.match(self.makeMCstatName('.+',c,'\d+'),theta.GetName()):
 #                        theta.setVal(0.)
