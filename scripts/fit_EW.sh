@@ -1,10 +1,10 @@
-const='cHbox,cll,cll1,clq1,clq3,cee,ceu,ced,cle,clu,cld,cqe'
-const2='cHbox,cll,cll1,clq1,clq3,cee,ceu,ced,cle,clu,cld,cqe,cHW,cHB,cHe,cHu,cHd'
+const='cHbox,cll,cll1,clj1,clj3,cee,ceu,ced,cle,clu,cld,cje'
+const2='cHbox,cll,cll1,clj1,clj3,cee,ceu,ced,cle,clu,cld,cje,cHW,cHB,cHe,cHu,cHd'
 #  WW WWj VBFZ WZ ZZ
+#cW cHbox cHDD cHG cHW cHB cHWB cHl1 cHl3 cHe cHj1 cHj3 cHu cHd cll cll1 clj1 clj3 cee ceu ced cle clu cld cje
 for m in WW VBFZ WZ ZZ combi 
 do
-    for i in cW cHbox cHDD cHG cHW cHB cHWB cHl1 cHl3 cHe cHq1 cHq3 cHu cHd cll cll1 clq1 clq3 cee ceu ced cle clu cld cqe
-	#
+    for i in cW cHDD cHWB cHl1 cHl3 cHe cll1 cHj1 cHj3 cHu cHd clj1 clj3 clu cld ceu ced cje cee cll cle cjj11 cjj18 cjj31 cjj38 cuu1 cuu8 cdd1 cdd8 cud1 cud8 cju1 cju8 cjd1 cjd8 cG
     do
 	./bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_lin -a -l -c all
 	./bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -s ${i}=0.005 -c all
@@ -58,9 +58,9 @@ m=WW
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.1 -r -6:6
 i=cHl1
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=1 -r -100:100
-i=cHq1
+i=cHj1
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.1 -r -0.4:0.4
-i=cHq3
+i=cHj3
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.1 -r -0.5:0.5
 m=WZ
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.1 -r -0.3:0.3
@@ -81,14 +81,14 @@ bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c a
 i=cll1
 m=VBFZ
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.1 -r -5:5
-i=clq1
+i=clj1
 m=WW
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.05 -r -1:1
 m=WZ
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.05 -r -5:5
 m=ZZ
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.05 -r -1:1
-i=clq3
+i=clj3
 m=WW
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.05 -r -1:1
 m=WZ
@@ -113,5 +113,5 @@ m=WZ
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.05 -r -1:1
 m=combi
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.05 -r -1:1
-i=cqe
+i=cje
 bin/eftfun.py -i configs/EW_combi/${m}.cfg -m scan -p $i -f -o ${m}_quad -a -c all -s $i=0.05 -r -5:5
