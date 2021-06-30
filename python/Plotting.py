@@ -116,9 +116,16 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         print "WARNING, fit was unable to find global minimum of likelihood, vary the parameter starting values (with '-s PAR=VAL')"
     return c
 
-def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log(L)',linecolor=ROOT.kBlack,outfolder='.',isNLL=True):
-    cl1=2.297
-    cl2=5.991
+def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log(L)',linecolor=ROOT.kBlack,outfolder='.',isNLL=True,conts1d=False):
+    ROOT.gStyle.SetPalette(ROOT.kThermometer);
+    ROOT.TColor.InvertPalette();
+
+    if conts1d:
+        cl1=1
+        cl2=3.841
+    else:
+        cl1=2.297
+        cl2=5.991
     c=ROOT.TCanvas(name,name,1024,1024)
     c.SetRightMargin(0.18)
     c.SetTopMargin(0.12)
@@ -322,6 +329,8 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     printAndSave(c,outfile,outfolder)
 
 def canvasCorrelation(name,h,outfile,outfolder,log=False):
+    ROOT.gStyle.SetPalette(ROOT.kThermometer);
+    ROOT.gStyle.SetPaintTextFormat("4.2f")
     c=ROOT.TCanvas(name,name,1024,1024 )
     c.SetRightMargin(0.15)
     c.SetTopMargin(0.1)
@@ -333,7 +342,8 @@ def canvasCorrelation(name,h,outfile,outfolder,log=False):
         h.GetZaxis().SetRangeUser(-1,1)
     if log:
         c.SetLogz()
-    h.Draw('COLZ')
+    h.Draw('COLZTEXT')
+
     printAndSave(c,outfile,outfolder)
     
 

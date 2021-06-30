@@ -81,6 +81,9 @@ def main():
     parser.add_option("--implicitscan",
                       dest="implicitscan", default=None,
                       help="Profile variable manually, syntax: paramter:steps:min:max")
+    parser.add_option("--conts1d",
+                      action="store_true", dest="conts1d", default=False,
+                      help="Use contours corresponding to 1D chi2 even also 2D fits")
 
 
     options,args=parser.parse_args()
@@ -95,10 +98,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan)
+        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan,options.conts1d)
 
 
-def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included,repara,groups,robust,offset,implicitscan):
+def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included,repara,groups,robust,offset,implicitscan,conts1d):
     if verbose:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -124,6 +127,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'robust',robust
         print 'offset',offset
         print 'implicitscan',implicitscan
+        print 'conts1d',conts1d
         print '--------------------------------------'
 
     main_cfg_name=config
@@ -467,7 +471,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 prof=[x[:-1]+((x[-1]-total_min),) for x in prof]
             if len(pois)==2:
                 Plotting.graphProfile2D('g_scan_'+'_'.join(pois),prof,f)
-                Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname)
+                Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d)
     elif method=='fit':
         if verbose:
             print 'doing fit'
