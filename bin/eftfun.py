@@ -220,6 +220,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             prediction.setScalingFromCfg(cfg.getAndRm('Measurement','scaling_factor'))
         if cfg.has_option('Measurement','stat_unc_threshold'):
             prediction.stat_unc_threshold=float(cfg.getAndRm('Measurement','stat_unc_threshold'))
+        rebin=None
+        if cfg.has_option('Measurement','rebin'):
+            rebin=cfg.getAndRm('Measurement','rebin')
 
         #linear_corrections={}
         #if cfg.has_section('Linear Corrections'):
@@ -279,15 +282,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 for bkg_syst_name,bkg_syst in cfg.itemsAndRm('Background Uncertainties'):
                     assert reco_level
                     prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)
-
-        if method=='pca':
-            print 'Modify model for PCA: add extra scaling factors'
-            scaling=[]
-            for i in range(prediction.nbins):
-                s='mu_{}_{}'.format(prediction.name,i)
-                scaling.append(s)
-                theory.addCoeff(s,(-100,100))
-            prediction.setScaling(scaling,scaling)
                     
         if verbose:
             print "creating measurement for", measurement_name
@@ -317,6 +311,25 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         for s in cfg.sections():
             if len(cfg.options(s))>0:
                 raise Exception('Unused option '+','.join(cfg.options(s))+' in section '+s)
+
+        if not rebin is None:
+            if len(rebin.split())==1:
+                combinebins=int(rebin)
+            else:
+                combinebins=[int(x) for x in rebin.split()]
+            measurement.rebin(combinebins)
+            prediction.rebin(combinebins)
+
+        if method=='pca':
+            print 'Modify model for PCA: add extra scaling factors'
+            scaling=[]
+            for i in range(prediction.nbins):
+                s='mu_{}_{}'.format(prediction.name,i)
+                scaling.append(s)
+                theory.addCoeff(s,(-100,100))
+            prediction.setScaling(scaling,scaling)
+
+            
         measurements+=[measurement]
         predictions+=[prediction]
     if repara and c_mapping!=None:
@@ -344,6 +357,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 print
                 print 'Correlation matrix:'
                 measurement.getCorr().Print()
+                print 'Cov matrix:'
+                measurement.getCov().Print()
 
             print 'Prediction formulas:'
             for i,s in enumerate(prediction.getPredictionStrings()):

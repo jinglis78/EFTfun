@@ -399,3 +399,57 @@ class Measurement:
 
     def getNominal(self):
         return [x.getVal() for x in self.central_values]
+
+
+    def rebin(self,rebin):
+        import numpy as np
+        
+        if not isinstance(rebin,list):
+            n=self.nbins//int(rebin)
+            combine=[rebin]*n
+            if sum(combine)<self.nbins:
+                combine+=[self.nbins-rebin*n]
+        else:
+            combine=rebin
+
+        assert sum(combine)==self.nbins
+        
+        self.binlabels=None
+        self.blind=[1 if b!=0 else 0 for b in Utils.mergeBins(self.blind,combine)]
+        self.binning=None
+        print 'WARNING Rebinning: binlabels, blinding, and bin boundaries currently not properly updated'
+
+        if not self.covMatrix is None:
+            cov_np=[]
+            for i in range(self.nbins):
+                cov_np.append([])
+                for j in range(self.nbins):
+                    cov_np[-1].append(self.covMatrix[i,j])
+            cov_np=np.matrix(cov_np)
+            w,v=np.linalg.eigh(cov_np)
+            res=zip(w,v.getT())
+            cov_np_new=np.matrix([[0.]*len(combine)]*len(combine))
+            for l,v in res:
+                dummy_u=[l**0.5*x for x in v.tolist()[0]]
+                dummy_u_new=Utils.mergeBins(dummy_u,combine)
+                cov_np_new+=np.outer(dummy_u_new,dummy_u_new)
+            self.covMatrix=TMatrixDSym(len(combine))
+            for i in range(len(combine)):
+                for j in range(len(combine)):
+                    self.covMatrix[i,j]=cov_np_new[i,j]
+
+        new_central_values=Utils.mergeBins(self.getNominal(),combine)
+        for u in self.uncertainties.values():
+            newEffectUp=Utils.mergeBins([x[1] for x in u.getEffect(self.getNominal())],combine)
+            newEffectDown=Utils.mergeBins([x[0] for x in u.getEffect(self.getNominal())],combine)
+            newRelEffectUp=[e/n for e,n in zip(newEffectUp,new_central_values)]
+            newRelEffectDown=[e/n for e,n in zip(newEffectDown,new_central_values)]
+            u.releffect=zip(newRelEffectDown,newRelEffectUp)
+            u.nbins=len(combine)
+                          
+        self.nbins=len(combine)
+        self.setMeasured(new_central_values)
+
+
+
+

@@ -607,8 +607,49 @@ class Prediction:
                 self.setEffect(2,[cnew1,cnew2],new_effect)
                     
                     
-                
-
+    def rebin(self,rebin):
+        import numpy as np
         
+        if not isinstance(rebin,list):
+            n=self.nbins//int(rebin)
+            combine=[rebin]*n
+            if sum(combine)<self.nbins:
+                combine+=[self.nbins-rebin*n]
+        else:
+            combine=rebin
 
-        
+        assert sum(combine)==self.nbins
+
+        self.binlabels=None
+        self.binning=None
+        print 'WARNING Rebinning: binlabels, blinding, bin boundaries, and backgrounds currently not properly updated'
+        self.blind=[1 if b!=0 else 0 for b in Utils.mergeBins(self.blind,combine)]
+        assert len(self.backgrounds)==0
+
+        new_sm=Utils.mergeBins(self.sm,combine)
+        for u in self.uncertainties:
+            newEffectUp=Utils.mergeBins([x[1] for x in u.getEffect(self.getNominal())],combine)
+            newEffectDown=Utils.mergeBins([x[0] for x in u.getEffect(self.getNominal())],combine)
+            newRelEffectUp=[e/n for e,n in zip(newEffectUp,new_sm)]
+            newRelEffectDown=[e/n for e,n in zip(newEffectDown,new_sm)]
+            u.releffect=zip(newRelEffectDown,newRelEffectUp)
+            u.nbins=len(combine)        
+
+        for c in self.linear_effects:
+            vals=Utils.mergeBins([x[0] for x in self.linear_effects[c]],combine)
+            errs=Utils.mergeBins([x[1] for x in self.linear_effects[c]],combine)
+            self.linear_effects[c]=zip(vals,errs)
+        for c1 in self.quadratic_effects:
+            for c2 in self.quadratic_effects[c1]:
+                vals=Utils.mergeBins([x[0] for x in self.quadratic_effects[c1][c2]],combine)
+                errs=Utils.mergeBins([x[1] for x in self.quadratic_effects[c1][c2]],combine)
+                self.quadratic_effects[c1][c2]=zip(vals,errs)
+        if not self.extra_scaling is None and isinstance(self.extra_scaling,list):
+            self.extra_scaling=Utils.mergeBins(self.extra_scaling,combine,mode=0)
+
+        if not self.normhisto is None:
+            self.normhisto=Utils.mergeBins(self.sm,combine)
+        self.sm=new_sm
+        self.nbins=len(combine)
+
+
