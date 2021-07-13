@@ -157,4 +157,22 @@ def split(sin):
     spl=[x.replace(dummy,' ') for x in s.split()]
     return spl
 
-    
+def mergeBins(l,combine,mode=1):
+    iold=0
+    inew=0
+    lnew=[0]*len(combine)
+    for ic in combine:
+       for i in range(ic):
+           if mode==0:
+               if lnew[inew]==0 or lnew[inew]==l[iold]:
+                   lnew[inew]=l[iold]
+               else:
+                   assert False
+           if mode==1:
+               lnew[inew]=lnew[inew]+l[iold]
+           if mode==2:
+               lnew[inew]=(lnew[inew]**2+l[iold]**2)**0.5
+           iold+=1
+       inew+=1
+    return lnew
+
