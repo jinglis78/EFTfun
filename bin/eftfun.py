@@ -69,21 +69,21 @@ def main():
                       help="Comma separated list of measurements to be included (default: include all measurements)")
     parser.add_option("--repara",
                       action="store_true", dest="repara", default=False,
-                      help="Use reparametrization?")
+                      help="Use reparametrization given in config?")
     parser.add_option("-g", "--groups",dest="groups",default=None,
                       help="Parameter groups for PCA, e.g. c1,c2:c2,c3,c4:c5.")
     parser.add_option("--robust",
                       dest="robust", default=1,
-                      help="Robustness. Best to be kept at 1 or 2. Should the fit be hard use 3. 0 for faster fits.")
+                      help="Robustness. Best to be kept at 1 or 2. Should the fit be complicated or fail too often use 3. 0 for faster fits.")
     parser.add_option("--offset",
                       action="store_true", dest="offset", default=False,
                       help="Don't subtract min NLL")
     parser.add_option("--implicitscan",
                       dest="implicitscan", default=None,
-                      help="Profile variable manually, syntax: paramter:steps:min:max")
+                      help="Profile variable manually in case it is too complicated for minuit (e.g. due to local minima), syntax: paramter:steps:min:max")
     parser.add_option("--conts1d",
                       action="store_true", dest="conts1d", default=False,
-                      help="Use contours corresponding to 1D chi2 even also 2D fits")
+                      help="Use contours corresponding to 1D chi2 also 2D fits")
 
 
     options,args=parser.parse_args()

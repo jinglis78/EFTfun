@@ -5,14 +5,7 @@ For help:
 ./bin/eftfun.py
 ```
 
-Prerequisites: python2.7, ROOT6 with RooFit, optionally YODA (typically installed with [Rivet](https://rivet.hepforge.org/trac/wiki/GettingStarted))
-
-On lxplus
-```
-setupATLAS
-asetup 21.6.6,AthGeneration
-source setupRivet.sh
-```
+Prerequisites: python2.7, ROOT6 with RooFit (ideally ROOT 6.24 or newer), optionally YODA (typically installed with [Rivet](https://rivet.hepforge.org/trac/wiki/GettingStarted))
 
 Config templates with explanations and examples:
 ```
@@ -20,7 +13,7 @@ configs/TopCfgTemplate.cfg
 configs/MeasurementCfgTemplate.cfg
 ```
 
-[Tutorial](https://gitlab.cern.ch/eft-tools/eft-fun/blob/master/EFTfit.md)
+[Tutorial](https://gitlab.cern.ch/eft-tools/eft-fun/blob/master/EFTfit.md) (might be outdated)
 
 Fitting Examples:
 ```
