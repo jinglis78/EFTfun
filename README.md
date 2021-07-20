@@ -13,7 +13,7 @@ configs/TopCfgTemplate.cfg
 configs/MeasurementCfgTemplate.cfg
 ```
 
-[Tutorial](https://gitlab.cern.ch/eft-tools/eft-fun/blob/master/EFTfit.md) (might be outdated)
+[Tutorial](https://gitlab.cern.ch/eft-tools/eft-fun/blob/master/EFTfit.md) (might be outdated in parts)
 
 Fitting Examples:
 ```
@@ -32,4 +32,5 @@ Fitting Examples:
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m profilelikelihood -p cW -c all -o example13
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m workspace -l -o example14
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m workspace -l --override measurements:Measurement.stat_unc_threshold=-1 -o example15
+./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m pca -l -o example16
 ```

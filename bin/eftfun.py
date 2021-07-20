@@ -22,7 +22,7 @@ def main():
                       help="Write output to OUTNAME.root and in folder OUTNAME/", metavar="OUTNAME")
     parser.add_option("-m", "--method",
                       dest="method",default="fit",
-                      help="Method to be run, can be one of fit,scan,profilelikelihood,workspace,histo (fit - perform a maximum likelihood fit with MIGRAD+HESSE,  - perform a profile likelihood scan of one or multiple POIs, pulls - calculate nuisance parameter pulls and best fit values and errors with MINOS, profilelikelihood - run the RooStats ProfileLikelihoodCalculator to calculate confidece intervals, workspace - write out workspace and ModelConfig, histo - just write out histograms with given parameter values e.g. for validation of the parametrisation)"
+                      help="Method to be run, can be one of fit,scan,profilelikelihood,workspace,histo (fit - perform a maximum likelihood fit with MIGRAD+HESSE,  - perform a profile likelihood scan of one or multiple POIs, pulls - calculate nuisance parameter pulls and best fit values and errors with MINOS, profilelikelihood - run the RooStats ProfileLikelihoodCalculator to calculate confidece intervals, pca - run principal component analysis for linear fit, workspace - write out workspace and ModelConfig, histo - just write out histograms with given parameter values e.g. for validation of the parametrisation)"
     )
     parser.add_option("-p", "--poi",dest='poi',default=None,
                       help="Parameters of interest, comma separated. In the case of a maximum likelihood fit, POIs will always be floating.")
