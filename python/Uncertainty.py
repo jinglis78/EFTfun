@@ -240,6 +240,7 @@ class Uncertainty:
         self.already_in_cov=already_in_cov
         self.is_bkg_unc=is_bkg_unc
 
+    
         
     def getStr(self,iBin):
         if self.uncorr==True:
@@ -251,12 +252,12 @@ class Uncertainty:
             return None
         #TODO: define better interpolation functions
         if self.interpol=='exp':
-            if abs(-self.releffect[iBin][0]/self.releffect[iBin][1]-1)<1e-2:
+            if Utils.isSymmetric(self.releffect[iBin][0],self.releffect[iBin][1],1e-2):
                 return 'exp({0}*{1})'.format(self.releffect[iBin][1],self.name)
             else:
                 return '(exp(-{0}*{2})*({2}<0)+exp({1}*{2})*({2}>=0))'.format(self.releffect[iBin][0],self.releffect[iBin][1],self.name) 
         if self.interpol=='lin':
-            if abs(-self.releffect[iBin][0]/self.releffect[iBin][1]-1)<1e-2:
+            if Utils.isSymmetric(self.releffect[iBin][0],self.releffect[iBin][1],1e-2):
                 return '(1+{0}*{1})'.format(self.releffect[iBin][1],self.name)
             else:
                 return '((1-{0}*{2})*({2}<0)+(1+{1}*{2})*({2}>=0))'.format(self.releffect[iBin][0],self.releffect[iBin][1],self.name)
