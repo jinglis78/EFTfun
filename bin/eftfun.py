@@ -357,8 +357,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 print
                 print 'Correlation matrix:'
                 measurement.getCorr().Print()
-                print 'Cov matrix:'
-                measurement.getCov().Print()
 
             print 'Prediction formulas:'
             for i,s in enumerate(prediction.getPredictionStrings()):
