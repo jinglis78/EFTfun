@@ -176,3 +176,10 @@ def mergeBins(l,combine,mode=1):
        inew+=1
     return lnew
 
+def isSymmetric(up,down,epsilon=1e-2):
+    if up==0 and down==0:
+        return True
+    if up==0 and down!=0 or up!=0 and down==0:
+        return False
+    if abs(up/down+1)<epsilon:
+        return True
