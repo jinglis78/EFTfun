@@ -420,7 +420,7 @@ class Combination:
             toy_delta_nlls.append(delta_toy)
     #        print 'TOY',delta_toy
             good_toys+=1
-            if delta_toy*(1+1e-5)>delta_nll_data:
+            if delta_toy+1e-4>delta_nll_data:
     #            print 'BAD'
                 nworse+=1
     #        else:
@@ -429,11 +429,13 @@ class Combination:
                 alpha=float(nworse)/good_toys
                 err=(alpha*(1-alpha)/good_toys)**0.5
                 if err==0:
-                    err=1/good_toys**0.5
+                    alpha1=float(1)/good_toys
+                    err=(alpha1*(1-alpha1)/good_toys)**0.5
                 sigmas=3
-                if alpha+err*sigmas<0.05 or alpha-err*sigmas>0.05 and alpha+err*sigmas<0.31 or alpha-err*sigmas>0.32:
+                if (alpha+err*sigmas<0.05 or alpha-err*sigmas>0.05) and (alpha+err*sigmas<0.31 or alpha-err*sigmas>0.32):
                     stopped=True
                     break
+
             if good_toys==ntoys:
                 break
         if not stopped and good_toys<ntoys:

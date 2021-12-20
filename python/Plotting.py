@@ -74,18 +74,33 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
     ys=array('f',g.GetY())
     imin=-1
     ymin=999.
+    ymax=-1
+    imax=-1
     x0=0.
+    x1=0.
     for i,y in enumerate(ys):
         if y<ymin:
             ymin=y
             imin=i
             x0=xs[i]
+        if y>ymax:
+            ymax=y
+            imax=i
+            x1=xs[i]
+
     if isNLL:
         if imin>0 and ymin<0.01 and ymin>-0.001:
             g_inverse1=ROOT.TGraph(imin,ys[:imin],xs[:imin])
             g_inverse2=ROOT.TGraph(g.GetN()-imin,ys[imin:],xs[imin:])
             ci1=g_inverse1.Eval(cl1),g_inverse2.Eval(cl1)
             ci2=g_inverse1.Eval(cl2),g_inverse2.Eval(cl2)
+    if not toy_result is None:
+        if imax>0:
+            g_inverse1=ROOT.TGraph(imax,ys[:imax],xs[:imax])
+            g_inverse2=ROOT.TGraph(g.GetN()-imax,ys[imax:],xs[imax:])
+            ci1=g_inverse1.Eval(pval1),g_inverse2.Eval(pval1)
+            ci2=g_inverse1.Eval(pval2),g_inverse2.Eval(pval2)
+
     if not g2 is None:
         g2.SetLineColor(linecolor)
         g2.SetLineStyle(linestyle)
@@ -103,6 +118,8 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         g.Draw('AL')
     if isNLL :
         g.GetHistogram().GetYaxis().SetRangeUser(0.,min(100,g.GetHistogram().GetYaxis().GetXmax()))
+    if not toy_result is None:
+        g2.GetHistogram().GetYaxis().SetRangeUser(0.,1.2)
     g.GetHistogram().GetXaxis().SetTitleSize(0.05)
     g.GetHistogram().GetYaxis().SetTitleSize(0.05)
     g.GetHistogram().GetXaxis().SetLabelSize(0.04)
@@ -126,22 +143,35 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         cl2line=ROOT.TLine(xmin,pval2,xmax,pval2)
         cl1line.Draw()
         cl2line.Draw()
-    if isNLL and imin>0 and ymin<0.01 and ymin>-0.001:
-        ci2line1=ROOT.TLine(ci2[0],0,ci2[0],cl2)
+    if (isNLL and imin>0 and ymin<0.01 and ymin>-0.001) or not toy_result is None:
+        ci2line1=ROOT.TLine(ci2[0],0,ci2[0],cl2 if isNLL else pval2)
         ci2line1.SetLineStyle(2)
-        ci2line2=ROOT.TLine(ci2[1],0,ci2[1],cl2)
+        ci2line2=ROOT.TLine(ci2[1],0,ci2[1],cl2 if isNLL else pval2)
         ci2line2.SetLineStyle(2)
-        ci1line1=ROOT.TLine(ci1[0],0,ci1[0],cl1)
+        ci1line1=ROOT.TLine(ci1[0],0,ci1[0],cl1 if isNLL else pval1)
         ci1line1.SetLineStyle(2)
-        ci1line2=ROOT.TLine(ci1[1],0,ci1[1],cl1)
+        ci1line2=ROOT.TLine(ci1[1],0,ci1[1],cl1 if isNLL else pval1)
         ci1line2.SetLineStyle(2)
-        ci1text=ROOT.TLatex(0.5,0.85,'Best fit: {}_{{ #minus{} }}^{{ #plus{} }}'.format(Utils.round2(x0,3),Utils.round2(abs(ci1[0]-x0),3),Utils.round2(abs(ci1[1]-x0),3)))
+        if isNLL:
+            ci1text=ROOT.TLatex(0.5,0.85,'Best fit: {}_{{ #minus{} }}^{{ #plus{} }}'.format(Utils.round2(x0,2),Utils.round2(abs(ci1[0]-x0),2),Utils.round2(abs(ci1[1]-x0),2)))
+            ci1text.SetNDC()
+            ci1text.SetTextSize(0.04)
+            ci1text.SetTextFont(42)
+            ci1text.SetTextAlign(21)
+            ci1text.Draw()
+        if not toy_result is None:
+            ci1text=ROOT.TLatex(0.35,0.85,'68% CL: [{},{}]'.format(Utils.round2(ci1[0],2),Utils.round2(ci1[1],2)))
+            ci1text.SetNDC()
+            ci1text.SetTextSize(0.04)
+            ci1text.SetTextFont(42)
+            ci1text.SetTextAlign(21)
+            ci1text.Draw()
+
         print '68% CL:',ci1[0],ci1[1]
-        ci1text.SetNDC()
-        ci1text.SetTextSize(0.04)
-        ci1text.SetTextFont(42)
-        ci1text.SetTextAlign(21)
-        ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],3)))
+        if not toy_result is None:
+            ci2text=ROOT.TLatex(0.35,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],2)))
+        else:
+            ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],2)))
         print '95% CL:',ci2[0],ci2[1]
         ci2text.SetNDC()
         ci2text.SetTextSize(0.04)
@@ -151,14 +181,24 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         ci1line2.Draw()
         ci2line1.Draw()
         ci2line2.Draw()
-        ci1text.Draw()
         ci2text.Draw()
-        
+    if g2 is not None:
+        legend=ROOT.TLegend(0.6,0.75,0.9,0.9)
+        legend.SetBorderSize(0)
+        legend.SetLineStyle(0)
+        legend.SetTextFont(42)
+        legend.SetTextSize(0.04)
+        legend.SetFillStyle(0)
+        legend.AddEntry(g,'Prob. from toys','LE')
+        legend.AddEntry(g2,'Prob. asymptotic','L')
+        legend.Draw()
+
     c.Draw()
     printAndSave(c,outfile,outfolder)
-    if isNLL and imin>0 and ymin<0.01 and ymin>-0.001:
+    if not toy_result is None or isNLL and imin>0 and ymin<0.01 and ymin>-0.001:
         ftxt=open(outfolder+'/'+c.GetName()+'.txt','w')
         ftxt.write('{} {},{} {},{}'.format(x0,ci1[0],ci1[1],ci2[0],ci2[1]))
+
     if isNLL and ymin<-0.001:
         print "WARNING, fit was unable to find global minimum of likelihood, vary the parameter starting values (with '-s PAR=VAL')"
     return c
