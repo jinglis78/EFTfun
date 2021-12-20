@@ -1,13 +1,16 @@
 import ROOT,math
+from ROOT import Math
 from array import array
 import Utils
 
-def graphProfile1D(name,result,outfile=None,isNLL=True):
+def graphProfile1D(name,result,outfile=None,isNLL=True,makeProb=False):
     g=ROOT.TGraph()
     result=[r for r in result if not math.isnan(r[1]) and not math.isinf(r[1])]
     for i,r in enumerate(result):
         y=r[1]
-        if isNLL:
+        if makeProb:
+            y=Math.chisquared_cdf_c(2*y,1)
+        elif isNLL:
             y*=2
         g.SetPoint(i,r[0],y)
     g.SetName(name)
@@ -16,13 +19,29 @@ def graphProfile1D(name,result,outfile=None,isNLL=True):
         g.Write()
     return g
 
-def graphProfile2D(name,result,outfile=None,isNLL=True):
+def graphToys1D(name,result,outfile=None):
+    g=ROOT.TGraphErrors()
+    result=[r for r in result if not math.isnan(r[1]) and not math.isinf(r[1])]
+    for i,r in enumerate(result):
+        print i,r
+        g.SetPoint(i,r[0],r[1])
+        g.SetPointError(i,0,r[2])
+    g.SetName(name)
+    if outfile!=None:
+        outfile.cd()
+        g.Write()
+    return g
+
+def graphProfile2D(name,result,outfile=None,isNLL=True,makeProb=False):
     g=ROOT.TGraph2D()
     result=[r for r in result if not math.isnan(r[2]) and not math.isinf(r[2])]
     for i,r in enumerate(result):
         z=r[2]
         if isNLL:
             z*=2
+        if makeProb:
+            assert not isNLL
+            z=Math.chisquared_cdf_c(2*z,1)
         g.SetPoint(i,r[0],r[1],z)
     g.SetName(name)
     if outfile!=None:
@@ -31,17 +50,26 @@ def graphProfile2D(name,result,outfile=None,isNLL=True):
     return g
 
 
-def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',linecolor=ROOT.kRed+1,linewidth=2,linestyle=1,outfolder='.',isNLL=True):
+def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',linecolor=ROOT.kRed+1,linewidth=2,linestyle=1,outfolder='.',isNLL=True,toy_result=None,linecolor_toys=ROOT.kBlue+1,linewidth_toys=2,linestyle_toys=1):
     result=sorted(result)
+    if not toy_result is None:
+        toy_result=sorted(toy_result)
     cl1=1
     cl2=3.841
+    pval1=1-0.6827
+    pval2=0.05
     c=ROOT.TCanvas(name,name,1024,1024 )
     c.SetRightMargin(0.02)
     c.SetTopMargin(0.08)
     c.SetLeftMargin(0.12)
     c.SetBottomMargin(0.12)
     c.SetTicks(1,1)
-    g=graphProfile1D(name,result,isNLL=isNLL)
+    g2=None
+    if toy_result:
+        g=graphToys1D(name,toy_result)
+        g2=graphProfile1D(name,result,isNLL=False,makeProb=True)
+    else:
+        g=graphProfile1D(name,result,isNLL=isNLL)
     xs=array('f',g.GetX())
     ys=array('f',g.GetY())
     imin=-1
@@ -58,10 +86,21 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
             g_inverse2=ROOT.TGraph(g.GetN()-imin,ys[imin:],xs[imin:])
             ci1=g_inverse1.Eval(cl1),g_inverse2.Eval(cl1)
             ci2=g_inverse1.Eval(cl2),g_inverse2.Eval(cl2)
-    g.SetLineColor(linecolor)
-    g.SetLineStyle(linestyle)
-    g.SetLineWidth(linewidth)
-    g.Draw('AL')
+    if not g2 is None:
+        g2.SetLineColor(linecolor)
+        g2.SetLineStyle(linestyle)
+        g2.SetLineWidth(linewidth)
+        g2.Draw('AL')
+
+        g.SetLineColor(linecolor_toys)
+        g.SetLineStyle(linestyle_toys)
+        g.SetLineWidth(linewidth_toys)
+        g.Draw('L')
+    else:
+        g.SetLineColor(linecolor)
+        g.SetLineStyle(linestyle)
+        g.SetLineWidth(linewidth)
+        g.Draw('AL')
     if isNLL :
         g.GetHistogram().GetYaxis().SetRangeUser(0.,min(100,g.GetHistogram().GetYaxis().GetXmax()))
     g.GetHistogram().GetXaxis().SetTitleSize(0.05)
@@ -78,6 +117,13 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         xmin=g.GetHistogram().GetXaxis().GetXmin()
         cl1line=ROOT.TLine(xmin,cl1,xmax,cl1)
         cl2line=ROOT.TLine(xmin,cl2,xmax,cl2)
+        cl1line.Draw()
+        cl2line.Draw()
+    if not toy_result is None:
+        xmax=g.GetHistogram().GetXaxis().GetXmax()
+        xmin=g.GetHistogram().GetXaxis().GetXmin()
+        cl1line=ROOT.TLine(xmin,pval1,xmax,pval1)
+        cl2line=ROOT.TLine(xmin,pval2,xmax,pval2)
         cl1line.Draw()
         cl2line.Draw()
     if isNLL and imin>0 and ymin<0.01 and ymin>-0.001:
@@ -106,7 +152,8 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         ci2line1.Draw()
         ci2line2.Draw()
         ci1text.Draw()
-        ci2text.Draw()    
+        ci2text.Draw()
+        
     c.Draw()
     printAndSave(c,outfile,outfolder)
     if isNLL and imin>0 and ymin<0.01 and ymin>-0.001:

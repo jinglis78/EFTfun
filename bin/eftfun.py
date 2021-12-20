@@ -22,7 +22,7 @@ def main():
                       help="Write output to OUTNAME.root and in folder OUTNAME/", metavar="OUTNAME")
     parser.add_option("-m", "--method",
                       dest="method",default="fit",
-                      help="Method to be run, can be one of fit,scan,profilelikelihood,workspace,histo (fit - perform a maximum likelihood fit with MIGRAD+HESSE,  - perform a profile likelihood scan of one or multiple POIs, pulls - calculate nuisance parameter pulls and best fit values and errors with MINOS, profilelikelihood - run the RooStats ProfileLikelihoodCalculator to calculate confidece intervals, pca - run principal component analysis for linear fit, workspace - write out workspace and ModelConfig, histo - just write out histograms with given parameter values e.g. for validation of the parametrisation)"
+                      help="Method to be run, can be one of fit,scan,profilelikelihood,workspace,histo (fit - perform a maximum likelihood fit with MIGRAD+HESSE, scan - perform a profile likelihood scan of one or multiple POIs, pulls - calculate nuisance parameter pulls and best fit values and errors with MINOS, profilelikelihood - run the RooStats ProfileLikelihoodCalculator to calculate confidece intervals, pca - run principal component analysis for linear fit, workspace - write out workspace and ModelConfig, histo - just write out histograms with given parameter values e.g. for validation of the parametrisation)"
     )
     parser.add_option("-p", "--poi",dest='poi',default=None,
                       help="Parameters of interest, comma separated. In the case of a maximum likelihood fit, POIs will always be floating.")
@@ -40,9 +40,9 @@ def main():
                       dest="deactivate_uncertainties", default=None,
                       help="Deactivate systematics (i.e. set them constant) that match the pattern given.")
     parser.add_option("-n", "--nsteps",dest="nsteps",default='200',
-                      help="Number of steps in scan (only relevant for method 'scan').")
-    parser.add_option("-t", "--ntoys",dest="ntoys",default=1000,
-                      help="Number of toys (currently not used).")
+                      help="Number of steps in scan (only relevant for method 'scan' or 'toys').")
+    parser.add_option("-t", "--ntoys",dest="ntoys",default=-1,
+                      help="Number of toys (calculate test profile likelihood statistic distribution with toys instead of assuming Wilks').")
     parser.add_option("-a", "--asimov",
                       action="store_true", dest="asimov", default=False,
                       help="Run on asimov dataset (i.e. exchange data with sm prediction)?")
@@ -420,7 +420,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         extra_outfile=None
         if write_more:
             extra_outfile=f
-        if len(pois)==1:
+        if len(pois)==1 and int(ntoys)<=0:
             poi=pois[0]
             if ':' in str(scanrange):
                 actual_scanrange=[float(x) for x in scanrange.split(':')]
@@ -464,15 +464,17 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                     actual_scanranges.append(float(s))
             nsteps=[int(n) for n in nsteps.split(',')]
             if implicitscan is None:
-                prof=combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile,inclOffset=offset)
+                prof,toy_limit=combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile,inclOffset=offset,ntoys=int(ntoys))
             else:
+                if int(ntoys)>0:
+                    raise Exception("implicit scan and toys is too much for me...")
                 profs=[]
                 impl_par,impl_n,impl_min,impl_max=implicitscan.split(':')
                 print 'repeating scan with',impl_par,'set from',impl_min,'to',impl_max,'in',impl_n,'steps'
                 for impl_x in [float(impl_min)+float(x)*(float(impl_max)-float(impl_min))/(int(impl_n)-1) for x in range(int(impl_n))]:
                     theory.setConstant(impl_par,impl_x)
                     theory.setInitialVal(impl_par,impl_x)
-                    profs.append(combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile,inclOffset=True))
+                    profs.append(combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile,inclOffset=True)[0])
                 prof=[]
                 total_min=1e9
                 for pointresults in map(list, zip(*profs)):
@@ -481,10 +483,26 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                         best=min(x[-1],best)
                     total_min=min(best,total_min)
                     prof.append(pointresults[0][:-1]+(best,))
-                prof=[x[:-1]+((x[-1]-total_min),) for x in prof]
+                prof=sorted([x[:-1]+((x[-1]-total_min),) for x in prof])
+               
+            if len(pois)==1:
+                Plotting.graphProfile1D('g_scan_'+poi,prof,f)
+                Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname)
+                Plotting.graphProfile1D('c_asymtoticProb_'+poi,prof,f,isNLL=False,makeProb=True)
+                Plotting.graphToys1D('g_toyProb_'+poi,toy_limit,f)
+                Plotting.canvasProfile1D('c_prob_'+poi,prof,f,poi,outfolder=outname,toy_result=toy_limit,isNLL=False)
+
+                if write_more:
+                    for par in combination.all_results:
+                        if par==poi:
+                            continue
+                        prof2=[(prof[i][0],y) for i,y in enumerate(combination.all_results[par])]
+                        Plotting.graphProfile1D('g_scan_'+'_'.join([poi,par]),prof2,f,isNLL=False)
+                        Plotting.canvasProfile1D('c_scan_'+'_'.join([poi,par]),prof2,f,poi,par,outfolder=outname,isNLL=False)
             if len(pois)==2:
                 Plotting.graphProfile2D('g_scan_'+'_'.join(pois),prof,f)
                 Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d)
+                Plotting.graphProfile2D('g_asymptoticProb_'+'_'.join(pois),prof,f,isNLL=False,makeProb=True)
     elif method=='fit':
         if verbose:
             print 'doing fit'

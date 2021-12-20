@@ -287,7 +287,7 @@ class Combination:
         return result
 
     #TODO: unify with 1D
-    def profileND(self,poi_names,scan_ranges=[5],nsteps=[21],inclOffset=False,extra_outfile=None):
+    def profileND(self,poi_names,scan_ranges=[5],nsteps=[21],inclOffset=False,extra_outfile=None,ntoys=-1):
         pois=[]
         for p in poi_names:
             pois+=[self.theory.getCoeff(p)]
@@ -315,8 +315,6 @@ class Combination:
             else:
                 actual_scan_ranges+=[scan_range]           
         self.last_scan_range=actual_scan_ranges
-        
-
 
         assert len(actual_scan_ranges)==len(poi_names)
         assert len(nsteps)==len(poi_names)
@@ -330,8 +328,15 @@ class Combination:
         #TODO: don't store in memory
         more_results={}
         npoints=len(grid)
+        if not inclOffset or ntoys>0:
+            print 'unconditional fit first'
+            for poi in pois:
+                poi.setConstant(False)
+            global_minNLL=self.minimize(print_level=print_level,strategy=2)
+
         print 'scanning',npoints,'points'
         percent=0
+        toy_results=[]
         for ipoint,gridpoint in enumerate(grid):
             if 100*ipoint/npoints>=percent:
                 print percent,'%'
@@ -346,7 +351,12 @@ class Combination:
                 strategy=2
             if ipoint==0 or grid[ipoint][-1]<grid[ipoint-1][-1]:
                 strategy=2
-            result.append( gridpoint+(self.minimize(print_level=print_level,hesse=False,strategy=strategy),) )
+            minNLL=self.minimize(print_level=print_level,hesse=False,strategy=strategy)
+            if not inclOffset or ntoys>0:
+                minNLL=minNLL-global_minNLL
+                if minNLL<-0.05:
+                    raise Exception("Bad scan, found global minimum better than best fit at "+','.join([str(x) for x in gridpoint]))
+            result.append( gridpoint+(minNLL,)) 
             if extra_outfile!=None:
                 res=self.getFitResult()
                 float_pars=res.floatParsFinal()
@@ -359,24 +369,84 @@ class Combination:
                     more_results[poi.GetName()]+=[poi.getVal()]
                 for ipar in range(float_pars.getSize()):
                     more_results[float_pars[ipar].GetName()]+=[float_pars[ipar].getVal()]
+            if ntoys>0:
+                toy_nlls=self.doToys(gridpoint,pois,ntoys,result[-1][-1])
+                toy_results.append(toy_nlls)
 
             for pisc,poi in zip(poiIsConst,pois):
                 poi.setConstant(pisc)
-        if not inclOffset:
-            self.theory.reset()
-            for poi in pois:
-                poi.setConstant(False)
-            minNLL=self.minimize(print_level=print_level)
-            for r in result:
-                minNLL=min(minNLL,r[-1])
-            for pisc,poi in zip(poiIsConst,pois):
-                poi.setConstant(pisc)
-            result =[r[:-1]+((r[-1]-minNLL),) for r in result]
+
         if extra_outfile!=None:
             Utils.saveToTree(more_results,extra_outfile)
             self.all_results=more_results
-        return result
+        toy_result=[]
+        for gridpoint,toy_nlls,r in zip(grid,toy_results,result):
+            print '---'
+            print r
+            print toy_nlls
+            nworse=0
+            for t in toy_nlls:
+                if  t+1e-4>r[-1]:
+                    nworse+=1
+            alpha=float(nworse)/len(toy_nlls)
+            err=(alpha*(1-alpha)/len(toy_nlls))**0.5
+            toy_result.append(gridpoint+(alpha,err))            
+        return result,toy_result if len(toy_result)>0 else None
 
+    def doToys(self,scanpoint,pois,ntoys,delta_nll_data):
+        toys=self.pdf.generate(self.data,2*ntoys)
+        toy_delta_nlls=[]
+        good_toys=0
+        nworse=0
+        stopped=False
+        for it in range(2*ntoys):
+            for p,val in zip(pois,scanpoint):
+                p.setVal(val)
+                p.setConstant(True)
+            toy=toys.get(it)
+            toy_dataset=RooDataSet('toy_dataset_{}'.format(it),'toy_dataset_{}'.format(it),toy)
+            toy_dataset.add(toy)
+            res_toy=self.pdf.fitTo(toy_dataset,RooFit.Save(True),RooFit.PrintLevel(-1),RooFit.Optimize(False),RooFit.Verbose(False),RooFit.Warnings(False))
+            if res_toy.status()!=0:
+                continue
+            this_min_toy=res_toy.minNll()
+            for p in pois:
+                p.setConstant(False)
+            global_res_toy=self.pdf.fitTo(toy_dataset,RooFit.Save(True),RooFit.PrintLevel(-1),RooFit.Optimize(False),RooFit.Verbose(False),RooFit.Warnings(False))
+            if global_res_toy.status()!=0:
+                continue
+            global_min_toy=global_res_toy.minNll()
+            delta_toy=this_min_toy-global_min_toy
+            toy_delta_nlls.append(delta_toy)
+    #        print 'TOY',delta_toy
+            good_toys+=1
+            if delta_toy*(1+1e-5)>delta_nll_data:
+    #            print 'BAD'
+                nworse+=1
+    #        else:
+    #            print 'GOOD'
+            if good_toys>9 and good_toys%10==0:
+                alpha=float(nworse)/good_toys
+                err=(alpha*(1-alpha)/good_toys)**0.5
+                if err==0:
+                    err=1/good_toys**0.5
+                sigmas=3
+                if alpha+err*sigmas<0.05 or alpha-err*sigmas>0.05 and alpha+err*sigmas<0.31 or alpha-err*sigmas>0.32:
+                    stopped=True
+                    break
+            if good_toys==ntoys:
+                break
+        if not stopped and good_toys<ntoys:
+            raise Exception("Too many toys failed!")
+        if good_toys!=0:
+            alpha=float(nworse)/good_toys
+        else:
+            alpha=None
+        print '~~~~~~~~~~~~'
+        print scanpoint
+        print '~~~~~~~~~~~~',2*delta_nll_data,alpha,good_toys,'IN' if alpha>0.05 else 'OUT'
+        return toy_delta_nlls
+        
     def deactivateIrrelevantThetas(self):
         deactivated={}
         for c in self.theory.coeffs:
@@ -777,3 +847,4 @@ class Combination:
                     h.SetBinContent(ie+1,e)
                 hs_effects[-1].append(h)
         return h_cov,h_corr,h_ev,h_ev_abs,hs_effects
+
