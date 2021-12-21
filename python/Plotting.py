@@ -19,6 +19,22 @@ def graphProfile1D(name,result,outfile=None,isNLL=True,makeProb=False):
         g.Write()
     return g
 
+def graphProfile2D(name,result,outfile=None,isNLL=True,makeProb=False,conts1d=False):
+    g=ROOT.TGraph2D()
+    result=[r for r in result if not math.isnan(r[2]) and not math.isinf(r[2])]
+    for i,r in enumerate(result):
+        z=r[2]
+        if makeProb:
+            z=Math.chisquared_cdf_c(2*z,1 if conts1d else 2)
+        elif isNLL:
+            z*=2
+        g.SetPoint(i,r[0],r[1],z)
+    g.SetName(name)
+    if outfile!=None:
+        outfile.cd()
+        g.Write()
+    return g
+
 def graphToys1D(name,result,outfile=None):
     g=ROOT.TGraphErrors()
     result=[r for r in result if not math.isnan(r[1]) and not math.isinf(r[1])]
@@ -32,17 +48,12 @@ def graphToys1D(name,result,outfile=None):
         g.Write()
     return g
 
-def graphProfile2D(name,result,outfile=None,isNLL=True,makeProb=False):
-    g=ROOT.TGraph2D()
+def graphToys2D(name,result,outfile=None):
+    g=ROOT.TGraph2DErrors()
     result=[r for r in result if not math.isnan(r[2]) and not math.isinf(r[2])]
     for i,r in enumerate(result):
-        z=r[2]
-        if isNLL:
-            z*=2
-        if makeProb:
-            assert not isNLL
-            z=Math.chisquared_cdf_c(2*z,1)
-        g.SetPoint(i,r[0],r[1],z)
+        g.SetPoint(i,r[0],r[1],r[2])
+        g.SetPointError(i,0,0,r[3])
     g.SetName(name)
     if outfile!=None:
         outfile.cd()
@@ -203,7 +214,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         print "WARNING, fit was unable to find global minimum of likelihood, vary the parameter starting values (with '-s PAR=VAL')"
     return c
 
-def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log(L)',linecolor=ROOT.kBlack,outfolder='.',isNLL=True,conts1d=False):
+def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log(L)',linecolor=ROOT.kBlack,outfolder='.',isNLL=True,conts1d=False,toy_result=None,linecolor_toys=ROOT.kRed+1):
     ROOT.gStyle.SetPalette(ROOT.kThermometer);
     ROOT.TColor.InvertPalette();
 
@@ -213,26 +224,26 @@ def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log
     else:
         cl1=2.297
         cl2=5.991
-    c=ROOT.TCanvas(name,name,1024,1024)
-    c.SetRightMargin(0.18)
+    if not toy_result is None:
+        cl1=1-0.6827
+        cl2=0.05
+    if not toy_result is None:
+        c=ROOT.TCanvas(name,name,1280,1024)
+        c.SetRightMargin(0.28)
+        c.SetLeftMargin(0.1)
+    else:
+        c=ROOT.TCanvas(name,name,1024,1024)
+        c.SetRightMargin(0.18)
+        c.SetLeftMargin(0.08)
     c.SetTopMargin(0.12)
-    c.SetLeftMargin(0.08)
     c.SetBottomMargin(0.12)
     c.SetTicks(1,1)
-    pad1 = ROOT.TPad("pad1","",0,0,1,1)
-    pad2 = ROOT.TPad("pad2","",0,0,1,1)
-    for p in pad1,pad2:
-        p.SetRightMargin(0.16)
-        p.SetTopMargin(0.12)
-        p.SetLeftMargin(0.1)
-        p.SetBottomMargin(0.12)
-    pad2.SetFillStyle(0)
-    pad2.SetFillColor(0)
-    pad2.SetFrameFillStyle(0)
-    pad1.Draw()
-    pad1.cd()
-    g=graphProfile2D(name,result,isNLL=isNLL)
-    g.Draw('COLZ')
+    if not toy_result is None:
+        g=graphToys2D(name,toy_result)
+        g_asympt=graphProfile2D(name,result,makeProb=True,conts1d=conts1d)
+    else:
+        g=graphProfile2D(name,result)
+        g.Draw('cont4')
     g.GetHistogram().SetTitle('')
     g.GetHistogram().GetXaxis().SetTitle(xtitle)
     g.GetHistogram().GetYaxis().SetTitle(ytitle)
@@ -247,31 +258,88 @@ def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log
     g.GetHistogram().GetXaxis().SetTitleOffset(0.8)
     g.GetHistogram().GetYaxis().SetTitleOffset(0.9)
     g.GetHistogram().GetZaxis().SetTitleOffset(0.9)
-    g.GetHistogram().GetZaxis().SetRangeUser(0,10)
-    h0=g.GetHistogram().Clone()
-    h0.SetContour(20)
-    h0.SetLineColor(linecolor)
-    h0.SetLineWidth(2)
-    h1=h0.Clone()
-    h0.Draw('cont4z')
-    pad1.Update()
-    pad1.Modified()
-    c.cd()
-    pad2.Draw();
-    pad2.cd();
-    h1.SetContour(1)
-    h1.SetContourLevel(0,cl1)
-    h1.SetLineColor(linecolor)
-    h1.SetLineWidth(3)
-    h1.Draw('same cont3')
-    h2=g.GetHistogram().Clone('h2')
-    h2.SetContour(1)
-    h2.SetContourLevel(0,cl2)
-    h2.SetLineColor(linecolor)
-    h2.SetLineStyle(2)
-    h2.SetLineWidth(3)
-    h2.Draw('cont3 same')
-    pad2.Update()
+    if not toy_result is None:
+        g.Draw()
+        g_asympt.Draw()
+        g.GetHistogram().GetZaxis().SetRangeUser(0,1)
+        h1=g.GetHistogram().Clone()
+        h2=h1.Clone()
+        h1.SetContour(1)
+        h1.SetContourLevel(0,cl1)
+        h1.SetLineColor(linecolor_toys)
+        h1.SetLineWidth(3)
+        h1.Draw('cont3')
+        h2=g.GetHistogram().Clone('h2')
+        h2.SetContour(1)
+        h2.SetContourLevel(0,cl2)
+        h2.SetLineColor(linecolor_toys)
+        h2.SetLineStyle(2)
+        h2.SetLineWidth(3)
+        h2.Draw('cont3 same')
+        hasympt1=g_asympt.GetHistogram().Clone()
+        hasympt2=hasympt1.Clone()
+        hasympt1.SetContour(1)
+        hasympt1.SetContourLevel(0,cl1)
+        hasympt1.SetLineColor(linecolor)
+        hasympt1.SetLineWidth(3)
+        hasympt1.Draw('cont3 same')
+        hasympt2=hasympt1.Clone()
+        hasympt2.SetContour(1)
+        hasympt2.SetContourLevel(0,cl2)
+        hasympt2.SetLineColor(linecolor)
+        hasympt2.SetLineStyle(2)
+        hasympt2.SetLineWidth(3)
+        hasympt2.Draw('cont3 same')
+        legend=ROOT.TLegend(0.72,0.6,0.99,0.88)
+        legend.SetBorderSize(0)
+        legend.SetLineStyle(0)
+        legend.SetTextFont(42)
+        legend.SetTextSize(0.04)
+        legend.SetFillStyle(0)
+        legend.AddEntry(h1,'68% CL toys','L')
+        legend.AddEntry(h2,'95% CL toys','L')
+        legend.AddEntry(hasympt1,'68% CL asymp.','L')
+        legend.AddEntry(hasympt2,'95% CL asymp.','L')
+        legend.Draw()
+
+    else:
+        pad1 = ROOT.TPad("pad1","",0,0,1,1)
+        pad2 = ROOT.TPad("pad2","",0,0,1,1)
+        for p in pad1,pad2:
+            p.SetRightMargin(0.16)
+            p.SetTopMargin(0.12)
+            p.SetLeftMargin(0.1)
+            p.SetBottomMargin(0.12)
+        pad2.SetFillStyle(0)
+        pad2.SetFillColor(0)
+        pad2.SetFrameFillStyle(0)
+        pad1.Draw()
+        pad1.cd()
+        g.GetHistogram().GetZaxis().SetRangeUser(0,10)
+        h0=g.GetHistogram().Clone()
+        h0.SetContour(20)
+        h0.SetLineColor(linecolor)
+        h0.SetLineWidth(2)
+        h1=h0.Clone()
+        h0.Draw('cont4z')
+        pad1.Update()
+        pad1.Modified()
+        c.cd()
+        pad2.Draw();
+        pad2.cd();
+        h1.SetContour(1)
+        h1.SetContourLevel(0,cl1)
+        h1.SetLineColor(linecolor)
+        h1.SetLineWidth(3)
+        h1.Draw('same cont3')
+        h2=g.GetHistogram().Clone('h2')
+        h2.SetContour(1)
+        h2.SetContourLevel(0,cl2)
+        h2.SetLineColor(linecolor)
+        h2.SetLineStyle(2)
+        h2.SetLineWidth(3)
+        h2.Draw('cont3 same')
+        pad2.Update()
     c.Draw()
     printAndSave(c,outfile,outfolder)
     return c

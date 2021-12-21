@@ -84,6 +84,9 @@ def main():
     parser.add_option("--conts1d",
                       action="store_true", dest="conts1d", default=False,
                       help="Use contours corresponding to 1D chi2 also 2D fits")
+    parser.add_option("--toysfile",
+                      dest="toysfile", default=None,
+                      help="Load toy results from ROOT files.")
 
 
     options,args=parser.parse_args()
@@ -490,7 +493,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname)
                 Plotting.graphProfile1D('c_asymtoticProb_'+poi,prof,f,isNLL=False,makeProb=True)
                 Plotting.graphToys1D('g_toyProb_'+poi,toy_limit,f)
-                Plotting.canvasProfile1D('c_prob_'+poi,prof,f,poi,outfolder=outname,toy_result=toy_limit,isNLL=False)
+                Plotting.canvasProfile1D('c_prob_'+poi,prof,f,poi,outfolder=outname,toy_result=toy_limit,isNLL=False,ytitle='p value')
 
                 if write_more:
                     for par in combination.all_results:
@@ -500,9 +503,11 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                         Plotting.graphProfile1D('g_scan_'+'_'.join([poi,par]),prof2,f,isNLL=False)
                         Plotting.canvasProfile1D('c_scan_'+'_'.join([poi,par]),prof2,f,poi,par,outfolder=outname,isNLL=False)
             if len(pois)==2:
-                Plotting.graphProfile2D('g_scan_'+'_'.join(pois),prof,f)
+                Plotting.graphProfile2D('g_scan_'+'_'.join(pois),prof,f,conts1d=conts1d)
                 Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d)
-                Plotting.graphProfile2D('g_asymptoticProb_'+'_'.join(pois),prof,f,isNLL=False,makeProb=True)
+                Plotting.graphProfile2D('g_asymptoticProb_'+'_'.join(pois),prof,f,isNLL=False,makeProb=True,conts1d=conts1d)
+                Plotting.graphToys2D('g_toyProb_'+'_'.join(pois),toy_limit,f)
+                Plotting.canvasProfile2D('c_prob_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d,toy_result=toy_limit,isNLL=False,ztitle='p value')
     elif method=='fit':
         if verbose:
             print 'doing fit'
@@ -565,41 +570,6 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         for ev in hs_effects:
             for h in ev:
                 h.Write()
-
-    elif method=='asymptotic' or method=='hybrid' or method=='frequentist':
-        raw_input('WARNING, the method '+method+' is experimental and work in progress, press enter to proceed')
-        if len(pois)!=1:
-            print "Need exactly one POI to run asymptotic/hybrid/frequentist limits"
-        w=combination.createWorkspace(pois)
-        w.Write()
-        f.Close()
-
-        fn=outname+'.root'
-        ws='w'
-        model=combination.name+'_model'
-        model_bkg=combination.name+'_model_background'
-        data=combination.name+'_data'
-        if method=='asymptotic':
-            calculator=2
-        if method=='hybrid':
-            calculator=1
-        if method=='frequentist':
-            calculator=0
-        teststat=2
-        docls='false'
-        if cls:
-            docls='true'
-        if not ':' in str(scanrange) or len(scanrange.split(':'))!=2:
-            print 'WARNING, need to provide a scan range with "-r xmin:max"'
-            return
-        xmin=scanrange.split(':')[0]
-        xmax=scanrange.split(':')[1]
-        rootcmd='root -l scripts/StandardHypoTestInvDemo.C(\"{0}\",\"{1}\",\"{2}\",\"{3}\",\"{4}\",{5},{6},{7},{8},{9},{10},{11})'.format(
-            fn,ws,model,model_bkg,data,calculator,teststat,docls,nsteps,xmin,xmax,ntoys)
-        print 'Running:',rootcmd
-        print 
-        call(rootcmd.split())
-        
     else:
         raise Exception("unkown method "+method)
     
