@@ -1,6 +1,7 @@
 import ROOT,math
 from ROOT import Math
 from array import array
+from math import log10
 import Utils
 
 def graphProfile1D(name,result,outfile=None,isNLL=True,makeProb=False):
@@ -39,7 +40,6 @@ def graphToys1D(name,result,outfile=None):
     g=ROOT.TGraphErrors()
     result=[r for r in result if not math.isnan(r[1]) and not math.isinf(r[1])]
     for i,r in enumerate(result):
-        print i,r
         g.SetPoint(i,r[0],r[1])
         g.SetPointError(i,0,r[2])
     g.SetName(name)
@@ -164,14 +164,19 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         ci1line2=ROOT.TLine(ci1[1],0,ci1[1],cl1 if isNLL else pval1)
         ci1line2.SetLineStyle(2)
         if isNLL:
-            ci1text=ROOT.TLatex(0.5,0.85,'Best fit: {}_{{ #minus{} }}^{{ #plus{} }}'.format(Utils.round2(x0,2),Utils.round2(abs(ci1[0]-x0),2),Utils.round2(abs(ci1[1]-x0),2)))
+            err_low=abs(ci1[0]-x0)
+            err_high=abs(ci1[1]-x0)
+            central=round(x0,1-int(log10(err_low/2+err_high/2)))
+            if central==0.:
+                central=0
+            ci1text=ROOT.TLatex(0.5,0.85,'Best fit: {}_{{ #minus{} }}^{{ #plus{} }}'.format(central,Utils.round2(err_low,3),Utils.round2(err_high,3)))
             ci1text.SetNDC()
             ci1text.SetTextSize(0.04)
             ci1text.SetTextFont(42)
             ci1text.SetTextAlign(21)
             ci1text.Draw()
         if not toy_result is None:
-            ci1text=ROOT.TLatex(0.35,0.85,'68% CL: [{},{}]'.format(Utils.round2(ci1[0],2),Utils.round2(ci1[1],2)))
+            ci1text=ROOT.TLatex(0.35,0.85,'68% CL: [{},{}]'.format(Utils.round2(ci1[0],3),Utils.round2(ci1[1],3)))
             ci1text.SetNDC()
             ci1text.SetTextSize(0.04)
             ci1text.SetTextFont(42)
@@ -180,9 +185,9 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
 
         print '68% CL:',ci1[0],ci1[1]
         if not toy_result is None:
-            ci2text=ROOT.TLatex(0.35,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],2)))
+            ci2text=ROOT.TLatex(0.35,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],3),Utils.round2(ci2[1],3)))
         else:
-            ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],2)))
+            ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],3),Utils.round2(ci2[1],3)))
         print '95% CL:',ci2[0],ci2[1]
         ci2text.SetNDC()
         ci2text.SetTextSize(0.04)

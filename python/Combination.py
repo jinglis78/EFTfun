@@ -1,7 +1,12 @@
-from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH1D, TH2D, TCanvas, TRandom3
+from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH1D, TH2D, TCanvas, TRandom3, RooHelpers, RooMsgService
 from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculator,FrequentistCalculator,HypoTestInverter,ProfileLikelihoodTestStat
 import itertools,re,math
 import Utils
+
+import contextlib
+import io
+import sys
+import os, stat
 
 class Combination:
     def __init__(self, theory=None, predictions=None,measurements=None,name='test',verbose=True,correlated_measurements=[],robust=1):
@@ -287,7 +292,7 @@ class Combination:
         return result
 
     #TODO: unify with 1D
-    def profileND(self,poi_names,scan_ranges=[5],nsteps=[21],inclOffset=False,extra_outfile=None,ntoys=-1):
+    def profileND(self,poi_names,scan_ranges=[5],nsteps=[21],inclOffset=False,extra_outfile=None,ntoys=-1,first=-1,last=-1):
         pois=[]
         for p in poi_names:
             pois+=[self.theory.getCoeff(p)]
@@ -327,7 +332,12 @@ class Combination:
         result=[]
         #TODO: don't store in memory
         more_results={}
-        npoints=len(grid)
+        if first<0 or last<0:
+            npoints=len(grid)
+            last=npoints
+            first=0
+        else:
+            npoints=last-first
         if not inclOffset or ntoys>0:
             print 'unconditional fit first'
             for poi in pois:
@@ -337,7 +347,7 @@ class Combination:
         print 'scanning',npoints,'points'
         percent=0
         toy_results=[]
-        for ipoint,gridpoint in enumerate(grid):
+        for ipoint,gridpoint in enumerate(grid[first:last]):
             if 100*ipoint/npoints>=percent:
                 print percent,'%'
                 percent+=10
@@ -381,9 +391,6 @@ class Combination:
             self.all_results=more_results
         toy_result=[]
         for gridpoint,toy_nlls,r in zip(grid,toy_results,result):
-            print '---'
-            print r
-            print toy_nlls
             nworse=0
             for t in toy_nlls:
                 if  t+1e-4>r[-1]:
@@ -394,11 +401,20 @@ class Combination:
         return result,toy_result if len(toy_result)>0 else None
 
     def doToys(self,scanpoint,pois,ntoys,delta_nll_data):
+        RooMsgService.instance().saveState()
+        RooMsgService.instance().setGlobalKillBelow(RooFit.WARNING)
+        #for istream in range(RooMsgService.instance().numStreams()):
+        #    RooMsgService.instance().deleteStream(istream)
+
         toys=self.pdf.generate(self.data,2*ntoys)
         toy_delta_nlls=[]
         good_toys=0
         nworse=0
+        nfailed=0
         stopped=False
+        #        message_lvl=RooHelpers.LocalChangeMessageLevel()
+
+        #RooMsgService.instance().addStream(RooFit.WARNING,RooFit.OutputFile('/tmp/roofit.log'))
         for it in range(2*ntoys):
             for p,val in zip(pois,scanpoint):
                 p.setVal(val)
@@ -408,45 +424,48 @@ class Combination:
             toy_dataset.add(toy)
             res_toy=self.pdf.fitTo(toy_dataset,RooFit.Save(True),RooFit.PrintLevel(-1),RooFit.Optimize(False),RooFit.Verbose(False),RooFit.Warnings(False))
             if res_toy.status()!=0:
+                nfailed+=1
                 continue
             this_min_toy=res_toy.minNll()
             for p in pois:
                 p.setConstant(False)
             global_res_toy=self.pdf.fitTo(toy_dataset,RooFit.Save(True),RooFit.PrintLevel(-1),RooFit.Optimize(False),RooFit.Verbose(False),RooFit.Warnings(False))
             if global_res_toy.status()!=0:
+                nfailed+=1
                 continue
             global_min_toy=global_res_toy.minNll()
             delta_toy=this_min_toy-global_min_toy
             toy_delta_nlls.append(delta_toy)
-    #        print 'TOY',delta_toy
             good_toys+=1
             if delta_toy+1e-4>delta_nll_data:
-    #            print 'BAD'
                 nworse+=1
-    #        else:
-    #            print 'GOOD'
             if good_toys>9 and good_toys%10==0:
-                alpha=float(nworse)/good_toys
-                err=(alpha*(1-alpha)/good_toys)**0.5
-                if err==0:
-                    alpha1=float(1)/good_toys
-                    err=(alpha1*(1-alpha1)/good_toys)**0.5
-                sigmas=3
-                if (alpha+err*sigmas<0.05 or alpha-err*sigmas>0.05) and (alpha+err*sigmas<0.31 or alpha-err*sigmas>0.32):
-                    stopped=True
-                    break
+                if nworse==0:
+                    if good_toys>=100:
+                        stopped=True
+                        break
+                else:
+                    alpha=float(nworse)/good_toys
+                    err=(alpha*(1-alpha)/good_toys)**0.5
+                    sigmas=4
+                    if (alpha+err*sigmas<0.05 or alpha-err*sigmas>0.05) and (alpha+err*sigmas<0.31 or alpha-err*sigmas>0.32):
+                        stopped=True
+                        break
 
             if good_toys==ntoys:
                 break
         if not stopped and good_toys<ntoys:
-            raise Exception("Too many toys failed!")
+            raise Exception("Too many toys failed!")        
         if good_toys!=0:
             alpha=float(nworse)/good_toys
         else:
             alpha=None
-        print '~~~~~~~~~~~~'
-        print scanpoint
-        print '~~~~~~~~~~~~',2*delta_nll_data,alpha,good_toys,'IN' if alpha>0.05 else 'OUT'
+        if nfailed>0:
+            print 'WARNING',nfailed,'failed toy fits for scanpoint',scanpoint
+        print 'point', '2deltaNLL','alpha','ntoys'
+        print scanpoint,2*delta_nll_data,alpha,good_toys
+
+        RooMsgService.instance().restoreState()
         return toy_delta_nlls
         
     def deactivateIrrelevantThetas(self):

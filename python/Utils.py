@@ -1,4 +1,5 @@
-import math,re
+import math,re,os,stat
+from glob import glob
 
 #TODO: logger
 
@@ -17,11 +18,24 @@ def histoExists(f,h):
     f.Close()
     return res
 
-def saveToTree(results,outfile):
+def createOutFile(outname):
+    from ROOT import TFile
+    if not '/' in outname:
+        outname='results/'+outname
+    if not os.path.exists(outname):
+        os.makedirs(outname)
+    if os.path.exists(outname+'.root'): # and (force or Utils.ask("Outfile {0}.root already exists, update (u) or recreate (r)? You can also ctrl+c and set a different name with the -o flag.".format(outname),['u'],['r'])):        
+        f=TFile(outname+'.root','UPDATE')
+        print 'WARNING: updating',outname+'.root'
+    else:
+        f=TFile(outname+'.root','RECREATE')
+    return outname,f
+
+def saveToTree(results,outfile,name='tree'):
     from array import array
     from ROOT import TTree
     outfile.cd()
-    t=TTree('tree','tree')
+    t=TTree(name,name)
     arrays={}
     for r in results:
         arrays[r]=array( 'f', [ 0. ] )
@@ -31,8 +45,53 @@ def saveToTree(results,outfile):
             arrays[r][0]=results[r][i]
         t.Fill()
     t.Write()
-    
 
+def saveResultToTree(name,pois,result,toy_result,f):
+    res_dict={}
+    for ip,poi in enumerate(pois):
+        res_dict[poi]=[r[ip] for r in result]
+    res_dict['nll']=[r[-1] for r in result]
+    if not toy_result is None:
+        res_dict['pval']=[r[-2] for r in toy_result]
+        res_dict['pval_err']=[r[-1] for r in toy_result]
+    saveToTree(res_dict,f,'result_tree_'+name+'_'+'_'.join(pois))
+  
+def getResultFromFile(name,pois,resultsfiles):
+    from ROOT import TFile
+    for resultsfile in resultsfiles:
+        if not resultsfile.endswith('.root'):
+            raise Exception("Need rootfile input")
+    print 'getting results from',resultsfiles
+    result=[]
+    toy_result=[]
+    for fn in resultsfiles:
+        f=TFile(fn)
+        tree_name='result_tree_'+name+'_'+'_'.join(pois)
+        t=f.Get(tree_name)
+        if not 'pval' in [b.GetName() for b in t.GetListOfBranches()]:
+            toy_result=None
+        for e in t:
+            result.append(tuple([getattr(e,p) for p in pois])+(e.nll,))
+            if not toy_result is None:
+                toy_result.append(tuple([getattr(e,p) for p in pois])+(e.pval,e.pval_err))
+    return sorted(result),(sorted(toy_result) if not toy_result is None else None)
+
+def getFiles(files):
+    bad=False
+    for fn in files.split():
+        if not os.path.exists(fn):
+            bad=True
+            break
+    if not bad:
+        return files.split()
+    for fn in glob(files):
+        if not os.path.exists(fn):
+            raise Exception("Can't find files "+str(files))
+    return glob(files)
+
+def chmodX(fn):
+    st = os.stat(fn)
+    os.chmod(fn, st.st_mode | stat.S_IEXEC)
 
 def round2(number,digits=3):
     if number==0:
@@ -183,3 +242,6 @@ def isSymmetric(up,down,epsilon=1e-2):
         return False
     if abs(up/down+1)<epsilon:
         return True
+
+def runParallel(parallel_jobs,final_job):
+    pass

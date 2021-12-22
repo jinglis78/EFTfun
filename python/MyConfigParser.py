@@ -2,6 +2,7 @@ from ConfigParser import ConfigParser,SafeConfigParser
 from collections import OrderedDict
 import itertools,re
 import Utils
+import os
 
 class MyConfigParser(SafeConfigParser):
 
@@ -20,7 +21,11 @@ class MyConfigParser(SafeConfigParser):
         self.remove_section(section)
         return items
 
-def expandCfg(cfg_name,overrides):
+def expandCfg(cfg_name,overrides,static):
+    if static:
+        assert os.path.exists(cfg_name+'.exp')
+        assert len(overrides)==0
+        return cfg_name+'.exp'
     replacements={}
     for ovr in overrides:        
         section=ovr.split('=')[0].split('.')[0]
