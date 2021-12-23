@@ -17,24 +17,6 @@ def histoExists(f,h):
     f.Close()
     return res
 
-def setupLogging(outname,quiet):
-    pass
-
-
-def createOutFile(outname,quiet):
-    from ROOT import TFile
-    if not '/' in outname:
-        outname='results/'+outname
-    setupLogging(outname,quiet)
-    if not os.path.exists(outname):
-        os.makedirs(outname)
-    if os.path.exists(outname+'.root'): # and (force or Utils.ask("Outfile {0}.root already exists, update (u) or recreate (r)? You can also ctrl+c and set a different name with the -o flag.".format(outname),['u'],['r'])):        
-        f=TFile(outname+'.root','UPDATE')
-        logging.warning('updating '+outname+'.root')
-    else:
-        f=TFile(outname+'.root','RECREATE')
-    return outname,f
-
 def saveToTree(results,outfile,name='tree'):
     from array import array
     from ROOT import TTree

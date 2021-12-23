@@ -171,7 +171,7 @@ class Combination:
                 if s in unused_pars:
                     unused_pars.remove(s)
         for p in unused_pars:
-            logging.info('setting unused parameter',p,'constant')
+            logging.info('setting unused parameter '+p+' constant')
             theory.getCoeff(p).setConstant()
             
         
@@ -403,7 +403,7 @@ class Combination:
 
     def doToys(self,scanpoint,pois,ntoys,delta_nll_data):
         RooMsgService.instance().saveState()
-        RooMsgService.instance().setGlobalKillBelow(RooFit.WARNING)
+        RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
         #for istream in range(RooMsgService.instance().numStreams()):
         #    RooMsgService.instance().deleteStream(istream)
 
@@ -413,9 +413,6 @@ class Combination:
         nworse=0
         nfailed=0
         stopped=False
-        #        message_lvl=RooHelpers.LocalChangeMessageLevel()
-
-        #RooMsgService.instance().addStream(RooFit.WARNING,RooFit.OutputFile('/tmp/roofit.log'))
         for it in range(2*ntoys):
             for p,val in zip(pois,scanpoint):
                 p.setVal(val)
@@ -423,11 +420,15 @@ class Combination:
             toy=toys.get(it)
             toy_dataset=RooDataSet('toy_dataset_{}'.format(it),'toy_dataset_{}'.format(it),toy)
             toy_dataset.add(toy)
-            res_toy=self.pdf.fitTo(toy_dataset,RooFit.Save(True),RooFit.PrintLevel(-1),RooFit.Optimize(False),RooFit.Verbose(False),RooFit.Warnings(False))
-            if res_toy.status()!=0:
-                nfailed+=1
-                continue
-            this_min_toy=res_toy.minNll()
+            if self.theory.isConstant():
+                this_nll=self.pdf.createNLL(toy_dataset,RooFit.Verbose(False))
+                this_min_toy=this_nll.getVal()
+            else:
+                res_toy=self.pdf.fitTo(toy_dataset,RooFit.Save(True),RooFit.PrintLevel(-1),RooFit.Optimize(False),RooFit.Verbose(False),RooFit.Warnings(False))
+                if res_toy.status()!=0:
+                    nfailed+=1
+                    continue
+                this_min_toy=res_toy.minNll()
             for p in pois:
                 p.setConstant(False)
             global_res_toy=self.pdf.fitTo(toy_dataset,RooFit.Save(True),RooFit.PrintLevel(-1),RooFit.Optimize(False),RooFit.Verbose(False),RooFit.Warnings(False))
@@ -674,7 +675,7 @@ class Combination:
         return h,hcov
         
             
-    def pulls(self,thetas=True,pois=True,skipMCstat=True):
+    def pulls(self,thetas=True,pois=True,skipMCstat=False):
         pulls={}
         logging.info('Minimizing for pulls')
         self.minimize(strategy=2,minos=True)
@@ -696,6 +697,31 @@ class Combination:
             lo=float_pars[ipar].getAsymErrorLo()            
             pulls[name]=(val,lo,hi)
         return pulls
+
+    def impacts(self,pois,skipMCstat=False):
+        assert len(pois)==1
+        poi=pois[0]
+        pulls=self.pulls(True,True,skipMCstat=False)
+        impacts={}
+        best_fit=pulls[poi][0]
+        for p in pulls:
+            if p==poi:
+                continue
+            impact=[]
+            for direction in 1,2:
+                self.theory.setConstant(p,pulls[p][0]+pulls[p][direction])
+                for pother in pulls:
+                    if pother==p:
+                        continue
+                    self.theory.setVal(pother,pulls[pother][0])
+                self.minimize()
+                impact.append(self.theory.getVal(poi)-best_fit)
+                self.theory.setFloating(p)
+            impacts[p]=tuple(impact)
+        for p in impacts:
+            print p,impacts[p]
+
+        return pulls,impacts
 
     def pullEach(self,pois=True,thetas=False,skipMCstat=True):
         pulls={}

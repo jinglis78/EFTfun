@@ -213,4 +213,8 @@ class Theory:
             self.addCoeff(cnew)
         self.mapping=mapping
 
-
+    def isConstant(self):
+        for c in self.coeffs + self.thetas:
+            if not c.isConstant():
+                return False
+        return True

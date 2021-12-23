@@ -3,12 +3,7 @@ import sys
 sys.path.insert(0, '../python')
 sys.path.insert(0, 'python')
 import MyConfigParser
-from Measurement import Measurement
-from Theory import Theory
-from Prediction import Prediction
-from Combination import Combination
 from ROOT import TFile,RooWorkspace,gROOT,TCanvas,RooFit,RooMsgService
-import Utils,Plotting,Multicore
 from optparse import OptionParser
 import re,os,time,math
 from subprocess import call
@@ -111,7 +106,7 @@ def main():
     elif  options.outname==None:
         parser.print_help()
         logging.warning('need outname')
-    elif (options.method=='scan' or options.method=='profilelikelihood' ) and options.poi==None:
+    elif (options.method=='scan' or options.method=='profilelikelihood' or options.method=='impacts' ) and options.poi==None:
         parser.print_help()
         logging.warning('need poi')
     else:
@@ -120,14 +115,29 @@ def main():
 
 def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,set_initial,quiet,write_more,force,override,measurements_included,repara,groups,robust,offset,implicitscan,conts1d,njobs,cluster,first,last,parallel_job):
 
-    outname,f = Utils.createOutFile(outname,quiet)
+    if not '/' in outname:
+        outname='results/'+outname
+    if not os.path.exists(outname):
+        os.makedirs(outname)
+
+    logging.basicConfig(format='%(levelname)s:%(message)s',level=logging.INFO,filename=outname+'/log')
     if quiet:
-        logging.basicConfig(format='%(levelname)s:%(message)s',level=logging.INFO,filename=outname+'/log')
-    else:
-        logging.basicConfig(format='%(levelname)s:%(message)s',level=logging.INFO)
-    if quiet:
-        #TODO: redirect to logfile
         RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
+    else:
+        logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+        
+    if os.path.exists(outname+'.root'): # and (force or Utils.ask("Outfile {0}.root already exists, update (u) or recreate (r)? You can also ctrl+c and set a different name with the -o flag.".format(outname),['u'],['r'])):        
+        f=TFile(outname+'.root','UPDATE')
+        logging.warning('updating '+outname+'.root')
+    else:
+        f=TFile(outname+'.root','RECREATE')
+
+    #importing here so logging is set up...
+    import Utils,Plotting,Multicore
+    from Measurement import Measurement
+    from Theory import Theory
+    from Prediction import Prediction
+    from Combination import Combination
     
     logging.info('--------------------------------------')
     logging.info('running fit with following parameters:')
@@ -173,7 +183,8 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
     njobs=int(njobs)
     parallel=(not cluster is None or njobs>1)
     if parallel and not (method=='scan' or method=='parallel'):
-        logging.info('parallel running only supported for "scan" method')
+        logging.warning('parallel running only supported for "scan" method, reset to single core')
+        parallel=False
         njobs=1
         cluster=None
         
@@ -618,6 +629,8 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         Plotting.canvasPulls('c_bestfit_all',theory.getCoeffNames(),pulls,outfile=f,outfolder=outname,pois=True,rescale=True)
         Plotting.canvasPulls('c_bestfit_each',theory.getCoeffNames(),pullsEach,outfile=f,outfolder=outname,pois=True,rescale=True)
             
+    elif method=='impacts':
+        pulls,impacts=combination.impacts(pois)
 
     elif method=='profilelikelihood':
         limit=combination.calcProfileLikelihood(pois)

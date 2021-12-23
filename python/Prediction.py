@@ -342,8 +342,10 @@ class Prediction:
         for c in coeff_names:
             if not c in self.coeff_names:
                 self.coeff_names+=[c]
-        assert len(coeff_names) == power
-        assert len(effect)==self.nbins
+        if len(coeff_names) != power:
+            raise Exception('linear/quadratic effects need 1/2 coefficients')
+        if len(effect)!=self.nbins:
+            raise Exception('Effect of {} has wrong number of bins'.format(','.join(coeff_names)))
         assert len(uncertainty)==self.nbins
         actual_effect=[]
         for x,u in zip(effect,uncertainty):
