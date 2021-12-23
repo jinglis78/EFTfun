@@ -1,7 +1,6 @@
 import math,re,os
 from glob import glob
-
-#TODO: logger
+import logging
 
 def isFile(data):
     if data.split(':')[0].lower().endswith('.root') or data.split(':')[0].lower().endswith('.yoda'):
@@ -18,15 +17,20 @@ def histoExists(f,h):
     f.Close()
     return res
 
-def createOutFile(outname):
+def setupLogging(outname,quiet):
+    pass
+
+
+def createOutFile(outname,quiet):
     from ROOT import TFile
     if not '/' in outname:
         outname='results/'+outname
+    setupLogging(outname,quiet)
     if not os.path.exists(outname):
         os.makedirs(outname)
     if os.path.exists(outname+'.root'): # and (force or Utils.ask("Outfile {0}.root already exists, update (u) or recreate (r)? You can also ctrl+c and set a different name with the -o flag.".format(outname),['u'],['r'])):        
         f=TFile(outname+'.root','UPDATE')
-        print 'WARNING: updating',outname+'.root'
+        logging.warning('updating '+outname+'.root')
     else:
         f=TFile(outname+'.root','RECREATE')
     return outname,f
@@ -61,7 +65,7 @@ def getResultFromFile(name,pois,resultsfiles):
     for resultsfile in resultsfiles:
         if not resultsfile.endswith('.root'):
             raise Exception("Need rootfile input")
-    print 'getting results from',resultsfiles
+    logging.info('getting results from '+str(resultsfiles))
     result=[]
     toy_result=[]
     for fn in resultsfiles:
@@ -160,7 +164,7 @@ def readRoot(filename,histoname,per_bin_width):
     f=ROOT.TFile(filename)
     histo=f.Get(histoname)
     if not isinstance(histo,ROOT.TH1):
-        print ("WARNING: Did not find histogram "+histoname+" in file "+filename)
+        logging.warning("Did not find histogram "+histoname+" in file "+filename)
         return None
     if per_bin_width:
         contents=[histo.GetBinContent(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]

@@ -7,13 +7,13 @@ from Measurement import Measurement
 from Theory import Theory
 from Prediction import Prediction
 from Combination import Combination
-from ROOT import TFile,RooWorkspace,gROOT,TCanvas
+from ROOT import TFile,RooWorkspace,gROOT,TCanvas,RooFit,RooMsgService
 import Utils,Plotting,Multicore
 from optparse import OptionParser
 import re,os,time,math
 from subprocess import call
 from glob import glob
-import os
+import logging
 gROOT.SetBatch(True)
 
 def main():    
@@ -103,53 +103,66 @@ def main():
     options,args=parser.parse_args()
 
     if  options.method==None:
-        print 'need method'
         parser.print_help()
+        logging.warning('need method')
     elif  options.config==None:
-        print 'need config'
         parser.print_help()
+        logging.warning('need config or input files')
+    elif  options.outname==None:
+        parser.print_help()
+        logging.warning('need outname')
     elif (options.method=='scan' or options.method=='profilelikelihood' ) and options.poi==None:
-        print 'need poi'
         parser.print_help()
+        logging.warning('need poi')
     else:
         fit(options,options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.set_initial,options.quiet,options.write_more,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan,options.conts1d,options.njobs,options.cluster,options.first,options.last,options.parallel_job)
 
 
 def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,set_initial,quiet,write_more,force,override,measurements_included,repara,groups,robust,offset,implicitscan,conts1d,njobs,cluster,first,last,parallel_job):
-    if not quiet:
-        print '--------------------------------------'
-        print 'running fit with following parameters:'
-        print 'config',config
-        print 'outname',outname
-        print 'poi',poi
-        print 'scanrange',scanrange
-        print 'nsteps',nsteps
-        print 'ntoys',ntoys
-        print 'asimov',asimov
-        print 'linear',linear
-        print 'quad',quad
-        print 'deactivate_uncertainties',deactivate_uncertainties
-        print 'constant',constant
-        print 'set_initial',set_initial
-        print 'quiet',quiet
-        print 'write_more',write_more
-        print 'override',override
-        print 'measurements',measurements_included
-        print 'repara',repara
-        print 'groups',groups
-        print 'robust',robust
-        print 'offset',offset
-        print 'implicitscan',implicitscan
-        print 'conts1d',conts1d
-        print 'njobs',njobs
-        print 'cluster',cluster
-        print 'first',first
-        print 'last',last
-        print 'parallel_job',parallel_job
-        print '--------------------------------------'
 
-    verbose=not quiet
+    outname,f = Utils.createOutFile(outname,quiet)
+    if quiet:
+        logging.basicConfig(format='%(levelname)s:%(message)s',level=logging.INFO,filename=outname+'/log')
+    else:
+        logging.basicConfig(format='%(levelname)s:%(message)s',level=logging.INFO)
+    if quiet:
+        #TODO: redirect to logfile
+        RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
+    
+    logging.info('--------------------------------------')
+    logging.info('running fit with following parameters:')
+    logging.info('config '+str(config))
+    logging.info('outname '+str(outname))
+    logging.info('poi '+str(poi))
+    logging.info('scanrange '+str(scanrange))
+    logging.info('nsteps '+str(nsteps))
+    logging.info('ntoys '+str(ntoys))
+    logging.info('asimov '+str(asimov))
+    logging.info('linear '+str(linear))
+    logging.info('quad '+str(quad))
+    logging.info('deactivate_uncertainties '+str(deactivate_uncertainties))
+    logging.info('constant '+str(constant))
+    logging.info('set_initial '+str(set_initial))
+    logging.info('quiet '+str(quiet))
+    logging.info('write_more '+str(write_more))
+    logging.info('override '+str(override))
+    logging.info('measurements '+str(measurements_included))
+    logging.info('repara '+str(repara))
+    logging.info('groups '+str(groups))
+    logging.info('robust '+str(robust))
+    logging.info('offset '+str(offset))
+    logging.info('implicitscan '+str(implicitscan))
+    logging.info('conts1d '+str(conts1d))
+    logging.info('njobs '+str(njobs))
+    logging.info('cluster '+str(cluster))
+    logging.info('first '+str(first))
+    logging.info('last '+str(last))
+    logging.info('parallel_job '+str(parallel_job))
+    logging.info('--------------------------------------')
 
+    if quiet:
+        pass
+        
     if poi==None:
         pois=[]
     else:
@@ -160,7 +173,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
     njobs=int(njobs)
     parallel=(not cluster is None or njobs>1)
     if parallel and not (method=='scan' or method=='parallel'):
-        print 'parallel running only supported for "scan" method'
+        logging.info('parallel running only supported for "scan" method')
         njobs=1
         cluster=None
         
@@ -171,17 +184,17 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         jobs=Multicore.prepareScripts(outname,options,pois,njobs,nsteps)
         parallel_jobs=[]
         if method=='parallel':
-            print 'Now run the following scripts'
+            logging.info('Now run the following scripts')
         for j in jobs:
             if method=='parallel':
-                print j+'.sh'
+                logging.info(j+'.sh')
             else:
                 parallel_jobs.append(j+'.sh')
         if method=='parallel':
-            print 'Then plot results with'
-            print 'source',outname+'/plot.sh'
-        print 'Will setup model for testing only...'
-        print '------------------------------------------------'
+            logging.info('Then plot results with')
+            logging.info('source',outname+'/plot.sh')
+        logging.info('Will setup model for testing only...')
+        logging.info('------------------------------------------------')
         
     if not method=='collect':
         main_cfg_name=config
@@ -264,8 +277,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             blind=None
             if cfg.has_option('Measurement','blind'):
                 blind=[int(x) for x in cfg.getAndRm('Measurement','blind').split()]
-            if verbose:
-                print "creating prediction for", measurement_name
+            logging.info("creating prediction for "+measurement_name)
             prediction=Prediction(measurement_name,theory,per_bin_width=per_bin_width,binning=binning,blind=blind,binlabels=binlabels)
             assert prediction.name not in [p.name for p in predictions]
 
@@ -296,7 +308,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                         if name not in theory.getCoeffNames():
                             continue
                         if not prediction.setEffectFromCfg(1,name,effect):
-                            print "WARNING: Could not find linear effect for "+name+" and measurement "+measurement_name+" -- assuming it is zero"
+                            logging.warning("Could not find linear effect for "+name+" and measurement "+measurement_name+" -- assuming it is zero")
 
             if cfg.has_section('Linear Corrections'):
                 if quad:
@@ -306,7 +318,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                         if name not in theory.getCoeffNames():
                             continue
                         if not prediction.setEffectFromCfg(1,name,effect,add=True):
-                            print "WARNING: Could not find linear correction for "+name+" and measurement "+measurement_name+" -- assuming it is zero"
+                            logging.warning("Could not find linear correction for "+name+" and measurement "+measurement_name+" -- assuming it is zero")
 
             if cfg.has_section('Quadratic Effects'):
                 if linear:
@@ -325,7 +337,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                             continue
                         reverse=name.split()[1]+' '+name.split()[0]
                         if not name in names_set and not reverse in names_set:
-                            print "WARNING: Could not find quadratic effect for "+name+" or "+reverse+" and measurement "+measurement_name+" -- assuming it is zero"
+                            logging.warning("Could not find quadratic effect for "+name+" or "+reverse+" and measurement "+measurement_name+" -- assuming it is zero")
             if cfg.has_section('Prediction Uncertainties'):
                 for theo_syst_name,theo_syst in cfg.itemsAndRm('Prediction Uncertainties'):
                     prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst,reco_level=reco_level)
@@ -339,8 +351,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                         assert reco_level
                         prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)
 
-            if verbose:
-                print "creating measurement for", measurement_name
+            logging.info("creating measurement for "+measurement_name)
             measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory,blind=blind,binlabels=binlabels)
             assert not measurement.name in [m.name for m in measurements]
             if asimov:
@@ -357,10 +368,9 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             elif cfg.has_option('Measurement','correlation') and cfg.has_option('Measurement','correlated_uncertainty'):
                 measurement.setErrAndCorrFromCfg(cfg.getAndRm('Measurement','correlated_uncertainty'),cfg.getAndRm('Measurement','correlation'))
             elif not measurement.reco_level:
-                print 'WARNING: neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties'
+                logging.warning('neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties')
             if cfg.has_section('Measurement Uncertainties'):
-                if verbose:
-                    print "adding uncertainties for",measurement_name
+                logging.info("adding uncertainties for "+measurement_name)
                 for exp_syst_name,exp_syst in cfg.itemsAndRm('Measurement Uncertainties'):
                     measurement.addUncertaintyFromCfg(exp_syst_name,exp_syst)
 
@@ -377,7 +387,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                 prediction.rebin(combinebins)
 
             if method=='pca':
-                print 'Modify model for PCA: add extra scaling factors'
+                logging.info('Modify model for PCA: add extra scaling factors')
                 scaling=[]
                 for i in range(prediction.nbins):
                     s='mu_{}_{}'.format(prediction.name,i)
@@ -393,44 +403,39 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             theory.rePara(cs_new,c_mapping)
             for p in predictions:
                 p.rePara(cs_new,c_mapping)
-        if verbose:
-            print 'Ingredients ------------------------------------------------'
-            for measurement,prediction in zip(measurements,predictions):
-                print 'Measurement:',measurement.name
-                print
-                print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])
-                print
-                if measurement.binlabels and isinstance(measurement.binlabels[0],str):
-                    print "Labels: "+' '.join(measurement.binlabels)
-                    print
-                if measurement.getMeasurementCorrectionString()!=None:
-                    print 'Measurement correction formulas:'
-                    for i,s in enumerate(measurement.getMeasurementCorrectionString()):
-                        print
-                        print 'bin {}:'.format(i)
-                        print s.replace(')+',')\n+').replace('))','))\n')
-                if not measurement.reco_level:
-                    print 'Uncertainty (excluding nuisance parameters):', ' '.join(["{:.2f}% ".format(100.*x) for x in measurement.getRelErr()])
-                    print
-                    print 'Correlation matrix:'
-                    measurement.getCorr().Print()
+        logging.info('Ingredients ------------------------------------------------')
+        for measurement,prediction in zip(measurements,predictions):
+            logging.info('Measurement: '+measurement.name)
+            logging.info('')
+            logging.info('Measured: '+' '.join([str(x.getVal()) for x in measurement.central_values]))
+            logging.info('')
+            if measurement.binlabels and isinstance(measurement.binlabels[0],str):
+                logging.info("Labels: "+' '.join(measurement.binlabels))
+                logging.info('')
+            if measurement.getMeasurementCorrectionString()!=None:
+                logging.info('Measurement correction formulas:')
+                for i,s in enumerate(measurement.getMeasurementCorrectionString()):
+                    logging.info('')
+                    logging.info('bin {}:'.format(i))
+                    logging.info(s.replace(')+',')\n+').replace('))','))\n'))
+            if not measurement.reco_level:
+                logging.info('Uncertainty (excluding nuisance parameters): '+' '.join(["{:.2f}% ".format(100.*x) for x in measurement.getRelErr()]))
+                logging.info('')
+                logging.info('Correlation matrix:')
+                measurement.getCorr().Print()
 
-                print 'Prediction formulas:'
-                for i,s in enumerate(prediction.getPredictionStrings()):
-                    print
-                    print 'bin {}:'.format(i)
-                    print s.replace(')+',')\n+').replace('))','))\n')
-                print
-                print '------------------------------------------------'
+            logging.info('Prediction formulas:')
+            for i,s in enumerate(prediction.getPredictionStrings()):
+                logging.info('')
+                logging.info('bin {}:'.format(i))
+                logging.info(s.replace(')+',')\n+').replace('))','))\n'))
+            logging.info('')
+            logging.info('------------------------------------------------')
         if method=='parallel':
             return
         main_name=main_cfg.getAndRm('General','name')        
 
-        if not parallel:
-            if outname==None:
-                outname=main_name
-            outname,f=Utils.createOutFile(outname)
-        combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=verbose,robust=robust) 
+        combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=(not quiet),robust=robust) 
         theory.setConstantFromCfg(constant,pois)
         theory.deactivateUncertainties(deactivate_uncertainties)
         if set_initial!=None:
@@ -444,7 +449,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                 raise Exception('Unused option '+','.join(main_cfg.options(s))+' in section '+s)
 
 
-        if not force:
+        if not force and not quiet:
             raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
 
     start_time = time.time()
@@ -473,7 +478,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         if write_more:
             extra_outfile=f
             if collect:
-                print 'cannot collect extra info'
+                logging.warning('Cannot (yet) collect extra info')
                 extra_outfile=None
         #TODO: remove old function
         if not collect and len(pois)==1 and int(ntoys)<=0 and int(first)<0 and int(last)<0:
@@ -487,7 +492,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             else:
                 profs=[]
                 impl_par,impl_n,impl_min,impl_max=implicitscan.split(':')
-                print 'repeating scan with',impl_par,'set from',impl_min,'to',impl_max,'in',impl_n,'steps'
+                logging.info(' '.join(['repeating scan with',impl_par,'set from',impl_min,'to',impl_max,'in',impl_n,'steps']))
                 for impl_x in [float(impl_min)+float(x)*(float(impl_max)-float(impl_min))/(int(impl_n)-1) for x in range(int(impl_n))]:
                     theory.setConstant(impl_par,impl_x)
                     theory.setInitialVal(impl_par,impl_x)
@@ -525,7 +530,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     raise Exception("implicit scan and toys is too much for me...")
                 profs=[]
                 impl_par,impl_n,impl_min,impl_max=implicitscan.split(':')
-                print 'repeating scan with',impl_par,'set from',impl_min,'to',impl_max,'in',impl_n,'steps'
+                logging.info(' '.join('repeating scan with',impl_par,'set from',impl_min,'to',impl_max,'in',impl_n,'steps'))
                 for impl_x in [float(impl_min)+float(x)*(float(impl_max)-float(impl_min))/(int(impl_n)-1) for x in range(int(impl_n))]:
                     theory.setConstant(impl_par,impl_x)
                     theory.setInitialVal(impl_par,impl_x)
@@ -541,7 +546,6 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                 prof=sorted([x[:-1]+((x[-1]-total_min),) for x in prof])
                 toy_limit=None
             elif collect:
-                outname,f = Utils.createOutFile(outname)
                 if method=='collect':
                     resultsfiles=Utils.getFiles(config)
                 else:
@@ -572,8 +576,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     Plotting.graphToys2D('g_toyProb_'+'_'.join(pois),toy_limit,f)
                     Plotting.canvasProfile2D('c_prob_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d,toy_result=toy_limit,isNLL=False,ztitle='p value')
     elif method=='fit':
-        if verbose:
-            print 'doing fit'
+        logging.info('doing fit')
         data_histos_prefit=[]
         pred_histos_prefit=[]
         for p,m in zip(predictions,measurements):
@@ -601,15 +604,15 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
     elif method=='pulls':
         pulls=combination.pulls()
         pullsEach=combination.pullEach()
-        print 'Results when floating all (MINOS errors)'
+        logging.info('Results when floating all (MINOS errors)')
         for t in theory.coeffs+theory.thetas:
             if t.GetName() in pulls:
-                print '{} = {}_{{ {} }}^{{ {} }}'.format(t.GetName(),*[ Utils.round2(p) for p in pulls[t.GetName()]])
+                logging.info('{} = {}_{{ {} }}^{{ {} }}'.format(t.GetName(),*[ Utils.round2(p) for p in pulls[t.GetName()]]))
         if len(pullsEach)>0:
-            print 'Results when setting all but one poi to zero (MINOS errors)'
+            logging.info('Results when setting all but one poi to zero (MINOS errors)')
         for t in theory.coeffs:
             if t.GetName() in pullsEach:
-                print '{} = {}_{{ {} }}^{{ {} }}'.format(t.GetName(),*[ Utils.round2(p) for p in pullsEach[t.GetName()]])
+                logging.info('{} = {}_{{ {} }}^{{ {} }}'.format(t.GetName(),*[ Utils.round2(p) for p in pullsEach[t.GetName()]]))
 
         Plotting.canvasPulls('c_pulls',theory.getThetaNames(),pulls,outfile=f,outfolder=outname)
         Plotting.canvasPulls('c_bestfit_all',theory.getCoeffNames(),pulls,outfile=f,outfolder=outname,pois=True,rescale=True)
@@ -638,7 +641,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
     
     f.Close()
 
-    print 'Method took',time.time() - start_time,'seconds'
+    logging.info('Method took {} seconds'.format(time.time() - start_time))
     
 if __name__== "__main__":
     main()

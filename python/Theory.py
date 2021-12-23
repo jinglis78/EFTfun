@@ -1,6 +1,7 @@
 from ROOT import RooRealVar,RooFit,RooArgList
 import re
 import Utils
+import logging
 
 class Theory:
     def __init__(self,default_range=(-1e3,1e3),theta_range=(-4,4),stat_unc_threshold=0.3):
@@ -75,7 +76,7 @@ class Theory:
         else:
             for c in self.coeffs+self.thetas:
                 if c.GetName() == coeff:
-                    print 'setting',coeff,'constant to',value 
+                    logging.info('setting {} constant to {}'.format(coeff,value) )
                     c.setVal(value)
                     c.setConstant()
                     return
@@ -91,7 +92,7 @@ class Theory:
         else:
             for c in self.coeffs+self.thetas:
                 if c.GetName() == coeff:
-                    print 'setting',coeff,'floating'
+                    logging.info('setting '+coeff+' floating')
                     c.setConstant(False)
                     for theta in self.thetas:
                         if re.match(self.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):
@@ -112,7 +113,7 @@ class Theory:
             return
         for theta in self.thetas:
             if pattern=='all' or re.match(pattern,theta.GetName()):
-                print 'deactivating uncertainty',theta.GetName()
+                logging.info('deactivating uncertainty '+theta.GetName())
                 theta.setVal(0.)
                 theta.setConstant(True)
 
@@ -185,7 +186,7 @@ class Theory:
     def setInitialVal(self,par_name,val):
         self.setVal(par_name,val)
         self.initial_vals[par_name]=val
-        print 'setting initival val for',par_name,'to',val
+        logging.info('setting initival val for {} to {}'.format(par_name,val))
     
 
     def makeMCstatName(self,name,coeff_names,iBin):
@@ -196,19 +197,19 @@ class Theory:
 
     def dumpPars(self):
         for c in self.coeffs:
-            print c.GetName(),c.getVal(),c.isConstant()
+            logging.info(' '.join([c.GetName(),str(c.getVal()),str(c.isConstant())]))
         for c in self.thetas:
-            print c.GetName(),c.getVal(),c.isConstant()
+            logging.info(' '.join([c.GetName(),str(c.getVal()),str(c.isConstant())]))
 
     def rePara(self,cs_new,mapping):
-        print 'reparametrizing:'
-        print 'Note: parameter range will be:',self.default_range
+        logging.info('reparametrizing:')
+        logging.info('Note: parameter range will be: '+str(self.default_range))
         cs_old=self.getCoeffNames()
         self.coeffs=[]
         for cnew in cs_new:
             if cnew in cs_old:
                 raise Exception('Need new parameter name for '+cnew)
-            print cnew,'=',mapping[cnew]
+            logging.info(cnew+' = '+mapping[cnew])
             self.addCoeff(cnew)
         self.mapping=mapping
 

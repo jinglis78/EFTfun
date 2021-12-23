@@ -3,6 +3,7 @@ from array import array
 import Utils
 import Uncertainty
 import re
+import logging
 
 class Measurement:
     def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None,blind=None,binlabels=None):
@@ -96,7 +97,7 @@ class Measurement:
                 self.covMatrix[i,j]=cov[i][j]
                 if i==j and cov[i][j]==0:
                     self.covMatrix[i,j]=1
-                    print "Warning, covariance matrix element 0"
+                    logging.warning("covariance matrix element 0")
     def setMeasuredFromCfg(self,alldata):
         fromFile=False
         for e in ['.yoda','.yaml','.root']:
@@ -237,7 +238,7 @@ class Measurement:
             
     def addUncertainty(self,uncertainty):
         if uncertainty==None:
-            print 'WARNING: empty uncertainty (likely not found in histo file)'
+            logging.warning('empty uncertainty (likely not found in histo file)')
             return
 
         assert uncertainty.nbins==self.nbins
@@ -417,7 +418,7 @@ class Measurement:
         self.binlabels=None
         self.blind=[1 if b!=0 else 0 for b in Utils.mergeBins(self.blind,combine)]
         self.binning=None
-        print 'WARNING Rebinning: binlabels, blinding, and bin boundaries currently not properly updated'
+        logging.warning('Rebinning: binlabels, blinding, and bin boundaries currently not properly updated')
 
         if not self.covMatrix is None:
             cov_np=[]

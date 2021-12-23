@@ -1,5 +1,6 @@
 from ROOT import TMatrixDSym
 import Utils
+import logging
 
 def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per_bin_width=True,isBkgUnc=False):
     if '{' in name:
@@ -93,15 +94,15 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
             raise Exception('Uncertainty needs to have option rel or abs')
         if renorm==True:
             if reference.normhisto==None:
-                print 'WARNING: cannot use option "renorm", no histogram given to renorm prediction'
+                logging.warning('cannot use option "renorm", no histogram given to renorm prediction')
             else:
                 releffect=[(e[0]*s/n,e[1]*s/n) for s,e,n in zip(reference.getNominal(),effect,reference.normhisto)]
         return createUncertainty(reference,thetaname,releffect=releffect,affected=affected,interpol=interpol,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym)
 
     if isrel!=None:
-        print 'WARNING: abs/rel wont have an effect on uncertainties from hepdata'
+        logging.warning('abs/rel wont have an effect on uncertainties from hepdata')
     if renorm!=None:
-        print 'WARNING: renorm/keepnorm wont have an effect on uncertainties from hepdata'
+        logging.warning('renorm/keepnorm wont have an effect on uncertainties from hepdata')
     return createUncertaintyFromYaml(reference,thetaname,data,affected=affected,interpol=interpol,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip)
 
 
@@ -120,7 +121,7 @@ def createUncertaintyFromYaml(reference,name,data,affected,interpol,uncorr,with_
     
 def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False,with_nuis_par=False,already_in_cov=False,is_bkg_unc=False,flip=False,sym=False,per_bin_width=True,isBkgUnc=False,isrel=False):
     if not Utils.histoExists(down_filename,down_histoname) and not Utils.histoExists(up_filename,up_histoname): 
-        print 'WARNING: did not find uncertainty in file:',':'.join([str(down_filename),str(down_histoname)]),'or',':'.join([str(up_filename),str(up_histoname)]),'skipping uncertainty...'
+        logging.warning('did not find uncertainty in file:',':'.join([str(down_filename),str(down_histoname)]),'or',':'.join([str(up_filename),str(up_histoname)]),'skipping uncertainty...')
         return
     assert down_filename!=None or up_filename!=None
     if not affected=='all' and not len(affected)==1:
@@ -295,10 +296,10 @@ class Uncertainty:
 
     def getCov(self,nominal,incl_np):
         if self.with_nuis_par and not incl_np:
-            print "WARNING: this uncertainty should be handled with a nuisance parameter:",self.name
+            logging.warning("this uncertainty should be handled with a nuisance parameter:",self.name)
             return TMatrixDSym(self.nbins)
         if self.interpol=='exp' and not incl_np:
-            print "WARNING: exponential interpolation wont affect covariance matrix of uncertainty",self.name
+            logging.warning("exponential interpolation wont affect covariance matrix of uncertainty",self.name)
         cov = TMatrixDSym(self.nbins)
         effect=self.getEffectSym(nominal)
         if self.uncorr:

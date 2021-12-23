@@ -3,10 +3,11 @@ from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculat
 import itertools,re,math
 import Utils
 
-import contextlib
 import io
 import sys
 import os, stat
+import logging
+#logger=logging.getLogger(__name__)
 
 class Combination:
     def __init__(self, theory=None, predictions=None,measurements=None,name='test',verbose=True,correlated_measurements=[],robust=1):
@@ -30,17 +31,17 @@ class Combination:
             if det<=1e-200:
                 raise Exception("Covariance degenerate")
             while det>10e20 or det==float('+inf'):
-                print 'Huge covariance matrix determinant (',m.name,':',det,') rescaling measurement and prediction by 0.1'
+                logging.info('Huge covariance matrix determinant (',m.name,':',det,') rescaling measurement and prediction by 0.1')
                 p.scale(0.1)
                 m.scale(0.1)
                 det=m.getCov(redo=True).Determinant()
-                print 'New determinant:', det
+                logging.info('New determinant:', det)
             while det<10e-20:
-                print 'Tiny covariance matrix determinant (',m.name,':',det,') rescaling measurement and prediction by 10'
+                logging.info('Tiny covariance matrix determinant (',m.name,':',det,') rescaling measurement and prediction by 10')
                 p.scale(10)
                 m.scale(10)
                 det=m.getCov(redo=True).Determinant()
-                print 'New determinant:', det
+                logging.info('New determinant:', det)
 
 
         self.mvgaussians=[]
@@ -50,7 +51,7 @@ class Combination:
         for prediction,measurement in zip(predictions,measurements):
             if measurement.reco_level:
                 if measurement.name in correlated_measurements:
-                    print 'Warning:',measurement.name,'is in correlated_measurements but this has no effect on reco level'
+                    logging.warning(measurement.name+' is in correlated_measurements but this has no effect on reco level')
                 for ibin,(p,n) in enumerate(zip(prediction.getPredictionFormulas(),measurement.central_values)):
                     self.data.add(n)
                     self.poissons+=[RooPoisson(measurement.name+"_bin"+str(ibin)+"_poisson",measurement.name+"_bin"+str(ibin)+"_poisson",n,p,True)]
@@ -69,9 +70,9 @@ class Combination:
                 self.mvgaussians+=[RooMultiVarGaussian(measurement.name+"_mvgaussian",measurement.name+"_mvgaussian", xVec, muVec,measurement.getCov())]
 
         if len(correlated_measurements)>0:
-            print 'combining covariance matrices of:'
+            logging.info('combining covariance matrices of:')
             for m in measurements:
-                print "{} ({} bins)".format(m.name,m.nbins)
+                logging.info("{} ({} bins)".format(m.name,m.nbins))
             combined_muVec=RooArgList()
             combined_xVec=RooArgList()
             combined_nbins=sum([m.nbins for m in measurements if m.name in correlated_measurements])
@@ -118,8 +119,8 @@ class Combination:
 
             for uname in correlated_uncertainties:
                 u=correlated_uncertainties[uname]
-                print "adding correlated uncertainty",uname
-                print [x/n if n!=0 else 0 for x,n in zip(u,combined_measured)]
+                logging.info("adding correlated uncertainty",uname)
+                logging.info([x/n if n!=0 else 0 for x,n in zip(u,combined_measured)])
                 for i in range(combined_nbins):
                     for j in range(combined_nbins):
                         combined_cov[i,j]=combined_cov[i][j]+u[i]*u[j]
@@ -129,7 +130,7 @@ class Combination:
                 for j in range(combined_nbins):
                     combined_corr[i,j]=combined_cov[i][j]/(combined_cov[i][i]*combined_cov[j][j])**0.5
 #            mdraw=TH2D(combined_corr)
-#            print combined_corr
+#            logging.info(combined_corr)
 #            c=TCanvas()
 #            mdraw.Draw('COLZ')
 #            c.SaveAs('fullcorr.root')
@@ -170,7 +171,7 @@ class Combination:
                 if s in unused_pars:
                     unused_pars.remove(s)
         for p in unused_pars:
-            print 'setting unused parameter',p,'constant'
+            logging.info('setting unused parameter',p,'constant')
             theory.getCoeff(p).setConstant()
             
         
@@ -201,7 +202,7 @@ class Combination:
                         actual_scan_range=(scan_range*float_pars[i].getAsymErrorLo()+float_pars[i].getVal(),scan_range*float_pars[i].getAsymErrorHi()+float_pars[i].getVal())
                
             else:
-                print 'using profilelikelihood method to determine scan range'
+                logging.info('using profilelikelihood method to determine scan range')
                 prof_range=self.calcProfileLikelihood([poi_name])
                 actual_scan_range=prof_range[0]*scan_range/2,prof_range[1]*scan_range/2
             poi.setConstant(poiIsConst)
@@ -217,7 +218,7 @@ class Combination:
 #            if i==nsteps/2-1:
             self.theory.reset()
             if 100*i_step/nsteps>=percent:
-                print percent,'%'
+                logging.info(str(percent)+' %')
                 percent+=10
             val=actual_scan_range[0]+step*i
             poi.setVal(val)
@@ -263,7 +264,7 @@ class Combination:
             poi.setConstant(poiIsConst)
             result =[(r[0],r[1]-minNLL) for r in result]
         if nretry<self.maxreprofile and min(x[1] for x in result)<-0.01:
-            print 'found better minimum, redoing scan with this starting point'            
+            logging.info('found better minimum, redoing scan with this starting point'            )
             y0=999
             for x in result:
                 if x[1]<y0:
@@ -339,17 +340,17 @@ class Combination:
         else:
             npoints=last-first
         if not inclOffset or ntoys>0:
-            print 'unconditional fit first'
+            logging.info('unconditional fit first')
             for poi in pois:
                 poi.setConstant(False)
             global_minNLL=self.minimize(print_level=print_level,strategy=2)
 
-        print 'scanning',npoints,'points'
+        logging.info('scanning '+str(npoints)+' points')
         percent=0
         toy_results=[]
         for ipoint,gridpoint in enumerate(grid[first:last]):
             if 100*ipoint/npoints>=percent:
-                print percent,'%'
+                logging.info(str(percent)+' %')
                 percent+=10
             poiIsConst=[]
             for poi,val in zip(pois,gridpoint):
@@ -461,9 +462,9 @@ class Combination:
         else:
             alpha=None
         if nfailed>0:
-            print 'WARNING',nfailed,'failed toy fits for scanpoint',scanpoint
-        print 'point', '2deltaNLL','alpha','ntoys'
-        print scanpoint,2*delta_nll_data,alpha,good_toys
+            logging.warning('{} failed toy fits for scanpoint {}'.format(nfailed,scanpoint))
+        logging.info('point,2deltaNLL,alpha,ntoys')
+        logging.info(','.join([str(s) for s in [scanpoint,2*delta_nll_data,alpha,good_toys]]))
 
         RooMsgService.instance().restoreState()
         return toy_delta_nlls
@@ -506,32 +507,32 @@ class Combination:
         if nan:
             'something is nan, this is bad, how did we get here???'
             self.theory.dumpPars()
-            print 'nll:',self.nll.getVal()
-            print 'setting everything to zero, hope that helps...'
+            logging.info('nll: '+str(self.nll.getVal()))
+            logging.info('setting everything to zero, hope that helps...')
             for c in self.theory.getNonConstCoeffs():
                 c.setVal(0.)
             return None
 
-        #print 'doing Migrad'
+        #logging.info('doing Migrad')
         self.minimizer.migrad()
         if self.robust==2:
             res=self.getFitResult()
             if (res.status()!=0 or res.covQual()!=3):
-                #print 'doing Simplex'
+                #logging.info('doing Simplex')
                 self.minimizer.simplex()
-                #print 'doing Migrad (2)'
+                #logging.info('doing Migrad (2)')
                 self.minimizer.migrad()
         if self.robust==3 or self.robust==4:
             res=self.getFitResult()
             bad=(res.status()!=0 or res.covQual()!=3 or tobeat is not None and self.nll.getVal()>tobeat[0])
             if nshuffle>0:
-                print 'new nll after shuffle',self.nll.getVal()
+                logging.info('new nll after shuffle',self.nll.getVal())
             if (bad and nshuffle<20) or self.robust==4 and nshuffle<5:
                 if nshuffle==0 and bad:
-                    print "WARNING: trouble finding good minimum"
+                    logging.warning("trouble finding good minimum")
                 #self.theory.dumpPars()
-                print 'nll:',self.nll.getVal()
-                print "Shuffling pars to obtain better min, attempt",nshuffle+1
+                logging.info('nll:',self.nll.getVal())
+                logging.info("Shuffling pars to obtain better min, attempt "+str(nshuffle+1))
                 if tobeat is not None and not self.nll.getVal()<tobeat[0]:
                     for x in tobeat[1]:
                         self.theory.setVal(x,tobeat[1][x])
@@ -543,18 +544,18 @@ class Combination:
                     self.minimizer.migrad()
             
         if hesse:
-            #print 'doing Hesse'
+            #logging.info('doing Hesse')
             self.minimizer.hesse()
 
         if minos:
-            #print 'doing Minos'
+            #logging.info('doing Minos')
             self.minimizer.minos()
         for d in deactivated:
             d.setVal(deactivated[d])
         return self.nll.getVal()
 
     def shuffle(self,seed):
-        #TODO: print result even if quiet
+        #TODO: logging.info(result even if quiet)
         rand=TRandom3(seed)
         oldpars={}
         newpars={}
@@ -574,7 +575,7 @@ class Combination:
             else:
                 step=step0/dnll**0.5
             x=rand.Exp(step)*(1-rand.Integer(2)*2)
-            #print c.GetName(),":",c.getVal(),'-->',c.getVal()+x
+            #logging.info(c.GetName(),":",c.getVal(),'-->',c.getVal()+x)
             newpars[c.GetName()]=c.getVal()+x
         for c in self.theory.getNonConstCoeffs():
             c.setVal(newpars[c.GetName()])
@@ -584,12 +585,12 @@ class Combination:
     #TODO: other interval calculators, CLs.
 
     def fit(self):
-        #TODO: print result even if quiet
+        #TODO: logging.info(result even if quiet)
         self.minimize(print_level=2,strategy=2,hesse=True)
         
     def calcProfileLikelihood(self,poi_names):
         if len(poi_names)>1:
-            print 'can only do 1D intervals right now'
+            logging.info('can only do 1D intervals right now')
             return
         pois=RooArgSet()
         poiIsConst=[]
@@ -604,7 +605,7 @@ class Combination:
         for poi in [pois.first()]:
             lowerLimit = interval.LowerLimit(poi)
             upperLimit = interval.UpperLimit(poi)
-            print "95% CL interval on {0} is [{1},{2}]".format(poi.GetName(),lowerLimit,upperLimit)
+            logging.info("95% CL interval on {0} is [{1},{2}]".format(poi.GetName(),lowerLimit,upperLimit))
             return lowerLimit,upperLimit
 
 
@@ -675,8 +676,7 @@ class Combination:
             
     def pulls(self,thetas=True,pois=True,skipMCstat=True):
         pulls={}
-        if self.verbose:
-            print 'Minimizing for pulls'
+        logging.info('Minimizing for pulls')
         self.minimize(strategy=2,minos=True)
         res=self.getFitResult()
         float_pars=res.floatParsFinal()
@@ -711,8 +711,7 @@ class Combination:
                 par.setVal(0.)
                 par.setConstant()
             thepar.setConstant(False)
-            if self.verbose:
-                print 'Minimizing for pulls, with all POIs but',thepar.GetName(),'fixed at zero'
+            logging.info('Minimizing for pulls, with all POIs but '+thepar.GetName()+' fixed at zero')
             self.minimize(strategy=2,minos=True)
             res=self.getFitResult()
             float_pars=res.floatParsFinal()
@@ -759,8 +758,8 @@ class Combination:
                 m_cov[-1].append(errs[parx]*errs[pary]*corr[parx][pary])
         m_cov=np.matrix(m_cov)
 
-        #print 'Covariance Matrix'
-        #print m_cov
+        #logging.info('Covariance Matrix')
+        #logging.info(m_cov)
         c_inv=m_cov.getI()
         
         all_coeffs=[c for c in self.theory.getCoeffNames() if not c in scaling_pars]
@@ -778,8 +777,8 @@ class Combination:
                     m_para[-1]+=[0. if x is None else x for x in ([e/n if not n==0 else 0 for e,n in zip(p.getEffectFloat(c),p.getNominal())] if not p.getEffectFloat(c) is None else [0.]*p.nbins) ]
             m_para=np.matrix(m_para)
 
-            #print 'Parametrization Matrix'
-            #print m_para
+            #logging.info('Parametrization Matrix')
+            #logging.info(m_para)
             a=m_para*c_inv*m_para.getT()
             w,v=np.linalg.eigh(a)
             res=zip(w,v.getT())
@@ -787,9 +786,9 @@ class Combination:
             results+=[(r[0],sorted(zip(r[1].tolist()[0],coeffs),key=lambda x: abs(x[0]),reverse=True)) for r in res]
             
         for ir,r in enumerate(results):
-            print 'EV {}:'.format(ir),Utils.round2(r[0],3),'({})'.format(Utils.round2(1/r[0]**0.5,3) if r[0]>0 else 999999.)
-            print ' + '.join(["{}*{}".format(round(x[0],3),x[1]) for x in r[1] if abs(x[0])>0.1]).replace('+ -','- ')
-            print
+            logging.info('EV {}:'.format(ir),Utils.round2(r[0],3),'({})'.format(Utils.round2(1/r[0]**0.5,3) if r[0]>0 else 999999.))
+            logging.info(' + '.join(["{}*{}".format(round(x[0],3),x[1]) for x in r[1] if abs(x[0])>0.1]).replace('+ -','- '))
+            logging.info('')
         resmap=[]
         for r in results:
             d={}
@@ -809,15 +808,15 @@ class Combination:
             for c in d:
                 d[c]=d[c]/norm
             resmap+=[(r[0],d)]
-        print '#'+' '.join(all_coeffs)
+        logging.info('#'+' '.join(all_coeffs))
         for i,r in enumerate(resmap):
-            print 'c'+str(i)+' = ',
+            logging.info('c'+str(i)+' = ',)
             for c in all_coeffs:
                 if c in r[1]:
-                    print r[1][c],
+                    logging.info(r[1][c],)
                 else:
-                    print 0.,
-            print
+                    logging.info(0.,)
+            logging.info('')
         n=len(scaling_pars)
         h_cov=TH2D('h_total_cov','Total Covariance',n,0,n,n,0,n)
         for i,c in enumerate(scaling_pars):

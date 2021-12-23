@@ -473,7 +473,7 @@ class Prediction:
    
     def addUncertainty(self,uncertainty):
         if uncertainty==None:
-            print 'WARNING: empty uncertainty (likely not found in histo file)'
+            logging.warning('empty uncertainty (likely not found in histo file)')
             return
         if uncertainty.is_bkg_unc:
             found_bkg=False
@@ -489,10 +489,10 @@ class Prediction:
             if u.name==uncertainty.name:
                 for a in uncertainty.affected:
                     if a in u.affected:
-                        print 'WARNING: uncertainty with name',uncertainty.name,'affecting',a,'already exists, skipping'
+                        logging.warning('uncertainty with name '+uncertainty.name+' affecting '+a+' already exists, skipping')
                         return False
                     elif ',' in  a and a.split(',')[1]+','+a.split(',')[0] in u.affected:
-                        print 'WARNING: uncertainty with name',uncertainty.name,'affecting',a,'already exists, skipping'
+                        logging.warning('uncertainty with name '+uncertainty.name+' affecting '+a+' already exists, skipping')
                         return False
         self.uncertainties.append(uncertainty)
         self.theory.addTheta(uncertainty.name)
@@ -569,7 +569,7 @@ class Prediction:
         return matrix
                     
     def rePara(self,cs_new,mapping):
-        print 'Warning, during reparametrization, statistical uncertainties are currently not propagated for quadratic effects'
+        logging.warning('during reparametrization, statistical uncertainties are currently not propagated for quadratic effects')
        
         lin_old=self.linear_effects
         effects_matrices_old=[]
@@ -622,7 +622,7 @@ class Prediction:
 
         self.binlabels=None
         self.binning=None
-        print 'WARNING Rebinning: binlabels, blinding, bin boundaries, and backgrounds currently not properly updated'
+        logging.warning('WARNING Rebinning: binlabels, blinding, bin boundaries, and backgrounds currently not properly updated')
         self.blind=[1 if b!=0 else 0 for b in Utils.mergeBins(self.blind,combine)]
         assert len(self.backgrounds)==0
 

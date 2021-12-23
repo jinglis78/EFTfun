@@ -3,6 +3,7 @@ from ROOT import Math
 from array import array
 from math import log10
 import Utils
+import logging
 
 def graphProfile1D(name,result,outfile=None,isNLL=True,makeProb=False):
     g=ROOT.TGraph()
@@ -183,12 +184,12 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
             ci1text.SetTextAlign(21)
             ci1text.Draw()
 
-        print '68% CL:',ci1[0],ci1[1]
+        logging.info('68% CL: [{} , {}]'.format(ci1[0],ci1[1]))
         if not toy_result is None:
             ci2text=ROOT.TLatex(0.35,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],3),Utils.round2(ci2[1],3)))
         else:
             ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],3),Utils.round2(ci2[1],3)))
-        print '95% CL:',ci2[0],ci2[1]
+        logging.info('95% CL: [{} , {}]'.format(ci2[0],ci2[1]))
         ci2text.SetNDC()
         ci2text.SetTextSize(0.04)
         ci2text.SetTextFont(42)
@@ -216,7 +217,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         ftxt.write('{} {},{} {},{}'.format(x0,ci1[0],ci1[1],ci2[0],ci2[1]))
 
     if isNLL and ymin<-0.001:
-        print "WARNING, fit was unable to find global minimum of likelihood, vary the parameter starting values (with '-s PAR=VAL')"
+        logging.warning("Fit was unable to find global minimum of likelihood, vary the parameter starting values (with '-s PAR=VAL')")
     return c
 
 def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log(L)',linecolor=ROOT.kBlack,outfolder='.',isNLL=True,conts1d=False,toy_result=None,linecolor_toys=ROOT.kRed+1):
