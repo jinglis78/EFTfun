@@ -2,9 +2,10 @@ from ROOT import RooRealVar, TMatrixDSym, TH1F, RooArgList, RooFormulaVar
 from array import array
 import Utils
 import Uncertainty
+import re
 
 class Measurement:
-    def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None,blinded=[]):
+    def __init__(self, name, nbins=None, measured=None, covariance=None, per_bin_width=False,binning=None,reco_level=False,theory=None,blind=None,binlabels=None):
         self.name=name
         self.nbins=nbins
         if measured!=None:
@@ -15,22 +16,30 @@ class Measurement:
             self.covMatrix=None
         self.per_bin_width=per_bin_width
         self.binning=binning
+        self.binlabels=binlabels
         self.rescaled=1.
         self.uncertainties={}
         self.hepdata=None
         self.reco_level=reco_level
         self.theory=theory
-        self.blinded=blinded
+        self.blind=blind
         
 
     def setMeasured(self,measured):
         if self.nbins==None:
             self.nbins=len(measured)
         assert len(measured)==self.nbins
+        if self.blind is None:
+            self.blind=self.nbins*[1]
+        if self.binlabels is None:
+            self.binlabels=range(self.nbins)
         self.central_values = []
-        for i,x_meas in enumerate(measured):
-            x=RooRealVar(self.name+"_meas_"+str(i),self.name+"_meas_"+str(i),0,1e9)
-            x.setVal(x_meas)
+        for i,(x_meas,b,binlabel) in enumerate(zip(measured,self.blind,self.binlabels)):
+            x=RooRealVar(self.name+"_meas_"+str(binlabel),self.name+"_meas_"+str(binlabel),0,1e9)
+            if b==1:
+                x.setVal(x_meas)
+            else:
+                x.setVal(0)
             x.setConstant()
             self.central_values.append(x)
 
@@ -59,13 +68,18 @@ class Measurement:
         if formulas==None:
             return [None]*self.nbins
         self.measurement_correction=[]
-        params=RooArgList()
-        for t in self.theory.thetas:
-            params.add(t)
-        for c in self.central_values:
-            params.add(c)
-        for i,form in enumerate(formulas):
-            self.measurement_correction+=[RooFormulaVar("meas_correction_{}_{}".format(self.name,i),"meas_correction_{}_{}".format(self.name,i),form,params)]
+        if self.binlabels is None:
+            self.binlabels=range(self.nbins)
+        for binlabel,form in zip(self.binlabels,formulas):
+            params=RooArgList()
+            for t in self.theory.thetas:
+                if re.match('.*\\b'+t.GetName()+'\\b.*',form):
+                    params.add(t)
+            for c in self.central_values:
+                if re.match('.*\\b'+c.GetName()+'\\b.*',form):
+                    params.add(c)
+            self.measurement_correction+=[RooFormulaVar("meas_correction_{}_{}".format(self.name,binlabel),"meas_correction_{}_{}".format(self.name,binlabel),form,params)]
+
         return self.measurement_correction
 
     def setCov(self,cov):
@@ -80,21 +94,36 @@ class Measurement:
         for i in range(self.nbins):
             for j in range(self.nbins):
                 self.covMatrix[i,j]=cov[i][j]
-
-    def setMeasuredFromCfg(self,data):
-        if data.split(':')[0].endswith('.yoda'):
-            spl=data.split(':')
-            assert len(spl)==2
-            self.setMeasuredFromYoda(spl[0],spl[1])
-        elif data.split(':')[0].endswith('.root'):
-            spl=data.split(':')
-            assert len(spl)==2
-            self.setMeasuredFromRoot(spl[0],spl[1])
-        elif data.endswith('.yaml'):
-            self.hepdata=data
-            self.setMeasuredFromYaml(data)
+                if i==j and cov[i][j]==0:
+                    self.covMatrix[i,j]=1
+                    print "Warning, covariance matrix element 0"
+    def setMeasuredFromCfg(self,alldata):
+        fromFile=False
+        for e in ['.yoda','.yaml','.root']:
+            if e in alldata:
+                fromFile=True
+                break
+        if not fromFile:
+            x=[float(x) for x in alldata.split()]
         else:
-            self.setMeasured([float(x) for x in data.split()])
+            x=[]
+            for data in alldata.split():
+                if data.split(':')[0].endswith('.yoda'):
+                    spl=data.split(':')
+                    assert len(spl)==2
+                    x+=self.getMeasuredFromYoda(spl[0],spl[1])
+                elif data.split(':')[0].endswith('.root'):
+                    spl=data.split(':')
+                    assert len(spl)==2
+                    x+=self.getMeasuredFromRoot(spl[0],spl[1])
+                elif data.split(':')[0].endswith('.yaml'):
+                    spl=data.split(':')
+                    if len(spl)==1:
+                        spl.append(0)
+                    assert len(spl)<=2
+                    self.hepdata=data
+                    x+=self.getMeasuredFromYaml(spl[0],int(spl[1]))
+        self.setMeasured(x)
 
     def setCovFromCfg(self,data):
         if data.split(':')[0].endswith('.yoda'):
@@ -145,27 +174,27 @@ class Measurement:
         elif data_err.split(':')[0].endswith('.yaml'):
             import yaml
             filename_err=data_err.split(':')[0]
-            label_err=None
             if ':' in data_err and data_err.split(':')[1].lower()!='all':
                 label_err=data_err.split(':')[1]
                 errs=Uncertainty.getErrsFromYaml(self,filename_err,label_err,rel=False)
                 errs=[(abs(x[0])+abs(x[1]))/2 for x in errs]
             else:
-                f=open(filename_err.split(':')[0])
-                vals=yaml.load(f)['dependent_variables'][0]['values']
-                assert len(vals)==self.nbins
-                err_labels=[]
-                for y in vals:
-                    for error in y['errors']:
-                        err_labels+=[error['label']]
-                err_labels=list(set(err_labels))
-                total_errs2=[0.]*self.nbins
-                for label_err in err_labels:
-                    this_errs=Uncertainty.getErrsFromYaml(self,filename_err,label_err,rel=False)
-                    for ierr,err in enumerate(this_errs):
-                        total_errs2[ierr]+=(abs(err[0])+abs(err[1]))**2/4.
-                errs=[x**0.5 for x in total_errs2]
-                f.close()
+                errs=Uncertainty.getErrsFromYaml(self,filename_err,err_label=None,rel=False)
+#                f=open(filename_err.split(':')[0])
+#                vals=yaml.load(f)['dependent_variables'][0]['values']
+#                assert len(vals)==self.nbins
+#                err_labels=[]
+#                for y in vals:
+#                    for error in y['errors']:
+#                        err_labels+=[error['label']]
+#                err_labels=list(set(err_labels))
+#                total_errs2=[0.]*self.nbins
+#                for label_err in err_labels:
+#                    this_errs=Uncertainty.getErrsFromYaml(self,filename_err,label_err,rel=False)
+#                    for ierr,err in enumerate(this_errs):
+#                        total_errs2[ierr]+=(abs(err[0])+abs(err[1]))**2/4.
+#                errs=[x**0.5 for x in total_errs2]
+#                f.close()
             assert len(errs)==self.nbins
 
         else:
@@ -179,15 +208,18 @@ class Measurement:
             import ROOT
             filename_corr,histoname_corr=[s.strip() for s in data.split(':')]
             corr=self.getMatrixFromRoot(filename_corr,histoname_corr)
-        elif data_corr.endswith('.yaml'):
-            corr=self.getMatrixFromYaml(data_corr)
+        elif data_corr.split(':')[0].endswith('.yaml'):
+            corr=self.getMatrixFromYaml(*(data_corr.split(':')))
+        elif data_corr.lower()=='none':
+            corr=[]
+            for i in range(self.nbins):
+                corr.append([1 if j==i else 0 for j in range(self.nbins)])
         else:
             corr=[]
-            for y in data.split(','):
+            for y in data_corr.split(','):
                 corr+=[[float(x) for x in y.split()]]
-            if not ',' in data:
-                corr=[float(data)]
-
+            if not ',' in data_corr:
+                corr+=[float(data_corr)]
         assert len(corr)==self.nbins
         assert len(errs)==self.nbins
         cov=[]
@@ -215,7 +247,7 @@ class Measurement:
             self.theory.addTheta(uncertainty.name)
         self.uncertainties[uncertainty.name]=uncertainty
 
-    def setMeasuredFromYoda(self,filename,name):
+    def getMeasuredFromYoda(self,filename,name):
         import yoda
         
         hist=yoda.read(filename)[name]
@@ -227,9 +259,9 @@ class Measurement:
                 measured=[b.height for b in hist.bins]
             else:
                 measured=[b.area for b in hist.bins]
-        self.setMeasured(measured)
+        return measured
 
-    def setMeasuredFromRoot(self,filename,name):
+    def getMeasuredFromRoot(self,filename,name):
         import ROOT
         f=ROOT.TFile(filename)
         histo=f.Get(name)
@@ -237,15 +269,15 @@ class Measurement:
             contents=[histo.GetBinContent(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
         else:
             contents=[histo.GetBinContent(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
-        self.setMeasured(contents)
         f.Close()
+        return contents
 
-    def setMeasuredFromYaml(self,filename):
+    def getMeasuredFromYaml(self,filename,index):
         import yaml
         f=open(filename)
         data=yaml.load(f)
-        vals=data['dependent_variables'][0]['values']
-        self.setMeasured([float(y['value']) for y in vals])                
+        vals=data['dependent_variables'][int(index)]['values']
+        return [float(y['value']) for y in vals]
 
     def getMatrixFromYoda(self,filename,name):
         import yoda
@@ -273,11 +305,11 @@ class Measurement:
                 matrix[-1]+=[histo.GetBinContent(i,j)]
         return matrix
 
-    def getMatrixFromYaml(self,filename):
+    def getMatrixFromYaml(self,filename,index=0):
         import yaml
         f=open(filename)
         data=yaml.load(f)
-        vals=data['dependent_variables'][0]['values']
+        vals=data['dependent_variables'][index]['values']
         assert len(vals)==self.nbins*self.nbins
         matrix=[]
         for i in range(self.nbins):
@@ -298,9 +330,10 @@ class Measurement:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,array('f',self.binning))
         else:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,0,1)
+        errs=self.getErr(incl_np=True)
         for i in range(self.nbins):
             h.SetBinContent(i+1,self.central_values[i].getVal()/self.rescaled)
-            h.SetBinError(i+1,self.getErr(incl_np=True)[i]/self.rescaled)
+            h.SetBinError(i+1,errs[i]/self.rescaled)
         outfile.cd()
         h.Write()
         return h
@@ -310,22 +343,26 @@ class Measurement:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,array('f',self.binning))
         else:
             h=TH1F(self.name+'_data',self.name+'_data',self.nbins,0,1)
+        errs=self.getErr(incl_np=False)
         for i,f in enumerate(self.getMeasurementCorrection()):
             h.SetBinContent(i+1,(self.central_values[i].getVal()+f.getVal())/self.rescaled)
             h.SetBinError(i+1,f.getPropagatedError(fitresult)/self.rescaled)
-            h.SetBinError(i+1,(self.getErr(incl_np=False)[i]**2/self.rescaled**2+h.GetBinError(i+1)**2)**0.5)
+            h.SetBinError(i+1,(errs[i]**2/self.rescaled**2+h.GetBinError(i+1)**2)**0.5)
         outfile.cd()
         h.Write()
         return h
 
-    def getCov(self,incl_np=False,exclude=[]):
+    def getCov(self,incl_np=False,exclude=[],redo=True):
+        if incl_np==False and len(exclude)==0 and not redo:
+            if hasattr(self,'bufferedCov'):
+                return self.bufferedCov
         if self.reco_level:
             raise Exception("At reco level, the covariance matrix should not be used")
         if self.covMatrix:
             cov=TMatrixDSym(self.covMatrix)
         else:
             cov=TMatrixDSym(self.nbins)
-        for u in self.uncertainties.values():
+        for u in self.uncertainties.values():            
             if u.already_in_cov:
                 cov-=u.getCov(self.getMeas(),incl_np=incl_np)
         for u in self.uncertainties.values():
@@ -333,6 +370,8 @@ class Measurement:
                 continue
             if incl_np or not u.with_nuis_par:
                 cov+=u.getCov(self.getMeas(),incl_np=incl_np)
+        if incl_np==False and len(exclude)==0:
+            self.bufferedCov=cov
         return cov
 
     def getCorr(self,incl_np=False):
@@ -340,14 +379,14 @@ class Measurement:
         var=[m[i][i] for i in range(self.nbins)]
         for i in range(self.nbins):
             for j in range(self.nbins):
-                m[i][j]=m[i][j]/var[i]**0.5/var[j]**0.5
+                m[i][j]=m[i][j]/var[i]**0.5/var[j]**0.5 if var[i]!=0 and var[j]!=0 else 0
         return m
 
     def getRelErr(self,incl_np=False):
         if self.reco_level:
             return [1/n**0.5 for n in self.getMeas()]
         cov=self.getCov(incl_np=incl_np)
-        return [(cov[i][i])**0.5/self.getNominal()[i] for i in range(self.nbins)]
+        return [(cov[i][i])**0.5/self.getNominal()[i] if self.getNominal()[i]!=0. else 0. for i in range(self.nbins)]
 
     def getErr(self,incl_np=False):
         if self.reco_level:
@@ -360,3 +399,57 @@ class Measurement:
 
     def getNominal(self):
         return [x.getVal() for x in self.central_values]
+
+
+    def rebin(self,rebin):
+        import numpy as np
+        
+        if not isinstance(rebin,list):
+            n=self.nbins//int(rebin)
+            combine=[rebin]*n
+            if sum(combine)<self.nbins:
+                combine+=[self.nbins-rebin*n]
+        else:
+            combine=rebin
+
+        assert sum(combine)==self.nbins
+        
+        self.binlabels=None
+        self.blind=[1 if b!=0 else 0 for b in Utils.mergeBins(self.blind,combine)]
+        self.binning=None
+        print 'WARNING Rebinning: binlabels, blinding, and bin boundaries currently not properly updated'
+
+        if not self.covMatrix is None:
+            cov_np=[]
+            for i in range(self.nbins):
+                cov_np.append([])
+                for j in range(self.nbins):
+                    cov_np[-1].append(self.covMatrix[i,j])
+            cov_np=np.matrix(cov_np)
+            w,v=np.linalg.eigh(cov_np)
+            res=zip(w,v.getT())
+            cov_np_new=np.matrix([[0.]*len(combine)]*len(combine))
+            for l,v in res:
+                dummy_u=[l**0.5*x for x in v.tolist()[0]]
+                dummy_u_new=Utils.mergeBins(dummy_u,combine)
+                cov_np_new+=np.outer(dummy_u_new,dummy_u_new)
+            self.covMatrix=TMatrixDSym(len(combine))
+            for i in range(len(combine)):
+                for j in range(len(combine)):
+                    self.covMatrix[i,j]=cov_np_new[i,j]
+
+        new_central_values=Utils.mergeBins(self.getNominal(),combine)
+        for u in self.uncertainties.values():
+            newEffectUp=Utils.mergeBins([x[1] for x in u.getEffect(self.getNominal())],combine)
+            newEffectDown=Utils.mergeBins([x[0] for x in u.getEffect(self.getNominal())],combine)
+            newRelEffectUp=[e/n for e,n in zip(newEffectUp,new_central_values)]
+            newRelEffectDown=[e/n for e,n in zip(newEffectDown,new_central_values)]
+            u.releffect=zip(newRelEffectDown,newRelEffectUp)
+            u.nbins=len(combine)
+                          
+        self.nbins=len(combine)
+        self.setMeasured(new_central_values)
+
+
+
+

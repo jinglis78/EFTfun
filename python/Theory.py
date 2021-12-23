@@ -11,6 +11,7 @@ class Theory:
         self.initial_vals={}
         self.theta_range=theta_range
         self.stat_unc_threshold=stat_unc_threshold
+        self.mapping=None
 
     def reset(self):
         for par in self.pars:
@@ -21,7 +22,7 @@ class Theory:
 
     def addCoeff(self,coeff_name,coeff_range=None):
         if coeff_range==None:
-            coeff_range=default_range
+            coeff_range=self.default_range
         self.coeffs.append(RooRealVar(coeff_name,coeff_name,coeff_range[0],coeff_range[1]))
         self.pars[self.coeffs[-1].GetName()]=self.coeffs[-1]
 
@@ -52,6 +53,8 @@ class Theory:
                 else:
                     c,v=c,0.
                 self.setConstant(c,float(v))
+                if float(v)!=0.:
+                    self.initial_vals[c]=float(v)
 #                for theta in self.thetas:
 #                    if re.match(self.makeMCstatName('.+',c,'\d+'),theta.GetName()):
 #                        theta.setVal(0.)
@@ -137,6 +140,14 @@ class Theory:
                 cs.append(c)
         return cs
 
+    def getNonConstCoeffs(self):
+        cs=[]
+        for c in self.coeffs:
+            if not c.isConstant():
+                cs.append(c)
+        return cs
+
+    
     def getConstantThetas(self):
         cs=[]
         for c in self.thetas:
@@ -182,3 +193,23 @@ class Theory:
              return 'mcstat_'+name+'_'+coeff_names+'_lin_bin'+str(iBin)
         elif isinstance(coeff_names,list):
             return 'mcstat_'+name+'_'+'_'.join(coeff_names)+'_quad_bin'+str(iBin)
+
+    def dumpPars(self):
+        for c in self.coeffs:
+            print c.GetName(),c.getVal(),c.isConstant()
+        for c in self.thetas:
+            print c.GetName(),c.getVal(),c.isConstant()
+
+    def rePara(self,cs_new,mapping):
+        print 'reparametrizing:'
+        print 'Note: parameter range will be:',self.default_range
+        cs_old=self.getCoeffNames()
+        self.coeffs=[]
+        for cnew in cs_new:
+            if cnew in cs_old:
+                raise Exception('Need new parameter name for '+cnew)
+            print cnew,'=',mapping[cnew]
+            self.addCoeff(cnew)
+        self.mapping=mapping
+
+

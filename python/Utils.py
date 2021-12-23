@@ -66,14 +66,38 @@ def readFile(filename,histoname=None,per_bin_width=True):
 
 def readYoda(filename,histoname,per_bin_width):
     import yoda
+    version=[int(v) for v in yoda.__version__.split('.')]
+    if version[0]>1 or version[0]==1 and version[1]>=8:
+        yoda18=True
+    else:
+        yoda18=False
     histos=yoda.read(filename)
     hist=histos[histoname]
-    if per_bin_width:
-        contents=[b.height for b in hist.bins]
-        uncertainty=[b.heightErr for b in hist.bins]
+    if isinstance(hist,yoda.Scatter2D):
+        if yoda18:
+            points=sorted([(p.x(),p.y()) for p in hist.points()] , key=lambda p: p[0])
+            uncertainty=[(p.yErrs()[0]+p.yErrs()[1])/2 for p in hist.points()]
+        else:
+            points=sorted([(p.x,p.y) for p in hist.points] , key=lambda p: p[0])
+            uncertainty=[(p.yErrs[0]+p.yErrs[1])/2 for p in hist.points]
+        contents=[p[1] for p in points]
+        
     else:
-        contents= [b.area for b in hist.bins]
-        uncertainty=[b.areaErr for b in hist.bins]
+        if yoda18:            
+            if per_bin_width:
+                contents=[b.height() for b in hist.bins()]
+                uncertainty=[b.heightErr() for b in hist.bins()]
+            else:
+                contents= [b.area() for b in hist.bins()]
+                uncertainty=[b.areaErr() for b in hist.bins()]
+
+        else:
+            if per_bin_width:
+                contents=[b.height for b in hist.bins]
+                uncertainty=[b.heightErr for b in hist.bins]
+            else:
+                contents= [b.area for b in hist.bins]
+                uncertainty=[b.areaErr for b in hist.bins]
     return contents,uncertainty
 
 def readRoot(filename,histoname,per_bin_width):
@@ -81,7 +105,8 @@ def readRoot(filename,histoname,per_bin_width):
     f=ROOT.TFile(filename)
     histo=f.Get(histoname)
     if not isinstance(histo,ROOT.TH1):
-        raise Exception("Did not find histogram "+histoname+" in file "+filename)
+        print ("WARNING: Did not find histogram "+histoname+" in file "+filename)
+        return None
     if per_bin_width:
         contents=[histo.GetBinContent(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
         uncertainty=[histo.GetBinError(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
@@ -92,8 +117,6 @@ def readRoot(filename,histoname,per_bin_width):
 
 def isListOfNumbers(data,nbins):
     splt=data.split()
-    if not len(splt)==1 and not len(splt)==nbins:
-        return False
     for s in splt:
         numbers=s.split(',')
         for n in numbers:
@@ -101,6 +124,8 @@ def isListOfNumbers(data,nbins):
                 float(n)
             except ValueError:
                 return False
+    if not len(splt)==1 and not len(splt)==nbins:
+        raise Exception('List of numbers with wrong length ({}): '.format(len(splt))+data)
     return True
     
     
@@ -132,6 +157,25 @@ def split(sin):
     spl=[x.replace(dummy,' ') for x in s.split()]
     return spl
 
+def mergeBins(l,combine,mode=1):
+    iold=0
+    inew=0
+    lnew=[0]*len(combine)
+    for ic in combine:
+       for i in range(ic):
+           if mode==0:
+               if lnew[inew]==0 or lnew[inew]==l[iold]:
+                   lnew[inew]=l[iold]
+               else:
+                   assert False
+           if mode==1:
+               lnew[inew]=lnew[inew]+l[iold]
+           if mode==2:
+               lnew[inew]=(lnew[inew]**2+l[iold]**2)**0.5
+           iold+=1
+       inew+=1
+    return lnew
+
 def isSymmetric(up,down,epsilon=1e-2):
     if up==0 and down==0:
         return True
@@ -139,4 +183,3 @@ def isSymmetric(up,down,epsilon=1e-2):
         return False
     if abs(up/down+1)<epsilon:
         return True
-

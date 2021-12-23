@@ -10,7 +10,6 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
     else:
         thetaname=name
         affected='all'
-
     options,data=Utils.getOptionsAndData(data)
     interpol='lin'
     for o in options:
@@ -61,22 +60,22 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
     releffect=None
     if Utils.isFile(data):
         spl=data.split(',')
-        assert len(spl)==2
-        if len(spl[0].strip())!=0:
-            down_filename,down_histoname=spl[0].split(':')
+        if len(spl)==1:
+            up_filename,up_histoname=spl[0].split(':')
+            down_filename,down_histoname=None,None
         else:
-            down_filename=None
-            down_histoname=None
-        if len(spl[1].strip())!=0:
-            up_filename,up_histoname=spl[1].split(':')
-        else:
-            up_filename=None
-            up_histoname=None
-        if isrel!=None:
-            print 'WARNING: abs/rel wont have an effect on uncertainties from histograms'
+            if len(spl[0].strip())!=0:
+                down_filename,down_histoname=spl[0].split(':')
+            else:
+                down_filename=None
+                down_histoname=None
+            if len(spl)>1 and len(spl[1].strip())!=0:
+                up_filename,up_histoname=spl[1].split(':')
+            else:
+                up_filename=None
+                up_histoname=None
 
-        return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym,per_bin_width=per_bin_width,isBkgUnc=isBkgUnc)
-
+        return createUncertaintyFromFile(reference,thetaname,down_filename,up_filename,down_histoname,up_histoname,affected=affected,interpol=interpol,renorm=renorm,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym,per_bin_width=per_bin_width,isBkgUnc=isBkgUnc,isrel=isrel)
     if Utils.isListOfNumbers(data,reference.nbins):
         effect=[]
         for e in data.split():
@@ -89,7 +88,7 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
         if isrel==True:
             releffect=effect
         elif isrel==False:
-            releffect=[(e[0]/s,e[1]/s) for e,s in zip(effect,reference.getNominal())]
+            releffect=[(e[0]/s,e[1]/s) if s!=0 else (0,0) for e,s in zip(effect,reference.getNominal())]
         else:
             raise Exception('Uncertainty needs to have option rel or abs')
         if renorm==True:
@@ -97,7 +96,6 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
                 print 'WARNING: cannot use option "renorm", no histogram given to renorm prediction'
             else:
                 releffect=[(e[0]*s/n,e[1]*s/n) for s,e,n in zip(reference.getNominal(),effect,reference.normhisto)]
-
         return createUncertainty(reference,thetaname,releffect=releffect,affected=affected,interpol=interpol,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym)
 
     if isrel!=None:
@@ -120,7 +118,7 @@ def createUncertaintyFromYaml(reference,name,data,affected,interpol,uncorr,with_
     
     return Uncertainty(reference.nbins,affected=affected,name=name,releffect=releffect,interpol=interpol,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym)
     
-def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False,with_nuis_par=False,already_in_cov=False,is_bkg_unc=False,flip=False,sym=False,per_bin_width=True,isBkgUnc=False):
+def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False,with_nuis_par=False,already_in_cov=False,is_bkg_unc=False,flip=False,sym=False,per_bin_width=True,isBkgUnc=False,isrel=False):
     if not Utils.histoExists(down_filename,down_histoname) and not Utils.histoExists(up_filename,up_histoname): 
         print 'WARNING: did not find uncertainty in file:',':'.join([str(down_filename),str(down_histoname)]),'or',':'.join([str(up_filename),str(up_histoname)]),'skipping uncertainty...'
         return
@@ -137,28 +135,39 @@ def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_hist
     else:       
         nominal=reference.getEffectFloat(list(affected)[0].split(','))
     if nominal==None:
-        raise Exception('Could not find nominal effect for systematic affecting {}'.format(' '.join(list(affected))))   
-        
+        raise Exception('Could not find nominal effect for systematic affecting {}'.format(' '.join(list(affected))))
+    pbw=per_bin_width
+    if isrel:
+        pbw=False    
+    if up_filename!=None:
+        up_variation=Utils.readFile(up_filename,up_histoname,per_bin_width=pbw)[0]
+        if isrel:
+            up_variation=[n*u+n for n,u in zip(nominal,up_variation)]
+    if down_filename!=None:
+        down_variation=Utils.readFile(down_filename,down_histoname,per_bin_width=pbw)[0]
+        if isrel:
+            down_variation=[n*d+n for n,d in zip(nominal,down_variation)]
+
     if down_filename==None:
         if sym:
-            down=[2*n-x for n,x in zip(nominal, Utils.readFile(up_filename,up_histoname,per_bin_width=per_bin_width)[0])]
+            down=[2*n-x for n,x in zip(nominal, up_variation)]
         else:
             down=nominal
     else:
-        down=Utils.readFile(down_filename,down_histoname,per_bin_width=per_bin_width)[0]
+        down=down_variation
     if up_filename==None:
         if sym:
-            up=[2*n-x for n,x in zip(nominal, Utils.readFile(down_filename,down_histoname,per_bin_width=per_bin_width)[0])]
+            up=[2*n-x for n,x in zip(nominal, down_variation)]
         else:
             up=nominal
     else:
-        up=Utils.readFile(up_filename,up_histoname,per_bin_width=per_bin_width)[0]
+        up=up_variation
     assert len(up)==reference.nbins
     assert len(down)==reference.nbins
     up=[u/n-1 if n!=0 else 0 for u,n in zip(up,nominal)]
     down=[d/n-1 if n!=0 else 0 for d,n in zip(down,nominal)]
     
-    releffect=zip(up,down)
+    releffect=zip(down,up)
 
     return createUncertainty(reference,name,releffect,affected,interpol,uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym)
 
@@ -175,9 +184,12 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
     assert len(vals)==reference.nbins
     errs=[]
     found=False
+    if err_label==None:
+        total_errs2=[]
     for y,meas in zip(vals,reference.getNominal()):
-        for error in y['errors']:
-            if error['label']==err_label:
+        total_err2=0.
+        for error in y['errors']:               
+            if err_label is None or error['label']==err_label:
                 found=True
                 if 'symerror' in error:
                     if isinstance(error['symerror'],str) and '%' in error['symerror']:
@@ -190,7 +202,6 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
                         if rel:
                             err/=meas
                         errs.append((-err,err))
-                    break
                 elif 'asymerror' in error:
                     if isinstance(error['asymerror']['minus'],str) and '%' in error['asymerror']['minus']:
                         asymerr=(float(error['asymerror']['minus'].replace('%',''))/100.,float(error['asymerror']['plus'].replace('%',''))/100.)
@@ -204,11 +215,20 @@ def getErrsFromYaml(reference,filename,err_label,rel=True):
                             errs.append((asymerr[0]/meas,asymerr[1]/meas))
                         else:
                             errs.append(asymerr)
+                if not err_label is None:
                     break
+                else:
+                    total_err2+=(abs(errs[-1][0])+abs(errs[-1][1]))**2/4.
+        if err_label is None:
+            total_errs2+=[total_err2]
+
     if not found:
         raise Exception("Did not find error label "+err_label+" in yaml")
     f.close()
-    return errs
+    if err_label is None:
+        return [x**0.5 for x in total_errs2]
+    else:
+        return errs
 
 class Uncertainty:
     def __init__(self,nbins,affected,name,releffect,interpol,uncorr=False,with_nuis_par=False,already_in_cov=False,is_bkg_unc=False,flip=False,sym=False):
@@ -216,7 +236,6 @@ class Uncertainty:
         self.affected=affected
         self.name=name
         assert len(releffect)==self.nbins
-
         actual_releffect=[]
         for e in releffect:
             if isinstance(e,float):
@@ -230,7 +249,7 @@ class Uncertainty:
                 else:
                     actual_releffect+=[e]
         if sym:
-            actual_releffect = [ ( -(e[1]-e[0])/2. ,(e[1]-e[0])/2. ) for e in actual_releffect]
+            actual_releffect = [ ( -(e[1]-e[0])/2. ,(e[1]-e[0])/2. ) for e in actual_releffect]            
         assert len(actual_releffect)==self.nbins
         self.releffect=actual_releffect
         assert interpol in ['lin','exp']            
@@ -266,13 +285,13 @@ class Uncertainty:
         return self.releffect
 
     def getRelEffectSym(self):
-        return [(x[0]-x[1])/2 for x in self.releffect]
+        return [(x[1]-x[0])/2 for x in self.releffect]
 
     def getEffect(self,nominal):
         return [(n*x[0],n*x[1]) for x,n in zip(self.releffect,nominal)]
 
     def getEffectSym(self,nominal):
-        return [(x[0]-x[1])/2 for x in self.getEffect(nominal)]
+        return [(x[1]-x[0])/2 for x in self.getEffect(nominal)]
 
     def getCov(self,nominal,incl_np):
         if self.with_nuis_par and not incl_np:
@@ -281,12 +300,13 @@ class Uncertainty:
         if self.interpol=='exp' and not incl_np:
             print "WARNING: exponential interpolation wont affect covariance matrix of uncertainty",self.name
         cov = TMatrixDSym(self.nbins)
+        effect=self.getEffectSym(nominal)
         if self.uncorr:
             for i in range(self.nbins):
-                cov[i,i]=self.getEffectSym(nominal)[i]**2
+                cov[i,i]=effect[i]**2
         else:
             for i in range(self.nbins):
                 for j in range(self.nbins):
-                    cov[i,j]=self.getEffectSym(nominal)[i]*self.getEffectSym(nominal)[j]
+                    cov[i,j]=effect[i]*effect[j]
 
         return cov

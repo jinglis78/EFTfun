@@ -1,13 +1,14 @@
 from ROOT import RooFormulaVar, RooArgList, RooRealVar, TH1F, TH2F
 from math import log,sqrt
 from array import array
+import re
 import os
 import Utils
 import Uncertainty
 from Background import Background
 
 class Prediction:
-    def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None,blinded=[]):
+    def __init__(self,name,theory,nbins=None, sm=None, per_bin_width=False,binning=None,blind=None,binlabels=None):
         self.default_range=(-1e9,1e9)
         self.name=name
         self.sm=sm
@@ -19,15 +20,19 @@ class Prediction:
         self.stat_unc_threshold=None
         self.extra_scaling=None
         self.binning=binning
-        self.blinded=blinded
+        self.binlabels=binlabels
+        self.blind=blind
         self.linear_effects={}
         self.quadratic_effects={}
         self.coeff_names=[]
         self.rescaled=1.
         self.backgrounds={}
+        self.scaling_pars=[]
 
     #TODO: reduce duplication
     def getEffectFloat(self,coeffs,withUnc=False):
+        if isinstance(coeffs,str):
+            coeffs=[coeffs]
         if len(coeffs)==2:
             coeff_name1=coeffs[0]
             coeff_name2=coeffs[1]
@@ -192,15 +197,19 @@ class Prediction:
         return predictions                   
 
     def getPredictionFormulas(self):
+        if self.binlabels is None:
+            self.binlabels=range(self.nbins)
         self.predictions = []
         formulas=self.getPredictionStrings()
-        for iBin,formula in enumerate(formulas):
+        for binlabel,formula in zip(self.binlabels,formulas):
             params=RooArgList()
             for c in self.theory.coeffs:
-                params.add(c)
+                if re.match('.*\\b'+c.GetName()+'\\b.*',formula):
+                    params.add(c)
             for t in self.theory.thetas:
-                params.add(t)
-            bin_prediction=RooFormulaVar("pred_{}_{}".format(self.name,iBin),"pred_{}_{}".format(self.name,iBin),formula,params)
+                if re.match('.*\\b'+t.GetName()+'\\b.*',formula):
+                    params.add(t)
+            bin_prediction=RooFormulaVar("pred_{}_{}".format(self.name,binlabel),"pred_{}_{}".format(self.name,binlabel),formula,params)
             self.predictions.append(bin_prediction)
         return self.predictions
 
@@ -280,8 +289,11 @@ class Prediction:
     def setSM(self,sm,rescale=1.):
         if self.nbins==None:
             self.nbins=len(sm)
+        if self.blind==None:
+            self.blind=self.nbins*[1]
         assert len(sm)==self.nbins
-        self.sm=[x*rescale for x in sm]
+        assert len(self.blind)==self.nbins
+        self.sm=[x*rescale if b==1 else 0 for x,b in zip(sm,self.blind)]
         return True
 
     def setSMfromCfg(self,data):
@@ -316,7 +328,10 @@ class Prediction:
     def setNormHistoFromFile(self,filename,histoname,rescale=1.):
         return self.setNormHisto(Utils.readFile(filename,histoname,per_bin_width=self.per_bin_width)[0],rescale)
         
-    def setEffect(self,power,coeff_names,effect,uncertainty=None,rescale=1.,renorm=False,add=False,isrel=False):
+    def setEffect(self,power,coeff_names,effect,uncertainty=None,rescale=1.,renorm=False,add=False,isrel=False,corrections={}):
+        if self.blind is None:
+            self.blind==self.nbins*[1]
+        effect=[e if b==1 else 0 for e,b in zip(effect,self.blind)]
         if uncertainty==None:
             uncertainty=[0.]*self.nbins
         if len(effect)==1:
@@ -337,12 +352,16 @@ class Prediction:
             actual_effect=[(s*e[0],s*e[1]) for s,e in zip(self.sm,actual_effect)]
         if renorm:
             if self.normhisto==None:
-                print 'WARNING: cannot use option "renorm", no histogram given to renorm prediction'
+                raise Exception('cannot use option "renorm", no histogram given to renorm prediction')
             else:
                 actual_effect=[(s*(e[0]/n),s*(e[1]/n)) for s,e,n in zip(self.sm,actual_effect,self.normhisto)]
+        if len(coeff_names)==1 and coeff_names[0] in corrections:
+            corr=corrections[coeff_names[0]]
+            actual_effect=[(e[0]+s*corr,e[1]) for s,e in zip(self.sm,actual_effect)]
+
         if power==1:
-            if add:
-                self.linear_effects[coeff_names[0]]=[a+b for a,b in zip(self.linear_effects[coeff_names[0]],actual_effect)]
+            if add and coeff_names[0] in self.linear_effects:
+                self.linear_effects[coeff_names[0]]=[(a[0]+b[0],(a[1]**2+b[1]**2)**0.5) for a,b in zip(self.linear_effects[coeff_names[0]],actual_effect)]
             else:
                 self.linear_effects[coeff_names[0]]=actual_effect
         elif power==2:
@@ -352,23 +371,26 @@ class Prediction:
                 c1,c0=coeff_names[0],coeff_names[1]
             if not c0 in self.quadratic_effects:
                 self.quadratic_effects[c0]=dict()
-            if add:
-                self.quadratic_effects[c0][c1]=[a+b for a,b in zip(self.quadratic_effects[c0][c1],actual_effect)]
+            if add and c1 in self.quadratic_effects[c0]:                
+                self.quadratic_effects[c0][c1]=[(a[0]+b[0],(a[1]**2+b[1]**2)**0.5) for a,b in zip(self.quadratic_effects[c0][c1],actual_effect)]
             else:
                 self.quadratic_effects[c0][c1]=actual_effect
         else:
             raise Exception('Only linear or quadratic effects possible')
         return True
     
-    def setEffectFromFile(self,power,coeff_names,filename,histoname,rescale=1.,renorm=False,add=False):
+    def setEffectFromFile(self,power,coeff_names,filename,histoname,rescale=1.,renorm=False,add=False,corrections={}):
         if not os.path.exists(filename.strip()):
             return False
         else:
-            actual_effect,actual_uncertainty=Utils.readFile(filename,histoname,per_bin_width=self.per_bin_width)
-            self.setEffect(power,coeff_names,actual_effect,actual_uncertainty,rescale,renorm,add=add)
+            out=Utils.readFile(filename,histoname,per_bin_width=self.per_bin_width)
+            if out is None:
+                return False
+            actual_effect,actual_uncertainty=out
+            self.setEffect(power,coeff_names,actual_effect,actual_uncertainty,rescale,renorm,add=add,corrections=corrections)
             return True
 
-    def setEffectFromCfg(self,power,coeff_names,data,add=False):
+    def setEffectFromCfg(self,power,coeff_names,data,add=False,corrections={}):
         actual_coeff_names=coeff_names.split()        
         if '{' in data:
             options=set(o.lower() for o in data[data.find('{')+1:data.find('}')].split())
@@ -394,13 +416,18 @@ class Prediction:
         
         if Utils.isFile(data):
             filename,histoname=data.split(':')
-            return self.setEffectFromFile(power,actual_coeff_names,filename,histoname,rescale=1.,renorm=renorm,add=add)
+            if isrel:
+                raise Exception('Effect from file shouldnt be relative')
+            return self.setEffectFromFile(power,actual_coeff_names,filename,histoname,rescale=1.,renorm=renorm,add=add,corrections=corrections)
                 
         else:
             effect=[float(d) for d in data.split()]
-            return self.setEffect(power,actual_coeff_names,effect,uncertainty=None,rescale=1.,renorm=renorm,add=add,isrel=isrel)
+            return self.setEffect(power,actual_coeff_names,effect,uncertainty=None,rescale=1.,renorm=renorm,add=add,isrel=isrel,corrections=corrections)
 
     def setScalingFromCfg(self,data):
+        assert '{' in data
+        pars=list(set(d.lower() for d in data[data.find('{')+1:data.find('}')].split()))
+        data=data[data.find('}')+1:]
         if Utils.isFile(data):
             scaling=Utils.readFile(data,per_bin_width=self.per_bin_width)[0]
         else:
@@ -413,13 +440,14 @@ class Prediction:
                     else:
                         scaling=replaced
             scaling=scaling.split()
-        self.setScaling(scaling)
+        self.setScaling(scaling,pars)
 
-    def setScaling(self,scaling):
+    def setScaling(self,scaling,pars):
         if len(scaling)==1:
             scaling=scaling*self.nbins
         assert len(scaling)==self.nbins
         self.extra_scaling=scaling
+        self.scaling_pars+=pars
 
     def addBackgroundFromCfg(self,name,data):
         if Utils.isFile(data):
@@ -514,4 +542,114 @@ class Prediction:
             outfile.cd()
             h.Write()
             hnorm.Write()
+
+    def getQuadParaMatrix(self,ibin):
+        import numpy as np
+        m=[]
+        for c1 in self.coeff_names:
+            m.append([])
+            for c2 in self.coeff_names:
+                es=self.getEffectFloat([c1,c2])
+                e=es[ibin] if es is not None else 0.
+                if c1==c2:
+                    m[-1].append(e)
+                else:
+                    m[-1].append(e/2)
+        matrix=np.matrix(m)
+        return matrix
+    # M*old = new
+    def getReParaMatrix(self,cs_new,cs_old,mapping):
+        import numpy as np
+        m=[]
+        for cnew in cs_new:
+            m.append([])
+            for cold in cs_old:
+                m[-1].append(mapping[cnew][cold])
+        matrix=np.matrix(m)
+        return matrix
+                    
+    def rePara(self,cs_new,mapping):
+        print 'Warning, during reparametrization, statistical uncertainties are currently not propagated for quadratic effects'
+       
+        lin_old=self.linear_effects
+        effects_matrices_old=[]
+        for ibin in range(self.nbins):
+            effects_matrices_old.append(self.getQuadParaMatrix(ibin))
+        
+        cs_old=self.coeff_names
+        self.coeff_names=cs_new
             
+        repara_matrix=self.getReParaMatrix(cs_new,cs_old,mapping)
+        RI=repara_matrix.getI()
+
+        self.linear_effects={}
+        for inew,cnew in enumerate(cs_new):
+            sum_effect=[0.]*self.nbins
+            sum_err=[0.]*self.nbins
+            for iold,cold in enumerate(cs_old):
+                if not cold in lin_old:
+                    continue
+                scale=RI[iold,inew]
+                sum_effect=[x+y[0]*scale for x,y in zip(sum_effect,lin_old[cold])]
+                sum_err=[(x**2+(y[1]*scale)**2)**0.5 for x,y in zip(sum_err,lin_old[cold])]
+            self.setEffect(1,cnew,sum_effect,sum_err)
+            #self.linear_effects[c]=[(x,y) for x,y in zip(sum_effect,sum_err)]
+
+        self.quadratic_effects={}
+        effects_matrices_new=[RI.getT()*M*RI for M in effects_matrices_old]
+        for i1,cnew1 in enumerate(cs_new):
+            for i2,cnew2 in enumerate(cs_new):
+                if i2<i1:
+                    continue
+                new_effect=[x[i1,i2] for x in effects_matrices_new]
+                if not i1==i2:
+                    new_effect=[2*x for x in new_effect]
+                self.setEffect(2,[cnew1,cnew2],new_effect)
+                    
+                    
+    def rebin(self,rebin):
+        import numpy as np
+        
+        if not isinstance(rebin,list):
+            n=self.nbins//int(rebin)
+            combine=[rebin]*n
+            if sum(combine)<self.nbins:
+                combine+=[self.nbins-rebin*n]
+        else:
+            combine=rebin
+
+        assert sum(combine)==self.nbins
+
+        self.binlabels=None
+        self.binning=None
+        print 'WARNING Rebinning: binlabels, blinding, bin boundaries, and backgrounds currently not properly updated'
+        self.blind=[1 if b!=0 else 0 for b in Utils.mergeBins(self.blind,combine)]
+        assert len(self.backgrounds)==0
+
+        new_sm=Utils.mergeBins(self.sm,combine)
+        for u in self.uncertainties:
+            newEffectUp=Utils.mergeBins([x[1] for x in u.getEffect(self.getNominal())],combine)
+            newEffectDown=Utils.mergeBins([x[0] for x in u.getEffect(self.getNominal())],combine)
+            newRelEffectUp=[e/n for e,n in zip(newEffectUp,new_sm)]
+            newRelEffectDown=[e/n for e,n in zip(newEffectDown,new_sm)]
+            u.releffect=zip(newRelEffectDown,newRelEffectUp)
+            u.nbins=len(combine)        
+
+        for c in self.linear_effects:
+            vals=Utils.mergeBins([x[0] for x in self.linear_effects[c]],combine)
+            errs=Utils.mergeBins([x[1] for x in self.linear_effects[c]],combine)
+            self.linear_effects[c]=zip(vals,errs)
+        for c1 in self.quadratic_effects:
+            for c2 in self.quadratic_effects[c1]:
+                vals=Utils.mergeBins([x[0] for x in self.quadratic_effects[c1][c2]],combine)
+                errs=Utils.mergeBins([x[1] for x in self.quadratic_effects[c1][c2]],combine)
+                self.quadratic_effects[c1][c2]=zip(vals,errs)
+        if not self.extra_scaling is None and isinstance(self.extra_scaling,list):
+            self.extra_scaling=Utils.mergeBins(self.extra_scaling,combine,mode=0)
+
+        if not self.normhisto is None:
+            self.normhisto=Utils.mergeBins(self.sm,combine)
+        self.sm=new_sm
+        self.nbins=len(combine)
+
+

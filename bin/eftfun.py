@@ -22,7 +22,7 @@ def main():
                       help="Write output to OUTNAME.root and in folder OUTNAME/", metavar="OUTNAME")
     parser.add_option("-m", "--method",
                       dest="method",default="fit",
-                      help="Method to be run, can be one of fit,scan,profilelikelihood,workspace,histo (fit - perform a maximum likelihood fit with MIGRAD+HESSE,  - perform a profile likelihood scan of one or multiple POIs, pulls - calculate nuisance parameter pulls and best fit values and errors with MINOS, profilelikelihood - run the RooStats ProfileLikelihoodCalculator to calculate confidece intervals, workspace - write out workspace and ModelConfig, histo - just write out histograms with given parameter values e.g. for validation of the parametrisation)"
+                      help="Method to be run, can be one of fit,scan,profilelikelihood,workspace,histo (fit - perform a maximum likelihood fit with MIGRAD+HESSE,  - perform a profile likelihood scan of one or multiple POIs, pulls - calculate nuisance parameter pulls and best fit values and errors with MINOS, profilelikelihood - run the RooStats ProfileLikelihoodCalculator to calculate confidece intervals, pca - run principal component analysis for linear fit, workspace - write out workspace and ModelConfig, histo - just write out histograms with given parameter values e.g. for validation of the parametrisation)"
     )
     parser.add_option("-p", "--poi",dest='poi',default=None,
                       help="Parameters of interest, comma separated. In the case of a maximum likelihood fit, POIs will always be floating.")
@@ -67,8 +67,25 @@ def main():
     parser.add_option("--measurements",
                       dest="measurements", default='all',
                       help="Comma separated list of measurements to be included (default: include all measurements)")
+    parser.add_option("--repara",
+                      action="store_true", dest="repara", default=False,
+                      help="Use reparametrization given in config?")
+    parser.add_option("-g", "--groups",dest="groups",default=None,
+                      help="Parameter groups for PCA, e.g. c1,c2:c2,c3,c4:c5.")
+    parser.add_option("--robust",
+                      dest="robust", default=1,
+                      help="Robustness. Best to be kept at 1 or 2. Should the fit be complicated or fail too often use 3. 0 for faster fits.")
+    parser.add_option("--offset",
+                      action="store_true", dest="offset", default=False,
+                      help="Don't subtract min NLL")
+    parser.add_option("--implicitscan",
+                      dest="implicitscan", default=None,
+                      help="Profile variable manually in case it is too complicated for minuit (e.g. due to local minima), syntax: paramter:steps:min:max")
+    parser.add_option("--conts1d",
+                      action="store_true", dest="conts1d", default=False,
+                      help="Use contours corresponding to 1D chi2 also 2D fits")
 
-    #TODO: "robust" option
+
     options,args=parser.parse_args()
 
     if  options.method==None:
@@ -81,10 +98,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements)
+        fit(options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.initial,options.verbose,options.write_more,options.cls,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan,options.conts1d)
 
 
-def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included):
+def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,initial,verbose,write_more,cls,force,override,measurements_included,repara,groups,robust,offset,implicitscan,conts1d):
     if verbose:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -105,6 +122,12 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'cls',cls
         print 'override',override
         print 'measurements',measurements_included
+        print 'repara',repara
+        print 'groups',groups
+        print 'robust',robust
+        print 'offset',offset
+        print 'implicitscan',implicitscan
+        print 'conts1d',conts1d
         print '--------------------------------------'
 
     main_cfg_name=config
@@ -119,7 +142,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
     for ovr in overrides:
         if ovr.split(':')[0]=='main' or ovr.split(':')[0]==main_cfg_name:
             overrides_main+=[':'.join(ovr.split(':')[1:])]
-
+   
     main_cfg_name=MyConfigParser.expandCfg(main_cfg_name,overrides_main)
     main_cfg.read(main_cfg_name)
 
@@ -144,7 +167,14 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
     correlated_measurements=[]
     if main_cfg.has_option('General','correlated_measurements'):
         correlated_measurements=main_cfg.getAndRm('General','correlated_measurements').split()
-        
+    c_mapping={}
+    cs_new=[]
+    if main_cfg.has_section('Reparameterization'):
+        for cnew,para in main_cfg.itemsAndRm('Reparameterization'):
+            cs_new.append(cnew)
+            c_mapping[cnew]={}
+            for cold,x in zip(theory.getCoeffNames(),[float(x) for x in para.split()]):
+                c_mapping[cnew][cold]=x
     measurements=[]
     predictions=[]
     for cfg_name in main_cfg.getAndRm('General','measurement_configs').split():
@@ -172,11 +202,15 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         binning=None
         if cfg.has_option('Measurement','binning'):
             binning=[float(x) for x in cfg.getAndRm('Measurement','binning').split()]
-        blinded=[]
-        if cfg.has_option('Measurement','blinded'):
-            blinded=[int(x) for x in cfg.getAndRm('Measurement','blinded').split()]
-
-        prediction=Prediction(measurement_name,theory,per_bin_width=per_bin_width,binning=binning,blinded=blinded)
+        binlabels=None
+        if cfg.has_option('Measurement','binlabels'):
+            binlabels=cfg.getAndRm('Measurement','binlabels').split()
+        blind=None
+        if cfg.has_option('Measurement','blind'):
+            blind=[int(x) for x in cfg.getAndRm('Measurement','blind').split()]
+        if verbose:
+            print "creating prediction for", measurement_name
+        prediction=Prediction(measurement_name,theory,per_bin_width=per_bin_width,binning=binning,blind=blind,binlabels=binlabels)
         assert prediction.name not in [p.name for p in predictions]
         
         prediction.setSMfromCfg(cfg.getAndRm('Measurement','sm'))
@@ -186,6 +220,18 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             prediction.setScalingFromCfg(cfg.getAndRm('Measurement','scaling_factor'))
         if cfg.has_option('Measurement','stat_unc_threshold'):
             prediction.stat_unc_threshold=float(cfg.getAndRm('Measurement','stat_unc_threshold'))
+        rebin=None
+        if cfg.has_option('Measurement','rebin'):
+            rebin=cfg.getAndRm('Measurement','rebin')
+
+        #linear_corrections={}
+        #if cfg.has_section('Linear Corrections'):
+        #    for name,effect in cfg.itemsAndRm('Linear Corrections'):
+        #        if name not in theory.getCoeffNames():
+        #            continue
+        #        else:                    
+        #            linear_corrections[name]=float(effect)
+            
         if cfg.has_section('Linear Effects'):
             if quad:
                 cfg.remove_section('Linear Effects')
@@ -195,12 +241,25 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                         continue
                     if not prediction.setEffectFromCfg(1,name,effect):
                         print "WARNING: Could not find linear effect for "+name+" and measurement "+measurement_name+" -- assuming it is zero"
+
+        if cfg.has_section('Linear Corrections'):
+            if quad:
+                cfg.remove_section('Linear Corrections')
+            else:
+                for name,effect in cfg.itemsAndRm('Linear Corrections'):
+                    if name not in theory.getCoeffNames():
+                        continue
+                    if not prediction.setEffectFromCfg(1,name,effect,add=True):
+                        print "WARNING: Could not find linear correction for "+name+" and measurement "+measurement_name+" -- assuming it is zero"
+
         if cfg.has_section('Quadratic Effects'):
             if linear:
                 cfg.remove_section('Quadratic Effects')
             else:
                 names_set=[]
                 for name,effect in cfg.items('Quadratic Effects'):
+                    if not len(name.split())==2:
+                        raise Exception('Quadratic effects need to be denoted with two coefficients (e.g. c1 c1 or c1 c2)and not like this: '+name)
                     if name.split()[0] not in theory.getCoeffNames() or  name.split()[1] not in theory.getCoeffNames():
                         continue                    
                     if prediction.setEffectFromCfg(2,name,effect):
@@ -216,17 +275,18 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 prediction.addUncertaintyFromCfg(theo_syst_name,theo_syst,reco_level=reco_level)
 
         if cfg.has_section('Backgrounds'):
-            assert reco_level
             for name,data in cfg.itemsAndRm('Backgrounds'):
+                assert reco_level
                 prediction.addBackgroundFromCfg(name,data)
             if cfg.has_section('Background Uncertainties'):
                 for bkg_syst_name,bkg_syst in cfg.itemsAndRm('Background Uncertainties'):
-                    prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)   
-
-
-        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory,blinded=blinded)
+                    assert reco_level
+                    prediction.addBkgUncertaintyFromCfg(bkg_syst_name,bkg_syst)
+                    
+        if verbose:
+            print "creating measurement for", measurement_name
+        measurement=Measurement(measurement_name,per_bin_width=per_bin_width,binning=binning,reco_level=reco_level,theory=theory,blind=blind,binlabels=binlabels)
         assert not measurement.name in [m.name for m in measurements]
-        
         if asimov:
             measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
             asmimov_data=prediction.getNominal()
@@ -236,26 +296,46 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             
         else:
             measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
-
         if cfg.has_option('Measurement','covariance'):
             measurement.setCovFromCfg(cfg.getAndRm('Measurement','covariance'))
         elif cfg.has_option('Measurement','correlation') and cfg.has_option('Measurement','correlated_uncertainty'):
             measurement.setErrAndCorrFromCfg(cfg.getAndRm('Measurement','correlated_uncertainty'),cfg.getAndRm('Measurement','correlation'))
         elif not measurement.reco_level:
             print 'WARNING: neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties'
-            
-
         if cfg.has_section('Measurement Uncertainties'):
+            if verbose:
+                print "adding uncertainties for",measurement_name
             for exp_syst_name,exp_syst in cfg.itemsAndRm('Measurement Uncertainties'):
                 measurement.addUncertaintyFromCfg(exp_syst_name,exp_syst)
                 
         for s in cfg.sections():
             if len(cfg.options(s))>0:
                 raise Exception('Unused option '+','.join(cfg.options(s))+' in section '+s)
-        
+
+        if not rebin is None:
+            if len(rebin.split())==1:
+                combinebins=int(rebin)
+            else:
+                combinebins=[int(x) for x in rebin.split()]
+            measurement.rebin(combinebins)
+            prediction.rebin(combinebins)
+
+        if method=='pca':
+            print 'Modify model for PCA: add extra scaling factors'
+            scaling=[]
+            for i in range(prediction.nbins):
+                s='mu_{}_{}'.format(prediction.name,i)
+                scaling.append(s)
+                theory.addCoeff(s,(-100,100))
+            prediction.setScaling(scaling,scaling)
+
+            
         measurements+=[measurement]
         predictions+=[prediction]
-                    
+    if repara and c_mapping!=None:
+        theory.rePara(cs_new,c_mapping)
+        for p in predictions:
+            p.rePara(cs_new,c_mapping)
     if verbose:
         print 'Ingredients ------------------------------------------------'
         for measurement,prediction in zip(measurements,predictions):
@@ -263,6 +343,9 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             print
             print 'Measured:', ' '.join([str(x.getVal()) for x in measurement.central_values])
             print
+            if measurement.binlabels and isinstance(measurement.binlabels[0],str):
+                print "Labels: "+' '.join(measurement.binlabels)
+                print
             if measurement.getMeasurementCorrectionString()!=None:
                 print 'Measurement correction formulas:'
                 for i,s in enumerate(measurement.getMeasurementCorrectionString()):
@@ -293,8 +376,8 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         print 'WARNING: updating',outname+'.root'
     else:
         f=TFile(outname+'.root','RECREATE')
-        print 'WARNING: recreating',outname+'.root'
-    combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=verbose) 
+
+    combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=verbose,robust=robust) 
 
     if poi==None:
         pois=[]
@@ -318,7 +401,7 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
 
     start_time = time.time()
-                    
+                   
     if method=='workspace':
         if len(pois)==0:
             pois='all'
@@ -343,7 +426,25 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 actual_scanrange=[float(x) for x in scanrange.split(':')]
             else:        
                 actual_scanrange=float(scanrange)
-            prof=combination.profile1D(poi,actual_scanrange,int(nsteps),extra_outfile=extra_outfile)
+            if implicitscan is None:
+                prof=combination.profile1D(poi,actual_scanrange,int(nsteps),extra_outfile=extra_outfile,inclOffset=offset)
+            else:
+                profs=[]
+                impl_par,impl_n,impl_min,impl_max=implicitscan.split(':')
+                print 'repeating scan with',impl_par,'set from',impl_min,'to',impl_max,'in',impl_n,'steps'
+                for impl_x in [float(impl_min)+float(x)*(float(impl_max)-float(impl_min))/(int(impl_n)-1) for x in range(int(impl_n))]:
+                    theory.setConstant(impl_par,impl_x)
+                    theory.setInitialVal(impl_par,impl_x)
+                    profs.append(combination.profile1D(poi,actual_scanrange,int(nsteps),extra_outfile=extra_outfile,inclOffset=True))
+                prof=[]
+                total_min=1e9
+                for pointresults in map(list, zip(*profs)):
+                    best=1e9
+                    for x in pointresults:
+                        best=min(x[1],best)
+                    total_min=min(best,total_min)
+                    prof.append((pointresults[0][0],best))
+                prof=[(x[0],x[1]-total_min) for x in prof]
             Plotting.graphProfile1D('g_scan_'+poi,prof,f)
             Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname)
             if write_more:
@@ -362,11 +463,28 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
                 else:
                     actual_scanranges.append(float(s))
             nsteps=[int(n) for n in nsteps.split(',')]
-            prof=combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile)
+            if implicitscan is None:
+                prof=combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile,inclOffset=offset)
+            else:
+                profs=[]
+                impl_par,impl_n,impl_min,impl_max=implicitscan.split(':')
+                print 'repeating scan with',impl_par,'set from',impl_min,'to',impl_max,'in',impl_n,'steps'
+                for impl_x in [float(impl_min)+float(x)*(float(impl_max)-float(impl_min))/(int(impl_n)-1) for x in range(int(impl_n))]:
+                    theory.setConstant(impl_par,impl_x)
+                    theory.setInitialVal(impl_par,impl_x)
+                    profs.append(combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile,inclOffset=True))
+                prof=[]
+                total_min=1e9
+                for pointresults in map(list, zip(*profs)):
+                    best=1e9
+                    for x in pointresults:
+                        best=min(x[-1],best)
+                    total_min=min(best,total_min)
+                    prof.append(pointresults[0][:-1]+(best,))
+                prof=[x[:-1]+((x[-1]-total_min),) for x in prof]
             if len(pois)==2:
                 Plotting.graphProfile2D('g_scan_'+'_'.join(pois),prof,f)
-                Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname)
-
+                Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d)
     elif method=='fit':
         if verbose:
             print 'doing fit'
@@ -376,13 +494,15 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
             pred_histos_prefit+=[p.plotPrefit(f)]
             data_histos_prefit+=[m.plotPrefit(f)]
         combination.fit()
-        corr=combination.getFitResult().correlationHist()
+        corr=combination.getFitResult().correlationHist()        
         corr.Write()
         Plotting.canvasCorrelation('c_correlation',corr,f,outname)
-        corrPOIs=combination.correlationHistPOIs()
+        corrPOIs,covPOIs=combination.correlationHistPOIs()
         if corrPOIs:
             corrPOIs.Write()
+            covPOIs.Write()
             Plotting.canvasCorrelation('c_correlationPOIs',corrPOIs,f,outname)
+            Plotting.canvasCorrelation('c_covariancePOIs',covPOIs,f,outname,log=True)
         
         for p,m,h_p_pre,h_m_pre in zip(predictions,measurements,pred_histos_prefit,data_histos_prefit):
             h_p_post=p.plotPostfit(f,combination.getFitResult())
@@ -416,7 +536,20 @@ def fit(config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deac
         ftxt.write(','.join([str(x) for x in limit]))
         ftxt.close()
 
+    elif method=='pca':
+        if groups==None:
+            grouping=[]
+        else:
+            grouping=[g.split(',') for g in groups.split(":")]
+        h_cov,h_corr,h_ev,h_ev_abs,hs_effects=combination.PCA(grouping)
+        for h in h_cov,h_corr,h_ev,h_ev_abs:
+            h.Write()
+        for ev in hs_effects:
+            for h in ev:
+                h.Write()
+
     elif method=='asymptotic' or method=='hybrid' or method=='frequentist':
+        raw_input('WARNING, the method '+method+' is experimental and work in progress, press enter to proceed')
         if len(pois)!=1:
             print "Need exactly one POI to run asymptotic/hybrid/frequentist limits"
         w=combination.createWorkspace(pois)

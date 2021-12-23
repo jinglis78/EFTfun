@@ -5,14 +5,7 @@ For help:
 ./bin/eftfun.py
 ```
 
-Prerequisites: python2.7, ROOT6 with RooFit, optionally YODA (typically installed with [Rivet](https://rivet.hepforge.org/trac/wiki/GettingStarted))
-
-On lxplus
-```
-setupATLAS
-asetup 21.6.6,AthGeneration
-source setupRivet.sh
-```
+Prerequisites: python2.7, ROOT6 with RooFit (ideally ROOT 6.24 or newer), optionally YODA (typically installed with [Rivet](https://rivet.hepforge.org/trac/wiki/GettingStarted))
 
 Config templates with explanations and examples:
 ```
@@ -20,7 +13,7 @@ configs/TopCfgTemplate.cfg
 configs/MeasurementCfgTemplate.cfg
 ```
 
-[Tutorial](https://gitlab.cern.ch/eft-tools/eft-fun/blob/master/EFTfit.md)
+[Tutorial](https://gitlab.cern.ch/eft-tools/eft-fun/blob/master/EFTfit.md) (might be outdated in parts)
 
 Fitting Examples:
 ```
@@ -39,4 +32,5 @@ Fitting Examples:
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m profilelikelihood -p cW -c all -o example13
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m workspace -l -o example14
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m workspace -l --override measurements:Measurement.stat_unc_threshold=-1 -o example15
+./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m pca -l -o example16
 ```
