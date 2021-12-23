@@ -170,14 +170,14 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
             central=round(x0,1-int(log10(err_low/2+err_high/2)))
             if central==0.:
                 central=0
-            ci1text=ROOT.TLatex(0.5,0.85,'Best fit: {}_{{ #minus{} }}^{{ #plus{} }}'.format(central,Utils.round2(err_low,3),Utils.round2(err_high,3)))
+            ci1text=ROOT.TLatex(0.5,0.85,'Best fit: {}_{{ #minus{} }}^{{ #plus{} }}'.format(central,Utils.round2(err_low,2),Utils.round2(err_high,2)))
             ci1text.SetNDC()
             ci1text.SetTextSize(0.04)
             ci1text.SetTextFont(42)
             ci1text.SetTextAlign(21)
             ci1text.Draw()
         if not toy_result is None:
-            ci1text=ROOT.TLatex(0.35,0.85,'68% CL: [{},{}]'.format(Utils.round2(ci1[0],3),Utils.round2(ci1[1],3)))
+            ci1text=ROOT.TLatex(0.35,0.85,'68% CL: [{},{}]'.format(Utils.round2(ci1[0],2),Utils.round2(ci1[1],2)))
             ci1text.SetNDC()
             ci1text.SetTextSize(0.04)
             ci1text.SetTextFont(42)
@@ -186,9 +186,9 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
 
         logging.info('68% CL: [{} , {}]'.format(ci1[0],ci1[1]))
         if not toy_result is None:
-            ci2text=ROOT.TLatex(0.35,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],3),Utils.round2(ci2[1],3)))
+            ci2text=ROOT.TLatex(0.35,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],2)))
         else:
-            ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],3),Utils.round2(ci2[1],3)))
+            ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],2)))
         logging.info('95% CL: [{} , {}]'.format(ci2[0],ci2[1]))
         ci2text.SetNDC()
         ci2text.SetTextSize(0.04)
