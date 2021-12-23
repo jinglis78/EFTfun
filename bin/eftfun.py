@@ -472,6 +472,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
     if method=='workspace':
         if len(pois)==0:
             pois='all'
+        f.cd()
         w=combination.createWorkspace(pois)
         w.Write()
 
