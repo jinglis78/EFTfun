@@ -164,61 +164,12 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         njobs=1
         cluster=None
         
-    parallel_jobs=[]
+
     if method=='parallel' or parallel:
         if config is None or len(pois)==0 or int(njobs)<=1 or outname is None:
             raise Exception('Need input config, pois (-p), njobs>1, and outname (-o)!')
-        if len(nsteps)==1:
-            total_nsteps=nsteps*len(pois)
-        assert len(nsteps)==len(pois)
-        from operator import mul
-        total_nsteps=reduce(mul,nsteps)
-        nsteps_job=total_nsteps//njobs
-        remainder=total_nsteps%njobs
-        first=0
-        if not '/' in outname:
-            outname='/'.join(['results',outname])
-        if not os.path.exists(outname):
-            os.makedirs(outname)
-        jobs=[]
-        for ijob in range(njobs):
-            jobname=outname+'/'+"job_{}".format(ijob)
-            last=first+nsteps_job
-            if remainder>0:
-                last+=1
-                remainder-=1
-            options_dict = vars(options)            
-            new_options={'method':'scan','first':first,'last':last,'njobs':1,'outname':jobname}
-            f=open(jobname+'.sh','w')
-            f.write('#!/usr/bin/env bash\n')
-            f.write('cd '+os.getcwd()+'\n')
-            f.write('./bin/eftfun.py')
-            for o in options_dict:
-                if not o in new_options:
-                    if options_dict[o] is None:
-                        continue
-                    if isinstance(options_dict[o],bool):
-                        if options_dict[o]:
-                            f.write(' --{}'.format(o))
-                    else:
-                        f.write(' --{} {}'.format(o,options_dict[o]))
-            for o in new_options:
-                f.write(' --{} {}'.format(o,new_options[o]))
-            f.write(' --parallel_job')
-            f.write(' --force')
-            f.write('\n')
-            f.write('touch {}.done\n'.format(jobname))
-            Utils.chmodX(jobname+'.sh')
-            jobs.append(jobname)
-            first=last            
-            f.close()
-        os.makedirs(outname+'/combined')
-        f=open(outname+'/plot.sh','w')
-        f.write('#!/usr/bin/env bash\n')
-        f.write('cd '+os.getcwd()+'\n')
-        f.write('./bin/eftfun.py -i "{}" -m collect -p {}  -o {}'.format(' '.join([j+'.root' for j in jobs]),','.join(pois),outname+'/combined'))
-        f.close()
-        Utils.chmodX(outname+'/plot.sh')
+        jobs=Multicore.prepareScripts(outname,options,pois,njobs,nsteps)
+        parallel_jobs=[]
         if method=='parallel':
             print 'Now run the following scripts'
         for j in jobs:
@@ -229,6 +180,8 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         if method=='parallel':
             print 'Then plot results with'
             print 'source',outname+'/plot.sh'
+        print 'Will setup model for testing only...'
+        print '------------------------------------------------'
         
     if not method=='collect':
         main_cfg_name=config

@@ -1,4 +1,4 @@
-import math,re,os,stat
+import math,re,os
 from glob import glob
 
 #TODO: logger
@@ -88,10 +88,6 @@ def getFiles(files):
         if not os.path.exists(fn):
             raise Exception("Can't find files "+str(files))
     return glob(files)
-
-def chmodX(fn):
-    st = os.stat(fn)
-    os.chmod(fn, st.st_mode | stat.S_IEXEC)
 
 def round2(number,digits=3):
     if number==0:
