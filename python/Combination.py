@@ -340,7 +340,6 @@ class Combination:
         else:
             npoints=last-first
         if not inclOffset or ntoys>0:
-            logging.info('unconditional fit first')
             for poi in pois:
                 poi.setConstant(False)
             global_minNLL=self.minimize(print_level=print_level,strategy=2)

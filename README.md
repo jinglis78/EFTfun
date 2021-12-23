@@ -33,4 +33,7 @@ Fitting Examples:
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m workspace -l -o example14
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m workspace -l --override measurements:Measurement.stat_unc_threshold=-1 -o example15
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m pca -l -o example16
+./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m scan -p cW -c all -n 10 -t 400 -o example17
+./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m scan -p cW -c all -n 10 -t 400 -o example18 --njobs 8
+./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m impacts -c all -p cW -o example19
 ```
