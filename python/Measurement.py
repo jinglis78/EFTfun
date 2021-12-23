@@ -98,6 +98,7 @@ class Measurement:
                 if i==j and cov[i][j]==0:
                     self.covMatrix[i,j]=1
                     logging.warning("covariance matrix element 0")
+                    
     def setMeasuredFromCfg(self,alldata):
         fromFile=False
         for e in ['.yoda','.yaml','.root']:

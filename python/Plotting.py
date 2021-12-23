@@ -506,6 +506,104 @@ def canvasCorrelation(name,h,outfile,outfolder,log=False):
     h.Draw('COLZTEXT')
 
     printAndSave(c,outfile,outfolder)
+
+def canvasImpactsPage(pulls,impacts,poi,outfile,outfolder,max_impact,pars,number):
+    n=len(pars)
+    name='c_impacts_{}_{}'.format(poi,number)
+    c=ROOT.TCanvas(name,name,800,100*n )
+    scaletext=500./min(800,100*n)
+    c.SetTopMargin(2./(n+3))
+    c.SetBottomMargin(1./(n+3))
+    c.SetRightMargin(0.05)
+    c.SetLeftMargin(0.3)    
+    c.cd()
+    legend=ROOT.TLegend(0.1,1-(2./(n+3))*0.4,0.95,1)
+    legend.SetBorderSize(0)
+    legend.SetLineStyle(0)
+    legend.SetTextFont(42)
+    legend.SetTextSize(0.06*scaletext)
+    legend.SetFillStyle(0)
+    legend.SetNColumns(3)
+
+    hdown=ROOT.TH1D('h_down_impacts_{}_{}'.format(poi,number),'',n,0,n)
+    hup=ROOT.TH1D('h_up_impacts_{}_{}'.format(poi,number),'',n,0,n)
+    xmax=2.5
+    relmax=0.8
+    rescale=relmax*xmax/max_impact
+    for i,imp in enumerate(pars):
+        print imp,impacts[imp]
+        hdown.SetBinContent(n-i,impacts[imp][0]*rescale)
+        hdown.GetXaxis().SetBinLabel(n-i,imp)
+        hup.SetBinContent(n-i,impacts[imp][1]*rescale)
+        hup.GetXaxis().SetBinLabel(n-i,imp)
+       
+    hup.SetStats(0)
+    hup.SetLabelSize(0.09*scaletext,'X')
+    hup.SetLabelSize(0.06*scaletext,'Y')
+    hup.SetTitleSize(0.06*scaletext,'XY')
+
+    hup.GetYaxis().SetTitle('(#hat{#theta}-#theta_{0})')
+    hup.GetYaxis().CenterTitle(1)
+    hup.SetFillColor(ROOT.kRed)
+    hdown.SetFillColor(ROOT.kBlue)
+    hup.Draw('hbar')
+    
+    line1=ROOT.TLine(1,0,1,n)
+    line1.Draw()
+    line1.SetLineStyle(2)
+    linem1=ROOT.TLine(-1,0,-1,n)
+    linem1.SetLineStyle(2)
+    linem1.Draw()
+
+    hup.Draw('hbar,same')
+
+    hup.SetBarWidth(0.33)
+    hup.SetBarOffset(0.1)
+    hup.GetYaxis().SetRangeUser(-xmax,xmax)
+    hdown.SetBarWidth(0.33)
+    hdown.SetBarOffset(0.57)
+    hdown.Draw('hbar,same')
+    g_pull=ROOT.TGraphAsymmErrors()
+    for i in range(n):
+        label=hup.GetXaxis().GetBinLabel(i+1)
+        g_pull.SetPoint(i , pulls[label][0],hup.GetBinCenter(i+1))
+        g_pull.SetPointError( i, abs(pulls[label][1]), abs(pulls[label][2]), 0, 0)
+    g_pull.SetLineWidth(2)
+    g_pull.SetMarkerStyle(21)
+    g_pull.Draw('EP')
+
+    line0=ROOT.TLine(0,0,0,n)
+    line0.SetLineWidth(2)
+    line0.Draw()
+
+    
+    axis = ROOT.TGaxis(-xmax, n, xmax, n,
+                       -max_impact/relmax, max_impact/relmax, 510, "-")
+    axis.SetLabelSize(0.06*scaletext)
+    axis.SetLabelFont(42)
+    axis.SetTitleSize(0.06*scaletext)
+    axis.SetTitleFont(42)
+    axis.SetLabelOffset(0.0)
+    axis.SetTitle('#Delta '+poi)
+    axis.CenterTitle(1)
+    axis.Draw()
+
+    legend.AddEntry(hup,'Impact #hat{#theta}+#Delta#hat{#theta}','F')
+    legend.AddEntry(hdown,'Impact #hat{#theta}-#Delta#hat{#theta}','F')
+    legend.AddEntry(g_pull,'#hat{#theta} and #pm#Delta#hat{#theta}','EP')
+    legend.Draw()
+    printAndSave(c,outfile,outfolder)
+    
+def canvasImpacts(pulls,impacts,poi,outfile,outfolder):
+    ROOT.gStyle.SetHistMinimumZero(True)
+    ROOT.gStyle.SetEndErrorSize(4)
+    impacts_ordered=sorted([( max(abs(impacts[name][0]),abs(impacts[name][1])) , name) for name in impacts],reverse=True)
+    max_impact=impacts_ordered[0][0]
+    pars=[x[1] for x in impacts_ordered]
+    per_page=10
+    for n in range((len(pars)-1)//per_page+1):
+        canvasImpactsPage(pulls,impacts,poi,outfile,outfolder,max_impact,pars[n*per_page:(n+1)*per_page],n)
+                         
     
 
 def printAndSave(c,outfile,outfolder,alsoLog=False):

@@ -31,17 +31,17 @@ class Combination:
             if det<=1e-200:
                 raise Exception("Covariance degenerate")
             while det>10e20 or det==float('+inf'):
-                logging.info('Huge covariance matrix determinant (',m.name,':',det,') rescaling measurement and prediction by 0.1')
+                logging.info('Huge covariance matrix determinant ({}: {}) rescaling measurement and prediction by 0.1')
                 p.scale(0.1)
                 m.scale(0.1)
                 det=m.getCov(redo=True).Determinant()
-                logging.info('New determinant:', det)
+                logging.info('New determinant: '+str(det))
             while det<10e-20:
-                logging.info('Tiny covariance matrix determinant (',m.name,':',det,') rescaling measurement and prediction by 10')
+                logging.info('Tiny covariance matrix determinant ({}: {}) rescaling measurement and prediction by 10'.format(m.name,det))
                 p.scale(10)
                 m.scale(10)
                 det=m.getCov(redo=True).Determinant()
-                logging.info('New determinant:', det)
+                logging.info('New determinant: '+str(det))
 
 
         self.mvgaussians=[]
@@ -718,9 +718,6 @@ class Combination:
                 impact.append(self.theory.getVal(poi)-best_fit)
                 self.theory.setFloating(p)
             impacts[p]=tuple(impact)
-        for p in impacts:
-            print p,impacts[p]
-
         return pulls,impacts
 
     def pullEach(self,pois=True,thetas=False,skipMCstat=True):

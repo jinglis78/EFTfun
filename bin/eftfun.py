@@ -433,7 +433,9 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                 logging.info('Uncertainty (excluding nuisance parameters): '+' '.join(["{:.2f}% ".format(100.*x) for x in measurement.getRelErr()]))
                 logging.info('')
                 logging.info('Correlation matrix:')
-                measurement.getCorr().Print()
+                corr_mat=measurement.getCorr()
+                for i in range(measurement.nbins):
+                    logging.info(' '.join(["{:.2f}".format(round(x,2)) for x in [corr_mat[i,j] for j in range(measurement.nbins)]]))
 
             logging.info('Prediction formulas:')
             for i,s in enumerate(prediction.getPredictionStrings()):
@@ -631,6 +633,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             
     elif method=='impacts':
         pulls,impacts=combination.impacts(pois)
+        Plotting.canvasImpacts(pulls,impacts,pois[0],outfile=f,outfolder=outname)
 
     elif method=='profilelikelihood':
         limit=combination.calcProfileLikelihood(pois)
