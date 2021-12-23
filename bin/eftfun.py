@@ -8,7 +8,7 @@ from Theory import Theory
 from Prediction import Prediction
 from Combination import Combination
 from ROOT import TFile,RooWorkspace,gROOT,TCanvas
-import Utils,Plotting
+import Utils,Plotting,Multicore
 from optparse import OptionParser
 import re,os,time,math
 from subprocess import call
@@ -24,7 +24,7 @@ def main():
                       help="Write output to OUTNAME.root and in folder OUTNAME/", metavar="OUTNAME")
     parser.add_option("-m", "--method",
                       dest="method",default="fit",
-                      help="Method to be run, can be one of fit,scan,profilelikelihood,workspace,histo,parallel,collect,multicore: fit - perform a maximum likelihood fit with MIGRAD+HESSE, scan - perform a profile likelihood scan of one or multiple POIs, pulls - calculate nuisance parameter pulls and best fit values and errors with MINOS, profilelikelihood - run the RooStats ProfileLikelihoodCalculator to calculate confidece intervals, pca - run principal component analysis for linear fit, workspace - write out workspace and ModelConfig, histo - just write out histograms with given parameter values e.g. for validation of the parametrisation, parallel - prepare parallelized scan, collect - collect and plot results from a parallelized scan, multicore - run a scan on multiple cores"
+                      help="Method to be run, can be one of fit,scan,profilelikelihood,workspace,histo,parallel,collect: fit - perform a maximum likelihood fit with MIGRAD+HESSE, scan - perform a profile likelihood scan of one or multiple POIs, pulls - calculate nuisance parameter pulls and best fit values and errors with MINOS, profilelikelihood - run the RooStats ProfileLikelihoodCalculator to calculate confidece intervals, pca - run principal component analysis for linear fit, workspace - write out workspace and ModelConfig, histo - just write out histograms with given parameter values e.g. for validation of the parametrisation, parallel - prepare parallelized scan, collect - collect and plot results from a parallelized scan"
     )
     parser.add_option("-p", "--poi",dest='poi',default=None,
                       help="Parameters of interest, comma separated. In the case of a maximum likelihood fit, POIs will always be floating.")
@@ -85,16 +85,19 @@ def main():
                       help="Use contours corresponding to 1D chi2 also 2D fits")
     parser.add_option("--njobs",
                       dest="njobs", default=1,
-                      help="Number of cores for parallel scan")
+                      help="Number of jobs/cores for parallel scan")
+    parser.add_option("--cluster",
+                      dest="cluster", default=None,
+                      help="Cluster type to run on (needs to be implemented in Multicore.py). Use single/multicore if None.")
     parser.add_option("--first",
                       dest="first", default=-1,
                       help="First point of parallized scan")
     parser.add_option("--last",
                       dest="last", default=-1,
                       help="Last point of parallized scan")
-    parser.add_option("--static_cfg",
-                      action="store_true", dest="static_cfg", default=False,
-                      help="Don't evaluate config variables and overrides - has to be done once before (only relevant for parallel running)")
+    parser.add_option("--parallel_job",
+                      action="store_true", dest="parallel_job", default=False,
+                      help="This is a parallel job (internal use only)")
 
 
     options,args=parser.parse_args()
@@ -109,10 +112,10 @@ def main():
         print 'need poi'
         parser.print_help()
     else:
-        fit(options,options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.set_initial,options.quiet,options.write_more,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan,options.conts1d,options.njobs,options.first,options.last,options.static_cfg)
+        fit(options,options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.set_initial,options.quiet,options.write_more,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan,options.conts1d,options.njobs,options.cluster,options.first,options.last,options.parallel_job)
 
 
-def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,set_initial,quiet,write_more,force,override,measurements_included,repara,groups,robust,offset,implicitscan,conts1d,njobs,first,last,static_cfg):
+def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,set_initial,quiet,write_more,force,override,measurements_included,repara,groups,robust,offset,implicitscan,conts1d,njobs,cluster,first,last,parallel_job):
     if not quiet:
         print '--------------------------------------'
         print 'running fit with following parameters:'
@@ -139,9 +142,10 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         print 'implicitscan',implicitscan
         print 'conts1d',conts1d
         print 'njobs',njobs
+        print 'cluster',cluster
         print 'first',first
         print 'last',last
-        print 'static_cfg',static_cfg
+        print 'parallel_job',parallel_job
         print '--------------------------------------'
 
     verbose=not quiet
@@ -150,24 +154,32 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         pois=[]
     else:
         pois=poi.split(',')
+
+    nsteps=[int(n) for n in nsteps.split(',')]
+
+    njobs=int(njobs)
+    parallel=(not cluster is None or njobs>1)
+    if parallel and not (method=='scan' or method=='parallel'):
+        print 'parallel running only supported for "scan" method'
+        njobs=1
+        cluster=None
+        
     parallel_jobs=[]
-    plot_job=[]
-    if method=='parallel' or method=='multicore':
-        nsteps=[int(n) for n in nsteps.split(',')]
-        njobs=int(njobs)
+    if method=='parallel' or parallel:
         if config is None or len(pois)==0 or int(njobs)<=1 or outname is None:
             raise Exception('Need input config, pois (-p), njobs>1, and outname (-o)!')
         if len(nsteps)==1:
-            nsteps=nsteps*len(pois)
+            total_nsteps=nsteps*len(pois)
         assert len(nsteps)==len(pois)
         from operator import mul
-        nsteps=reduce(mul,nsteps)
-        nsteps_job=nsteps//njobs
-        remainder=nsteps%njobs
+        total_nsteps=reduce(mul,nsteps)
+        nsteps_job=total_nsteps//njobs
+        remainder=total_nsteps%njobs
         first=0
         if not '/' in outname:
             outname='/'.join(['results',outname])
-        os.makedirs(outname)
+        if not os.path.exists(outname):
+            os.makedirs(outname)
         jobs=[]
         for ijob in range(njobs):
             jobname=outname+'/'+"job_{}".format(ijob)
@@ -192,9 +204,10 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                         f.write(' --{} {}'.format(o,options_dict[o]))
             for o in new_options:
                 f.write(' --{} {}'.format(o,new_options[o]))
-            f.write(' --static_cfg')
+            f.write(' --parallel_job')
             f.write(' --force')
             f.write('\n')
+            f.write('touch {}.done\n'.format(jobname))
             Utils.chmodX(jobname+'.sh')
             jobs.append(jobname)
             first=last            
@@ -216,8 +229,6 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         if method=='parallel':
             print 'Then plot results with'
             print 'source',outname+'/plot.sh'
-        else:
-            plot_job.append(outname+'/plot.sh')
         
     if not method=='collect':
         main_cfg_name=config
@@ -233,7 +244,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             if ovr.split(':')[0]=='main' or ovr.split(':')[0]==main_cfg_name:
                 overrides_main+=[':'.join(ovr.split(':')[1:])]
         
-        main_cfg_name=MyConfigParser.expandCfg(main_cfg_name,overrides_main,static_cfg)
+        main_cfg_name=MyConfigParser.expandCfg(main_cfg_name,overrides_main,parallel_job)
         main_cfg.read(main_cfg_name)
 
         theory=Theory()
@@ -279,9 +290,9 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             for ovr in overrides:
                 if ovr.split(':')[0]=='measurements' or ovr.split(':')[0]==cfg_name:
                     overrides_measurement+=[':'.join(ovr.split(':')[1:])]
-            cfg.read(MyConfigParser.expandCfg(cfg_name,overrides_measurement,static_cfg))
-            if method=='parallel' or method=='multicore':
-                continue
+            cfg.read(MyConfigParser.expandCfg(cfg_name,overrides_measurement,parallel_job))
+#            if method=='parallel' or parallel:
+#                continue
             measurement_name=cfg.getAndRm('Measurement','name')
             if not measurements_included=='all' and not measurement_name in [x.strip() for x in measurements_included.split(',')]:
                 continue
@@ -425,12 +436,6 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             measurements+=[measurement]
             predictions+=[prediction]
 
-        if method=='parallel':
-            return
-        if method=='multicore':
-            Utils.runMulticore(parallel_jobs,plot_jobs)
-            return
-
         if repara and c_mapping!=None:
             theory.rePara(cs_new,c_mapping)
             for p in predictions:
@@ -464,10 +469,14 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     print s.replace(')+',')\n+').replace('))','))\n')
                 print
                 print '------------------------------------------------'
-        main_name=main_cfg.getAndRm('General','name')
-        if outname==None:
-            outname=main_name
-        outname,f=Utils.createOutFile(outname)
+        if method=='parallel':
+            return
+        main_name=main_cfg.getAndRm('General','name')        
+
+        if not parallel:
+            if outname==None:
+                outname=main_name
+            outname,f=Utils.createOutFile(outname)
         combination=Combination(theory,predictions,measurements,main_name,correlated_measurements=correlated_measurements,verbose=verbose,robust=robust) 
         theory.setConstantFromCfg(constant,pois)
         theory.deactivateUncertainties(deactivate_uncertainties)
@@ -486,6 +495,8 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
 
     start_time = time.time()
+
+    collect=(method=='collect' or parallel)
                    
     if method=='workspace':
         if len(pois)==0:
@@ -501,22 +512,25 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         for m in measurements:
             m.plotPrefit(f)
 
-    elif method=='scan' or method=='collect':
+    elif method=='scan' or collect:
         if method=='collect':
             if len(pois)<1 or outname is None:
                 raise Exception("Need to specify POIs and output location for result collection")
         extra_outfile=None
         if write_more:
             extra_outfile=f
+            if collect:
+                print 'cannot collect extra info'
+                extra_outfile=None
         #TODO: remove old function
-        if not method=='collect' and len(pois)==1 and int(ntoys)<=0 and int(first)<0 and int(last)<0:
+        if not collect and len(pois)==1 and int(ntoys)<=0 and int(first)<0 and int(last)<0:
             poi=pois[0]
             if ':' in str(scanrange):
                 actual_scanrange=[float(x) for x in scanrange.split(':')]
             else:        
                 actual_scanrange=float(scanrange)
             if implicitscan is None:
-                prof=combination.profile1D(poi,actual_scanrange,int(nsteps),extra_outfile=extra_outfile,inclOffset=offset)
+                prof=combination.profile1D(poi,actual_scanrange,nsteps[0],extra_outfile=extra_outfile,inclOffset=offset)
             else:
                 profs=[]
                 impl_par,impl_n,impl_min,impl_max=implicitscan.split(':')
@@ -524,7 +538,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                 for impl_x in [float(impl_min)+float(x)*(float(impl_max)-float(impl_min))/(int(impl_n)-1) for x in range(int(impl_n))]:
                     theory.setConstant(impl_par,impl_x)
                     theory.setInitialVal(impl_par,impl_x)
-                    profs.append(combination.profile1D(poi,actual_scanrange,int(nsteps),extra_outfile=extra_outfile,inclOffset=True))
+                    profs.append(combination.profile1D(poi,actual_scanrange,nsteps[0],extra_outfile=extra_outfile,inclOffset=True))
                 prof=[]
                 total_min=1e9
                 for pointresults in map(list, zip(*profs)):
@@ -551,10 +565,9 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     actual_scanranges.append([float(x) for x in s.split(':')])
                 else:
                     actual_scanranges.append(float(s))
-            nsteps=[int(n) for n in nsteps.split(',')]
-            if not method=='collect' and implicitscan is None:
+            if not collect and implicitscan is None:
                 prof,toy_limit=combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile,inclOffset=offset,ntoys=int(ntoys),first=int(first),last=int(last))
-            elif not method=='collect':
+            elif not collect:
                 if int(ntoys)>0:
                     raise Exception("implicit scan and toys is too much for me...")
                 profs=[]
@@ -574,15 +587,16 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     prof.append(pointresults[0][:-1]+(best,))
                 prof=sorted([x[:-1]+((x[-1]-total_min),) for x in prof])
                 toy_limit=None
-            elif method=='collect':
+            elif collect:
                 outname,f = Utils.createOutFile(outname)
-                resultsfiles = config.split()
-                wrong=False
-                resultsfiles=Utils.getFiles(config)
+                if method=='collect':
+                    resultsfiles=Utils.getFiles(config)
+                else:
+                    resultsfiles=Multicore.runParallel(parallel_jobs,cluster)
                 prof,toy_limit=Utils.getResultFromFile('scan',pois,resultsfiles)
             Utils.saveResultToTree('scan',pois,prof,toy_limit,f)
 
-            if len(pois)==1:
+            if len(pois)==1 and not parallel_job:
                 Plotting.graphProfile1D('g_scan_'+poi,prof,f)
                 Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname)
                 #Plotting.graphProfile1D('c_asymtoticProb_'+poi,prof,f,isNLL=False,makeProb=True)
@@ -590,14 +604,14 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     Plotting.graphToys1D('g_toyProb_'+poi,toy_limit,f)
                     Plotting.canvasProfile1D('c_prob_'+poi,prof,f,poi,outfolder=outname,toy_result=toy_limit,isNLL=False,ytitle='p value')
 
-                if write_more and not method=='collect':
+                if write_more and not collect:
                     for par in combination.all_results:
                         if par==poi:
                             continue
                         prof2=[(prof[i][0],y) for i,y in enumerate(combination.all_results[par])]
                         Plotting.graphProfile1D('g_scan_'+'_'.join([poi,par]),prof2,f,isNLL=False)
                         Plotting.canvasProfile1D('c_scan_'+'_'.join([poi,par]),prof2,f,poi,par,outfolder=outname,isNLL=False)
-            if len(pois)==2:
+            if len(pois)==2 and not parallel_job:
                 Plotting.graphProfile2D('g_scan_'+'_'.join(pois),prof,f,conts1d=conts1d)
                 Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d)
                 #Plotting.graphProfile2D('g_asymptoticProb_'+'_'.join(pois),prof,f,isNLL=False,makeProb=True,conts1d=conts1d)
