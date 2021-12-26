@@ -1,4 +1,4 @@
-from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH1D, TH2D, TCanvas, TRandom3, RooHelpers, RooMsgService
+from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH1D, TH2D, TCanvas, TRandom3, RooHelpers, RooMsgService, Math
 from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculator,FrequentistCalculator,HypoTestInverter,ProfileLikelihoodTestStat
 import itertools,re,math
 import Utils
@@ -7,7 +7,6 @@ import io
 import sys
 import os, stat
 import logging
-#logger=logging.getLogger(__name__)
 
 class Combination:
     def __init__(self, theory=None, predictions=None,measurements=None,name='test',verbose=True,correlated_measurements=[],robust=1):
@@ -143,8 +142,9 @@ class Combination:
 
         self.constraints=[]
         for theta in self.theory.thetas:
-            constraint=RooGaussian("constraint_"+theta.GetName(),"constraint_"+theta.GetName(),theta ,RooFit.RooConst(.0) ,RooFit.RooConst(1.))
-            self.constraints+=[constraint]
+            if not theta.GetName() in theory.free_theta_names:
+                constraint=RooGaussian("constraint_"+theta.GetName(),"constraint_"+theta.GetName(),theta ,theory.global_obs[theta.GetName()] ,RooFit.RooConst(1.))
+                self.constraints+=[constraint]
         pdfs=RooArgList()
         for mvgaussian in self.mvgaussians:
             pdfs.add(mvgaussian)
@@ -339,10 +339,11 @@ class Combination:
             first=0
         else:
             npoints=last-first
-        if not inclOffset or ntoys>0:
-            for poi in pois:
-                poi.setConstant(False)
-            global_minNLL=self.minimize(print_level=print_level,strategy=2)
+
+        for poi in pois:
+            poi.setConstant(False)
+        global_minNLL=self.minimize(print_level=print_level,strategy=2)
+        global_minNLL_point=tuple([p.getVal(p) for p in pois])
 
         logging.info('scanning '+str(npoints)+' points')
         percent=0
@@ -393,25 +394,27 @@ class Combination:
         for gridpoint,toy_nlls,r in zip(grid,toy_results,result):
             nworse=0
             for t in toy_nlls:
-                if  t+1e-4>r[-1]:
+                if  t+1e-5>r[-1]:
                     nworse+=1
             alpha=float(nworse)/len(toy_nlls)
             err=(alpha*(1-alpha)/len(toy_nlls))**0.5
-            toy_result.append(gridpoint+(alpha,err))            
+            toy_result.append(gridpoint+(alpha,err))
+            
+        result.append(global_minNLL_point+(global_minNLL if inclOffset else 0.,))
+        
         return result,toy_result if len(toy_result)>0 else None
 
     def doToys(self,scanpoint,pois,ntoys,delta_nll_data):
         RooMsgService.instance().saveState()
         RooMsgService.instance().setGlobalKillBelow(RooFit.FATAL)
-        #for istream in range(RooMsgService.instance().numStreams()):
-        #    RooMsgService.instance().deleteStream(istream)
-
+        profiled_nps=self.theory.getThetaValues()
         toys=self.pdf.generate(self.data,2*ntoys)
         toy_delta_nlls=[]
         good_toys=0
         nworse=0
         nfailed=0
         stopped=False
+        logging.info('Running up to {} toys for {} = {} which has data 2DeltaNLL={} (asymptotic prob {})'.format(ntoys,pois[0].GetName() if len(pois)==1 else [p.GetName() for p in pois],scanpoint[0] if len(scanpoint)==1 else scanpoint,round(2*delta_nll_data,2),round(Math.chisquared_cdf_c(2*delta_nll_data,len(pois)),3)))
         for it in range(2*ntoys):
             for p,val in zip(pois,scanpoint):
                 p.setVal(val)
@@ -419,6 +422,7 @@ class Combination:
             toy=toys.get(it)
             toy_dataset=RooDataSet('toy_dataset_{}'.format(it),'toy_dataset_{}'.format(it),toy)
             toy_dataset.add(toy)
+            self.theory.shuffleGlobalObs(profiled_nps)
             if self.theory.isConstant():
                 this_nll=self.pdf.createNLL(toy_dataset,RooFit.Verbose(False))
                 this_min_toy=this_nll.getVal()
@@ -455,6 +459,7 @@ class Combination:
 
             if good_toys==ntoys:
                 break
+        self.theory.resetGlobalObs()
         if not stopped and good_toys<ntoys:
             raise Exception("Too many toys failed!")        
         if good_toys!=0:
@@ -462,9 +467,8 @@ class Combination:
         else:
             alpha=None
         if nfailed>0:
-            logging.warning('{} failed toy fits for scanpoint {}'.format(nfailed,scanpoint))
-        logging.info('point,2deltaNLL,alpha,ntoys')
-        logging.info(','.join([str(s) for s in [scanpoint,2*delta_nll_data,alpha,good_toys]]))
+            logging.warning('{} failed toy fits for scanpoint {}'.format(nfailed,scanpoint[0] if len(scanpoint)==1 else scanpoint))
+        logging.info('prob from {} toys: {}'.format(good_toys,round(alpha,3)))
 
         RooMsgService.instance().restoreState()
         return toy_delta_nlls
@@ -620,6 +624,7 @@ class Combination:
         modelconfig.SetPdf(self.pdf)
         pois=RooArgSet()
         nps=RooArgSet()
+        gos=RooArgSet()
         for c in self.theory.coeffs:
             if poi_names=='all' or c.GetName() in poi_names:
                 pois.add(c)
@@ -629,21 +634,14 @@ class Combination:
         for t in self.theory.thetas:
             nps.add(t)
 
+        for g in self.theory.getGlobalObs():
+            gos.add(g)
+
         modelconfig.SetParametersOfInterest(pois)
         modelconfig.SetObservables(RooArgSet(self.data))
         modelconfig.SetNuisanceParameters(nps)
-        #TODO: set global observables
+        modelconfig.SetGlobalObservables(gos)
         
-        #background_model =  modelconfig.Clone(self.name+'_model_background')
-        #if pois.getSize()!=0:
-        #    oldval = pois.first().getVal()
-        #    pois.first().setVal(0)
-        #    background_model.SetSnapshot(pois)
-        #    pois.first().setVal(oldval)
-        #    getattr(self.workspace,'import')(background_model)
-        #getattr(self.workspace,'import')(modelconfig)
-
-
         return self.workspace
 
     def correlationHistPOIs(self):
@@ -808,7 +806,7 @@ class Combination:
             results+=[(r[0],sorted(zip(r[1].tolist()[0],coeffs),key=lambda x: abs(x[0]),reverse=True)) for r in res]
             
         for ir,r in enumerate(results):
-            logging.info('EV {}:'.format(ir),Utils.round2(r[0],3),'({})'.format(Utils.round2(1/r[0]**0.5,3) if r[0]>0 else 999999.))
+            logging.info('EV {}: {} ({})'.format(ir,Utils.round2(r[0],3),Utils.round2(1/r[0]**0.5,3) if r[0]>0 else 999999.))
             logging.info(' + '.join(["{}*{}".format(round(x[0],3),x[1]) for x in r[1] if abs(x[0])>0.1]).replace('+ -','- '))
             logging.info('')
         resmap=[]
@@ -832,13 +830,15 @@ class Combination:
             resmap+=[(r[0],d)]
         logging.info('#'+' '.join(all_coeffs))
         for i,r in enumerate(resmap):
-            logging.info('c'+str(i)+' = ',)
+            txt=''
+            #logging.info(,)
+            txt+='c'+str(i)+' = '
             for c in all_coeffs:
                 if c in r[1]:
-                    logging.info(r[1][c],)
+                    txt+=str(r[1][c])+' '
                 else:
-                    logging.info(0.,)
-            logging.info('')
+                    txt+='0 '
+            logging.info(txt)
         n=len(scaling_pars)
         h_cov=TH2D('h_total_cov','Total Covariance',n,0,n,n,0,n)
         for i,c in enumerate(scaling_pars):

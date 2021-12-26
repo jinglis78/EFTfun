@@ -246,7 +246,7 @@ class Measurement:
         if uncertainty.name in self.uncertainties:
             raise Exception('Added same uncertainty twice '+uncertainty.name)
         if uncertainty.with_nuis_par:
-            self.theory.addTheta(uncertainty.name)
+            self.theory.addTheta(uncertainty.name,free=uncertainty.free)
         self.uncertainties[uncertainty.name]=uncertainty
 
     def getMeasuredFromYoda(self,filename,name):

@@ -61,28 +61,21 @@ def chmodX(fn):
 
 def runParallel(parallel_jobs,cluster=None):
     outfiles=[j.replace('.sh','.root') for j in parallel_jobs]
-    lockfiles=[j.replace('.sh','.done') for j in parallel_jobs]
-    for l in lockfiles:
+    donefiles=[j.replace('.sh','.done') for j in parallel_jobs]
+    for l in donefiles:
         if os.path.exists(l):
             raise Exception('This job was already run (maybe try a clean directory?)',l.replace('.done',''))
 
-    if cluster is None:
-        runMulticore(parallel_jobs,lockfiles)
-    elif cluster=='condor':
-        runCondor(parallel_jobs,lockfiles)
-    for l in lockfiles:
-        if not os.path.exists(l):
-            raise Exception('This job did not run?',l.replace('.done',''))
+    submitJobs(parallel_jobs,donefiles,cluster)
+    for d in donefiles:
+        if not os.path.exists(d):
+            raise Exception('This job did not run?',d.replace('.done',''))
     for o in outfiles:
         if not os.path.exists(o):
             raise Exception('Missing outfile',o)
     return outfiles
 
-def runScriptLocal(script):
-    logging.info('running '+script)
-    run = subprocess.Popen([script],stdout=None,stderr=None,stdin=None)        
-
-def runMulticore(scripts,outputs):
+def submitJobs(scripts,outputs,cluster):
     ncores=multiprocessing.cpu_count()
     scripts_running=[]
     expected_outputs=[]
@@ -102,8 +95,17 @@ def runMulticore(scripts,outputs):
             scripts_running.append(s)
             expected_outputs.append(o)
             outputs_to_expect.remove(o)
-            runScriptLocal(s)
+            if cluster is None:
+                runLocal(s)
+            elif cluster=='condor':
+                runCondor(s)
+            else:
+                raise Exception('Cluster type '+c+' not implemented')
         time.sleep(3)
-        
+
+def runLocal(script):
+    logging.info('running '+script)
+    run = subprocess.Popen([script],stdout=None,stderr=None,stdin=None)        
+
 def runConodor(jobs):
     raise Exception('Not yet implemented')

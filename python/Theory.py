@@ -1,13 +1,15 @@
-from ROOT import RooRealVar,RooFit,RooArgList
+from ROOT import RooRealVar,RooFit,RooArgList,RooRandom
 import re
 import Utils
 import logging
 
 class Theory:
-    def __init__(self,default_range=(-1e3,1e3),theta_range=(-4,4),stat_unc_threshold=0.3):
+    def __init__(self,default_range=(-1e3,1e3),theta_range=(-5,5),stat_unc_threshold=0.3):
         self.default_range=default_range
         self.coeffs=[]
         self.thetas=[]
+        self.free_theta_names=[]
+        self.global_obs={}
         self.pars={}
         self.initial_vals={}
         self.theta_range=theta_range
@@ -21,17 +23,34 @@ class Theory:
             else:
                 self.pars[par].setVal(0.)
 
+    def resetThetas(self):
+        for par in self.getThetaNames():
+            if par in self.initial_vals:
+                self.pars[par].setVal(self.initial_vals[par])
+            else:
+                self.pars[par].setVal(0.)
+
+                
     def addCoeff(self,coeff_name,coeff_range=None):
         if coeff_range==None:
             coeff_range=self.default_range
         self.coeffs.append(RooRealVar(coeff_name,coeff_name,coeff_range[0],coeff_range[1]))
         self.pars[self.coeffs[-1].GetName()]=self.coeffs[-1]
 
-    def addTheta(self,theta_name,theta_range=None):
+    def addTheta(self,theta_name,theta_range=None,free=False):
         if theta_name in [t.GetName() for t in self.thetas]:
+            if free and not theta_name in self.free_theta_names:
+                raise Exception('Tried to create unconstrained uncertainty for constrained parameter '+theta_name)
+            elif not free and theta_name in self.free_theta_names:
+                raise Exception('Tried to create constrained uncertainty for unconstrained parameter '+theta_name)                
             return
         if theta_range==None:
             theta_range=self.theta_range
+        if free:
+            self.free_theta_names.append(theta_name)
+        else:
+            self.global_obs[theta_name]=RooRealVar(theta_name+'_expectation',theta_name+'_expectation',0,theta_range[0],theta_range[1])
+            self.global_obs[theta_name].setConstant()
         self.thetas.append(RooRealVar(theta_name,theta_name,theta_range[0],theta_range[1]))
         self.pars[self.thetas[-1].GetName()]=self.thetas[-1]
 
@@ -161,6 +180,18 @@ class Theory:
 
     def getThetaNames(self):
         return [c.GetName() for c in self.thetas]
+    
+    def getCoeffValues(self):
+        res={}
+        for c in self.coeffs:
+            res[c.GetName()]=c.getVal()
+        return res
+    
+    def getThetaValues(self):
+        res={}
+        for c in self.thetas:
+            res[c.GetName()]=c.getVal()
+        return res
 
     def getThetaArgList(self):
         l=RooArgList()
@@ -218,3 +249,16 @@ class Theory:
             if not c.isConstant():
                 return False
         return True
+
+    def shuffleGlobalObs(self,central_vals):
+        for n,g in self.global_obs.items():
+            if not self.pars[n].isConstant():
+                g.setVal(central_vals[n]+RooRandom.gaussian())
+
+    def resetGlobalObs(self):
+        for g in self.global_obs.values():
+            g.setVal(0.)
+
+    def getGlobalObs(self):
+        return self.global_obs.values()
+

@@ -99,7 +99,6 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
             ymax=y
             imax=i
             x1=xs[i]
-
     if isNLL:
         if imin>0 and ymin<0.01 and ymin>-0.001:
             g_inverse1=ROOT.TGraph(imin,ys[:imin],xs[:imin])
@@ -155,7 +154,7 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         cl2line=ROOT.TLine(xmin,pval2,xmax,pval2)
         cl1line.Draw()
         cl2line.Draw()
-    if (isNLL and imin>0 and ymin<0.01 and ymin>-0.001) or not toy_result is None:
+    if (isNLL and imin>0 and ymin<0.01 and ymin>-0.001) or (not toy_result is None and imax>0):
         ci2line1=ROOT.TLine(ci2[0],0,ci2[0],cl2 if isNLL else pval2)
         ci2line1.SetLineStyle(2)
         ci2line2=ROOT.TLine(ci2[1],0,ci2[1],cl2 if isNLL else pval2)
@@ -176,20 +175,17 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
             ci1text.SetTextFont(42)
             ci1text.SetTextAlign(21)
             ci1text.Draw()
-        if not toy_result is None:
+        if not toy_result is None and imax>0:
             ci1text=ROOT.TLatex(0.35,0.85,'68% CL: [{},{}]'.format(Utils.round2(ci1[0],2),Utils.round2(ci1[1],2)))
             ci1text.SetNDC()
             ci1text.SetTextSize(0.04)
             ci1text.SetTextFont(42)
             ci1text.SetTextAlign(21)
             ci1text.Draw()
-
-        logging.info('68% CL: [{} , {}]'.format(ci1[0],ci1[1]))
         if not toy_result is None:
             ci2text=ROOT.TLatex(0.35,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],2)))
         else:
             ci2text=ROOT.TLatex(0.5,0.79,'95% CL: [{},{}]'.format(Utils.round2(ci2[0],2),Utils.round2(ci2[1],2)))
-        logging.info('95% CL: [{} , {}]'.format(ci2[0],ci2[1]))
         ci2text.SetNDC()
         ci2text.SetTextSize(0.04)
         ci2text.SetTextFont(42)
@@ -211,8 +207,12 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         legend.Draw()
 
     c.Draw()
+    
+    logging.info('68% CL{}: [{} , {}]'.format('' if toy_result is None else ' (toys)',ci1[0],ci1[1]))
+    logging.info('95% CL{}: [{} , {}]'.format('' if toy_result is None else ' (toys)',ci2[0],ci2[1]))
+
     printAndSave(c,outfile,outfolder)
-    if not toy_result is None or isNLL and imin>0 and ymin<0.01 and ymin>-0.001:
+    if (not toy_result is None and imax>0) or isNLL and imin>0 and ymin<0.01 and ymin>-0.001:
         ftxt=open(outfolder+'/'+c.GetName()+'.txt','w')
         ftxt.write('{} {},{} {},{}'.format(x0,ci1[0],ci1[1],ci2[0],ci2[1]))
 

@@ -648,6 +648,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         else:
             grouping=[g.split(',') for g in groups.split(":")]
         h_cov,h_corr,h_ev,h_ev_abs,hs_effects=combination.PCA(grouping)
+        f.cd()
         for h in h_cov,h_corr,h_ev,h_ev_abs:
             h.Write()
         for ev in hs_effects:
