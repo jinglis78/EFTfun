@@ -225,5 +225,3 @@ def isSymmetric(up,down,epsilon=1e-2):
     if abs(up/down+1)<epsilon:
         return True
 
-def runParallel(parallel_jobs,final_job):
-    pass

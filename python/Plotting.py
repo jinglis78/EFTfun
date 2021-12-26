@@ -207,9 +207,10 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
         legend.Draw()
 
     c.Draw()
-    
-    logging.info('68% CL{}: [{} , {}]'.format('' if toy_result is None else ' (toys)',ci1[0],ci1[1]))
-    logging.info('95% CL{}: [{} , {}]'.format('' if toy_result is None else ' (toys)',ci2[0],ci2[1]))
+
+    if (isNLL and imin>0 and ymin<0.01 and ymin>-0.001) or (not toy_result is None and imax>0):
+        logging.info('68% CL{}: [{} , {}]'.format('' if toy_result is None else ' (toys)',ci1[0],ci1[1]))
+        logging.info('95% CL{}: [{} , {}]'.format('' if toy_result is None else ' (toys)',ci2[0],ci2[1]))
 
     printAndSave(c,outfile,outfolder)
     if (not toy_result is None and imax>0) or isNLL and imin>0 and ymin<0.01 and ymin>-0.001:

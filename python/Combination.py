@@ -391,18 +391,23 @@ class Combination:
             Utils.saveToTree(more_results,extra_outfile)
             self.all_results=more_results
         toy_result=[]
-        for gridpoint,toy_nlls,r in zip(grid,toy_results,result):
-            nworse=0
-            for t in toy_nlls:
-                if  t+1e-5>r[-1]:
-                    nworse+=1
-            alpha=float(nworse)/len(toy_nlls)
-            err=(alpha*(1-alpha)/len(toy_nlls))**0.5
-            toy_result.append(gridpoint+(alpha,err))
-            
-        result.append(global_minNLL_point+(global_minNLL if inclOffset else 0.,))
+        for gridpoint,toy_nlls,data_res in zip(grid,toy_results,result):
+            toy_result.append(gridpoint+self.evalToyResults(toy_nlls,data_res[-1]))
+
+        if len(toy_result)==0:
+            result.append(global_minNLL_point+(global_minNLL if inclOffset else 0.,))
         
         return result,toy_result if len(toy_result)>0 else None
+
+    def evalToyResults(self,toy_nlls,data_nll):
+        nworse=0
+        for toy_nll in toy_nlls:
+            if  toy_nll+1e-5>data_nll:
+                nworse+=1
+        alpha=float(nworse)/len(toy_nlls)
+        err=(alpha*(1-alpha)/len(toy_nlls))**0.5
+        return alpha,err
+
 
     def doToys(self,scanpoint,pois,ntoys,delta_nll_data):
         RooMsgService.instance().saveState()
