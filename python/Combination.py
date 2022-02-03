@@ -118,8 +118,8 @@ class Combination:
 
             for uname in correlated_uncertainties:
                 u=correlated_uncertainties[uname]
-                logging.info("adding correlated uncertainty",uname)
-                logging.info([x/n if n!=0 else 0 for x,n in zip(u,combined_measured)])
+                logging.info("adding correlated uncertainty "+str(uname))
+                logging.info(','.join([str(x/n) if n!=0 else 0 for x,n in zip(u,combined_measured)]))
                 for i in range(combined_nbins):
                     for j in range(combined_nbins):
                         combined_cov[i,j]=combined_cov[i][j]+u[i]*u[j]

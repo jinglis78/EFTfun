@@ -5,6 +5,7 @@ import re
 import os
 import Utils
 import Uncertainty
+import logging
 from Background import Background
 
 class Prediction:
