@@ -364,7 +364,7 @@ class Measurement:
             cov=TMatrixDSym(self.nbins)
         for u in self.uncertainties.values():            
             if u.already_in_cov:
-                cov-=u.getCov(self.getMeas(),incl_np=incl_np)
+                cov-=u.getCov(self.getMeas(),incl_np=True)
         for u in self.uncertainties.values():
             if u.name in exclude:
                 continue

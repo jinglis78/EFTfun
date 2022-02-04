@@ -295,7 +295,7 @@ class Uncertainty:
 
     def getCov(self,nominal,incl_np):
         if self.with_nuis_par and not incl_np:
-            print "WARNING: this uncertainty should be handled with a nuisance parameter:",self.name
+#            print "WARNING: this uncertainty should be handled with a nuisance parameter:",self.name
             return TMatrixDSym(self.nbins)
         if self.interpol=='exp' and not incl_np:
             print "WARNING: exponential interpolation wont affect covariance matrix of uncertainty",self.name
