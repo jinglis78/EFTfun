@@ -312,7 +312,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             #            linear_corrections[name]=float(effect)
 
             if cfg.has_section('Linear Effects'):
-                if quad:
+                if quad or method=='muworkspace':
                     cfg.remove_section('Linear Effects')
                 else:
                     for name,effect in cfg.itemsAndRm('Linear Effects'):
@@ -322,7 +322,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                             logging.warning("Could not find linear effect for "+name+" and measurement "+measurement_name+" -- assuming it is zero")
 
             if cfg.has_section('Linear Corrections'):
-                if quad:
+                if quad or method=='muworkspace':
                     cfg.remove_section('Linear Corrections')
                 else:
                     for name,effect in cfg.itemsAndRm('Linear Corrections'):
@@ -332,7 +332,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                             logging.warning("Could not find linear correction for "+name+" and measurement "+measurement_name+" -- assuming it is zero")
 
             if cfg.has_section('Quadratic Effects'):
-                if linear:
+                if linear or method=='muworkspace':
                     cfg.remove_section('Quadratic Effects')
                 else:
                     names_set=[]
@@ -397,8 +397,8 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                 measurement.rebin(combinebins)
                 prediction.rebin(combinebins)
 
-            if method=='pca':
-                logging.info('Modify model for PCA: add extra scaling factors')
+            if method=='pca' or method=='muworkspace':
+                logging.info('Modify model: add extra scaling factors')
                 scaling=[]
                 for i in range(prediction.nbins):
                     s='mu_{}_{}'.format(prediction.name,i)
