@@ -469,7 +469,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
 
     collect=(method=='collect' or parallel)
                    
-    if method=='workspace':
+    if method=='workspace' or method=='muworkspace':
         if len(pois)==0:
             pois='all'
         f.cd()
