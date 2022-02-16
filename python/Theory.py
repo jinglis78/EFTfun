@@ -49,7 +49,7 @@ class Theory:
         if free:
             self.free_theta_names.append(theta_name)
         else:
-            self.global_obs[theta_name]=RooRealVar(theta_name+'_expectation',theta_name+'_expectation',0,theta_range[0],theta_range[1])
+            self.global_obs[theta_name]=RooRealVar(theta_name+'_in',theta_name+'_in',0,theta_range[0],theta_range[1])
             self.global_obs[theta_name].setConstant()
         self.thetas.append(RooRealVar(theta_name,theta_name,theta_range[0],theta_range[1]))
         self.pars[self.thetas[-1].GetName()]=self.thetas[-1]
