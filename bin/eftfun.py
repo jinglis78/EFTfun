@@ -435,7 +435,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                 logging.info('Correlation matrix:')
                 corr_mat=measurement.getCorr()
                 for i in range(measurement.nbins):
-                    logging.info(' '.join(["{:.2f}".format(round(x,2)) for x in [corr_mat[i,j] for j in range(measurement.nbins)]]))
+                    logging.info(' '.join(["{:.2f}".format(round(x,2)) for x in [corr_mat[i][j] for j in range(measurement.nbins)]]))
 
             logging.info('Prediction formulas:')
             for i,s in enumerate(prediction.getPredictionStrings()):
