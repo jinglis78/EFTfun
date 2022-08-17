@@ -475,7 +475,9 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         f.cd()
         w=combination.createWorkspace(pois)
         w.Write()
-
+    elif method=='printpara':
+        for p in predictions:
+            p.printPara()
     elif method=='histo':
         for p in predictions:
             p.plotPrefit(f)

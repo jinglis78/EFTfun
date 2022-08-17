@@ -214,6 +214,21 @@ class Prediction:
             self.predictions.append(bin_prediction)
         return self.predictions
 
+    def printPara(self):
+        for iBin in range(self.nbins):
+            sm=self.sm[iBin]
+            name='\\left(\\frac{\\sigma_{'+self.name+'}}{\\sigma_{'+self.name+'}^\\text{SM}}\\right)_{\\text{bin~'+str(iBin)+'}}'
+            print '$',name,'=1 ',
+            for c in self.theory.getCoeffNames():
+                if c in self.linear_effects:
+                    e=self.getLinearEffect(c,iBin)
+                    if  abs(round(e/sm,2))>1e-2:
+                        c=c.replace('1','o').replace('3','t').replace('8','e')
+                        print ('' if e<0 else '+')+str(round(e/sm,2))+'\\'+str(c),
+            print '$\\\\'
+
+        
+
     def plotPrefit(self, outfile,statonly=False):
         histoname=self.name+'_prefit'
         if statonly:
