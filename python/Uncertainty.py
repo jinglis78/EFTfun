@@ -123,7 +123,7 @@ def createUncertaintyFromYaml(reference,name,data,affected,interpol,uncorr,with_
     
 def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_histoname,up_histoname,affected='all',interpol='exp',renorm=False,uncorr=False,with_nuis_par=False,already_in_cov=False,is_bkg_unc=False,flip=False,sym=False,per_bin_width=True,isBkgUnc=False,isrel=False,free=False):
     if not Utils.histoExists(down_filename,down_histoname) and not Utils.histoExists(up_filename,up_histoname): 
-        logging.warning('did not find uncertainty in file:',':'.join([str(down_filename),str(down_histoname)]),'or',':'.join([str(up_filename),str(up_histoname)]),'skipping uncertainty...')
+        logging.warning('did not find uncertainty in file: '+':'.join([str(down_filename),str(down_histoname)])+' or '+':'.join([str(up_filename),str(up_histoname)])+' skipping uncertainty...')
         return
     assert down_filename!=None or up_filename!=None
     if not affected=='all' and not len(affected)==1:
@@ -266,24 +266,26 @@ class Uncertainty:
     
         
     def getStr(self,iBin):
+        varname=self.name
         if self.uncorr==True:
-            raise Exception("Cannot profile uncorrelated uncertainty "+self.name)
+            varname=self.name+'_bin'+str(iBin)
 
         if self.releffect[iBin]==0.:
             return None
         if isinstance(self.releffect[iBin],tuple) and self.releffect[iBin][0]==0 and self.releffect[iBin][1]==0:
             return None
         #TODO: define better interpolation functions
+
         if self.interpol=='exp':
             if Utils.isSymmetric(self.releffect[iBin][0],self.releffect[iBin][1],1e-2):
-                return 'exp({0}*{1})'.format(self.releffect[iBin][1],self.name)
+                return 'exp({0}*{1})'.format(self.releffect[iBin][1],varname)
             else:
-                return '(exp(-{0}*{2})*({2}<0)+exp({1}*{2})*({2}>=0))'.format(self.releffect[iBin][0],self.releffect[iBin][1],self.name) 
+                return '(exp(-{0}*{2})*({2}<0)+exp({1}*{2})*({2}>=0))'.format(self.releffect[iBin][0],self.releffect[iBin][1],varname) 
         if self.interpol=='lin':
             if Utils.isSymmetric(self.releffect[iBin][0],self.releffect[iBin][1],1e-2):
-                return '(1+{0}*{1})'.format(self.releffect[iBin][1],self.name)
+                return '(1+{0}*{1})'.format(self.releffect[iBin][1],varname)
             else:
-                return '((1-{0}*{2})*({2}<0)+(1+{1}*{2})*({2}>=0))'.format(self.releffect[iBin][0],self.releffect[iBin][1],self.name)
+                return '((1-{0}*{2})*({2}<0)+(1+{1}*{2})*({2}>=0))'.format(self.releffect[iBin][0],self.releffect[iBin][1],varname)
 
     def getRelEffect(self):
         return self.releffect

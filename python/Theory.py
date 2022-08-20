@@ -37,7 +37,11 @@ class Theory:
         self.coeffs.append(RooRealVar(coeff_name,coeff_name,coeff_range[0],coeff_range[1]))
         self.pars[self.coeffs[-1].GetName()]=self.coeffs[-1]
 
-    def addTheta(self,theta_name,theta_range=None,free=False):
+    def addTheta(self,theta_name,theta_range=None,free=False,multiplicity=0):
+        if multiplicity!=0:
+            for ibin in range(multiplicity):
+                self.addTheta(theta_name+'_bin'+str(ibin),theta_range,free,multiplicity=0)
+            return
         if theta_name in [t.GetName() for t in self.thetas]:
             if free and not theta_name in self.free_theta_names:
                 raise Exception('Tried to create unconstrained uncertainty for constrained parameter '+theta_name)

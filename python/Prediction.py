@@ -500,7 +500,7 @@ class Prediction:
                     self.backgrounds[a].addUncertainty(uncertainty)
                     found_bkg=True
             if found_bkg:
-                self.theory.addTheta(uncertainty.name,free=uncertainty.free)
+                self.theory.addTheta(uncertainty.name,free=uncertainty.free,multiplicity = uncertainty.nbins if uncertainty.uncorr else 0)
             return found_bkg
 
         for u in self.uncertainties:
@@ -513,7 +513,7 @@ class Prediction:
                         logging.warning('uncertainty with name '+uncertainty.name+' affecting '+a+' already exists, skipping')
                         return False
         self.uncertainties.append(uncertainty)
-        self.theory.addTheta(uncertainty.name,free=uncertainty.free)
+        self.theory.addTheta(uncertainty.name,free=uncertainty.free,multiplicity = uncertainty.nbins if uncertainty.uncorr else 0)
         return True
 
     def scale(self,s):
