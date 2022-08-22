@@ -343,7 +343,7 @@ class Combination:
         for poi in pois:
             poi.setConstant(False)
         global_minNLL=self.minimize(print_level=print_level,strategy=2)
-        global_minNLL_point=tuple([p.getVal(p) for p in pois])
+        global_minNLL_point=tuple([p.getVal() for p in pois])
 
         logging.info('scanning '+str(npoints)+' points')
         percent=0
