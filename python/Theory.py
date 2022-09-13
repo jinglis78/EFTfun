@@ -4,7 +4,7 @@ import Utils
 import logging
 
 class Theory:
-    def __init__(self,default_range=(-1e3,1e3),theta_range=(-5,5),stat_unc_threshold=0.3):
+    def __init__(self,default_range=(-1e3,1e3),theta_range=(-5,5),stat_unc_threshold=-1):
         self.default_range=default_range
         self.coeffs=[]
         self.thetas=[]

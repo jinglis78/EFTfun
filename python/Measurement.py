@@ -165,9 +165,11 @@ class Measurement:
                 
         elif data_err.split(':')[0].endswith('.root'):
             import ROOT
-            filename_err,histoname_err=[s.strip() for s in data.split(':')]
+            filename_err,histoname_err=[s.strip() for s in data_err.split(':')]
             f=ROOT.TFile(filename_err)
-            histo=f.Get(histoname_err)            
+            histo=f.Get(histoname_err)
+            if not isinstance(histo,ROOT.TH1):
+                raise Exception("did not find histogram "+histoname_err)
             if self.per_bin_width:
                 errs=[histo.GetBinError(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
             else:
@@ -208,7 +210,7 @@ class Measurement:
             corr=self.getMatrixFromYoda(filename_corr,histoname_corr)
         elif data_corr.split(':')[0].endswith('.root'):
             import ROOT
-            filename_corr,histoname_corr=[s.strip() for s in data.split(':')]
+            filename_corr,histoname_corr=[s.strip() for s in data_corr.split(':')]
             corr=self.getMatrixFromRoot(filename_corr,histoname_corr)
         elif data_corr.split(':')[0].endswith('.yaml'):
             corr=self.getMatrixFromYaml(*(data_corr.split(':')))
@@ -267,6 +269,8 @@ class Measurement:
         import ROOT
         f=ROOT.TFile(filename)
         histo=f.Get(name)
+        if not isinstance(histo,ROOT.TH1):
+            raise Exception("did not find histogram "+name)
         if self.per_bin_width:
             contents=[histo.GetBinContent(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
         else:
@@ -300,6 +304,9 @@ class Measurement:
         import ROOT
         f=ROOT.TFile(filename)
         histo=f.Get(name)
+        if not isinstance(histo,ROOT.TH1):
+            raise Exception("did not find histogram "+name)
+
         matrix=[]
         for i in range(1,histo.GetNbinsX()+1):
             matrix+=[[]]
