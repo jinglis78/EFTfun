@@ -107,5 +107,5 @@ def runLocal(script):
     logging.info('running '+script)
     run = subprocess.Popen([script],stdout=None,stderr=None,stdin=None)        
 
-def runConodor(jobs):
+def runConodor(script):
     raise Exception('Not yet implemented')
