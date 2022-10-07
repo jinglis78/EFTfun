@@ -203,7 +203,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                 parallel_jobs.append(j+'.sh')
         if method=='parallel':
             logging.info('Then plot results with')
-            logging.info('source',outname+'/plot.sh')
+            logging.info('source'+outname+'/plot.sh')
         logging.info('Will setup model for testing only...')
         logging.info('------------------------------------------------')
         
