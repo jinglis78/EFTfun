@@ -202,6 +202,14 @@ class Theory:
         for t in self.thetas:
             l.add(t)
         return l
+    def getParArgList(self):
+        l=RooArgList()
+        for t in self.thetas:
+            l.add(t)
+        for c in self.coeffs:
+            l.add(c)
+        return l
+
 
     def getPar(self,par_name):
         if not par_name in self.pars:

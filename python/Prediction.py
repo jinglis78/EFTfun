@@ -148,7 +148,7 @@ class Prediction:
         return effect
         
 
-    def getPredictionStrings(self):
+    def getPredictionStrings(self,incl_bkgs=True):
         eftprediction = []
 
         for iBin in range(self.nbins):
@@ -193,8 +193,9 @@ class Prediction:
                         sys_scaling[iBin]+='*'+ustr
 
         predictions=['('+e+')'+s for e,s in zip(eftprediction,sys_scaling)]
-        for background in self.backgrounds.values():
-            predictions=[p+'+'+b for p,b in zip(predictions,background.getPredictionStrings())]                
+        if incl_bkgs:
+            for background in self.backgrounds.values():
+                predictions=[p+'+'+b for p,b in zip(predictions,background.getPredictionStrings())]
         return predictions                   
 
     def getPredictionFormulas(self):
@@ -296,7 +297,20 @@ class Prediction:
                 form=RooFormulaVar('form_'+self.name+'_'+b.name,f,self.theory.getThetaArgList())
                 h.SetBinContent(i+1,form.getVal()/self.rescaled)
                 h.SetBinError(i+1,form.getPropagatedError(fitresult)/self.rescaled)
-            hs.append(h)           
+            hs.append(h)
+            outfile.cd()
+            h.Write()
+        if len(self.backgrounds)>0:
+            hn=self.name+'_signal_postfit'
+            if self.binning!=None:
+                h=TH1F(hn,hn,self.nbins,array('f',self.binning))
+            else:
+                h=TH1F(hn,hn,self.nbins,0,1)
+            for i,f in enumerate(self.getPredictionStrings(incl_bkgs=False)):
+                form=RooFormulaVar('form_'+self.name+'_signal',f,self.theory.getParArgList())
+                h.SetBinContent(i+1,form.getVal()/self.rescaled)
+                h.SetBinError(i+1,form.getPropagatedError(fitresult)/self.rescaled)
+            hs.append(h)
             outfile.cd()
             h.Write()
         return hs
