@@ -5,13 +5,13 @@ from math import log10
 import Utils
 import logging
 
-def graphProfile1D(name,result,outfile=None,isNLL=True,makeProb=False):
+def graphProfile1D(name,result,outfile=None,isNLL=True,makeProb=False,conts2d=False):
     g=ROOT.TGraph()
     result=[r for r in result if not math.isnan(r[1]) and not math.isinf(r[1])]
     for i,r in enumerate(result):
         y=r[1]
         if makeProb:
-            y=Math.chisquared_cdf_c(2*y,1)
+            y=Math.chisquared_cdf_c(2*y,2 if conts2d else 1)
         elif isNLL:
             y*=2
         g.SetPoint(i,r[0],y)
@@ -62,12 +62,16 @@ def graphToys2D(name,result,outfile=None):
     return g
 
 
-def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',linecolor=ROOT.kRed+1,linewidth=2,linestyle=1,outfolder='.',isNLL=True,toy_result=None,linecolor_toys=ROOT.kBlue+1,linewidth_toys=2,linestyle_toys=1):
+def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',linecolor=ROOT.kRed+1,linewidth=2,linestyle=1,outfolder='.',isNLL=True,toy_result=None,linecolor_toys=ROOT.kBlue+1,linewidth_toys=2,linestyle_toys=1,conts2d=False):
     result=sorted(result)
     if not toy_result is None:
         toy_result=sorted(toy_result)
-    cl1=1
-    cl2=3.841
+    if conts2d:
+        cl1=2.297
+        cl2=5.991
+    else:
+        cl1=1
+        cl2=3.841
     pval1=1-0.6827
     pval2=0.05
     c=ROOT.TCanvas(name,name,1024,1024 )
@@ -79,9 +83,9 @@ def canvasProfile1D(name,result,outfile,xtitle,ytitle='#minus 2#Delta log(L)',li
     g2=None
     if toy_result:
         g=graphToys1D(name,toy_result)
-        g2=graphProfile1D(name,result,isNLL=False,makeProb=True)
+        g2=graphProfile1D(name,result,isNLL=False,makeProb=True,conts2d=conts2d)
     else:
-        g=graphProfile1D(name,result,isNLL=isNLL)
+        g=graphProfile1D(name,result,isNLL=isNLL,conts2d=conts2d)
     xs=array('f',g.GetX())
     ys=array('f',g.GetY())
     imin=-1

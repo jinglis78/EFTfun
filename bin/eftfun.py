@@ -78,6 +78,9 @@ def main():
     parser.add_option("--conts1d",
                       action="store_true", dest="conts1d", default=False,
                       help="Use contours corresponding to 1D chi2 also 2D fits")
+    parser.add_option("--conts2d",
+                      action="store_true", dest="conts2d", default=False,
+                      help="Use contours corresponding to 2D chi2 also for 1D fits")
     parser.add_option("--njobs",
                       dest="njobs", default=1,
                       help="Number of jobs/cores for parallel scan")
@@ -110,10 +113,10 @@ def main():
         parser.print_help()
         logging.warning('need poi')
     else:
-        fit(options,options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.set_initial,options.quiet,options.write_more,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan,options.conts1d,options.njobs,options.cluster,options.first,options.last,options.parallel_job)
+        fit(options,options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.set_initial,options.quiet,options.write_more,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan,options.conts1d,options.conts2d,options.njobs,options.cluster,options.first,options.last,options.parallel_job)
 
 
-def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,set_initial,quiet,write_more,force,override,measurements_included,repara,groups,robust,offset,implicitscan,conts1d,njobs,cluster,first,last,parallel_job):
+def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,set_initial,quiet,write_more,force,override,measurements_included,repara,groups,robust,offset,implicitscan,conts1d,conts2d,njobs,cluster,first,last,parallel_job):
 
     if not '/' in outname:
         outname='results/'+outname
@@ -163,6 +166,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
     logging.info('offset '+str(offset))
     logging.info('implicitscan '+str(implicitscan))
     logging.info('conts1d '+str(conts1d))
+    logging.info('conts2d '+str(conts2d))
     logging.info('njobs '+str(njobs))
     logging.info('cluster '+str(cluster))
     logging.info('first '+str(first))
@@ -523,14 +527,14 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     prof.append((pointresults[0][0],best))
                 prof=[(x[0],x[1]-total_min) for x in prof]
             Plotting.graphProfile1D('g_scan_'+poi,prof,f)
-            Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname)
+            Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname,conts2d=conts2d)
             if write_more:
                 for par in combination.all_results:
                     if par==poi:
                         continue
                     prof2=[(prof[i][0],y) for i,y in enumerate(combination.all_results[par])]
                     Plotting.graphProfile1D('g_scan_'+'_'.join([poi,par]),prof2,f,isNLL=False)
-                    Plotting.canvasProfile1D('c_scan_'+'_'.join([poi,par]),prof2,f,poi,par,outfolder=outname,isNLL=False)
+                    Plotting.canvasProfile1D('c_scan_'+'_'.join([poi,par]),prof2,f,poi,par,outfolder=outname,isNLL=False,conts2d=conts2d)
         else:
             scanranges=scanrange.split(',')
             actual_scanranges=[]
@@ -571,11 +575,11 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
 
             if len(pois)==1 and not parallel_job:
                 Plotting.graphProfile1D('g_scan_'+poi,prof,f)
-                Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname)
+                Plotting.canvasProfile1D('c_scan_'+poi,prof,f,poi,outfolder=outname,conts2d=conts2d)
                 #Plotting.graphProfile1D('c_asymtoticProb_'+poi,prof,f,isNLL=False,makeProb=True)
                 if not toy_limit is None:
                     Plotting.graphToys1D('g_toyProb_'+poi,toy_limit,f)
-                    Plotting.canvasProfile1D('c_prob_'+poi,prof,f,poi,outfolder=outname,toy_result=toy_limit,isNLL=False,ytitle='p value')
+                    Plotting.canvasProfile1D('c_prob_'+poi,prof,f,poi,outfolder=outname,toy_result=toy_limit,isNLL=False,ytitle='p value',conts2d=conts2d)
 
                 if write_more and not collect:
                     for par in combination.all_results:
@@ -583,7 +587,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                             continue
                         prof2=[(prof[i][0],y) for i,y in enumerate(combination.all_results[par])]
                         Plotting.graphProfile1D('g_scan_'+'_'.join([poi,par]),prof2,f,isNLL=False)
-                        Plotting.canvasProfile1D('c_scan_'+'_'.join([poi,par]),prof2,f,poi,par,outfolder=outname,isNLL=False)
+                        Plotting.canvasProfile1D('c_scan_'+'_'.join([poi,par]),prof2,f,poi,par,outfolder=outname,isNLL=False,conts2d=conts2d)
             if len(pois)==2 and not parallel_job:
                 Plotting.graphProfile2D('g_scan_'+'_'.join(pois),prof,f,conts1d=conts1d)
                 Plotting.canvasProfile2D('c_scan_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d)
