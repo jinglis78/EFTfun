@@ -1,6 +1,6 @@
-import math,re
-
-#TODO: logger
+import math,re,os
+from glob import glob
+import logging
 
 def isFile(data):
     if data.split(':')[0].lower().endswith('.root') or data.split(':')[0].lower().endswith('.yoda'):
@@ -17,11 +17,11 @@ def histoExists(f,h):
     f.Close()
     return res
 
-def saveToTree(results,outfile):
+def saveToTree(results,outfile,name='tree'):
     from array import array
     from ROOT import TTree
     outfile.cd()
-    t=TTree('tree','tree')
+    t=TTree(name,name)
     arrays={}
     for r in results:
         arrays[r]=array( 'f', [ 0. ] )
@@ -31,8 +31,49 @@ def saveToTree(results,outfile):
             arrays[r][0]=results[r][i]
         t.Fill()
     t.Write()
-    
 
+def saveResultToTree(name,pois,result,toy_result,f):
+    res_dict={}
+    for ip,poi in enumerate(pois):
+        res_dict[poi]=[r[ip] for r in result]
+    res_dict['nll']=[r[-1] for r in result]
+    if not toy_result is None:
+        res_dict['pval']=[r[-2] for r in toy_result]
+        res_dict['pval_err']=[r[-1] for r in toy_result]
+    saveToTree(res_dict,f,'result_tree_'+name+'_'+'_'.join(pois))
+  
+def getResultFromFile(name,pois,resultsfiles):
+    from ROOT import TFile
+    for resultsfile in resultsfiles:
+        if not resultsfile.endswith('.root'):
+            raise Exception("Need rootfile input")
+    logging.info('getting results from '+str(resultsfiles))
+    result=[]
+    toy_result=[]
+    for fn in resultsfiles:
+        f=TFile(fn)
+        tree_name='result_tree_'+name+'_'+'_'.join(pois)
+        t=f.Get(tree_name)
+        if not 'pval' in [b.GetName() for b in t.GetListOfBranches()]:
+            toy_result=None
+        for e in t:
+            result.append(tuple([getattr(e,p) for p in pois])+(e.nll,))
+            if not toy_result is None:
+                toy_result.append(tuple([getattr(e,p) for p in pois])+(e.pval,e.pval_err))
+    return sorted(result),(sorted(toy_result) if not toy_result is None else None)
+
+def getFiles(files):
+    bad=False
+    for fn in files.split():
+        if not os.path.exists(fn):
+            bad=True
+            break
+    if not bad:
+        return files.split()
+    for fn in glob(files):
+        if not os.path.exists(fn):
+            raise Exception("Can't find files "+str(files))
+    return glob(files)
 
 def round2(number,digits=3):
     if number==0:
@@ -105,7 +146,7 @@ def readRoot(filename,histoname,per_bin_width):
     f=ROOT.TFile(filename)
     histo=f.Get(histoname)
     if not isinstance(histo,ROOT.TH1):
-        print ("WARNING: Did not find histogram "+histoname+" in file "+filename)
+        logging.warning("Did not find histogram "+histoname+" in file "+filename)
         return None
     if per_bin_width:
         contents=[histo.GetBinContent(iBin)/histo.GetBinWidth(iBin) for iBin in range(1,histo.GetNbinsX()+1)]
@@ -183,3 +224,4 @@ def isSymmetric(up,down,epsilon=1e-2):
         return False
     if abs(up/down+1)<epsilon:
         return True
+

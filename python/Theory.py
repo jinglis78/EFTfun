@@ -1,12 +1,15 @@
-from ROOT import RooRealVar,RooFit,RooArgList
+from ROOT import RooRealVar,RooFit,RooArgList,RooRandom
 import re
 import Utils
+import logging
 
 class Theory:
-    def __init__(self,default_range=(-1e3,1e3),theta_range=(-4,4),stat_unc_threshold=0.3):
+    def __init__(self,default_range=(-1e3,1e3),theta_range=(-5,5),stat_unc_threshold=-1):
         self.default_range=default_range
         self.coeffs=[]
         self.thetas=[]
+        self.free_theta_names=[]
+        self.global_obs={}
         self.pars={}
         self.initial_vals={}
         self.theta_range=theta_range
@@ -20,17 +23,38 @@ class Theory:
             else:
                 self.pars[par].setVal(0.)
 
+    def resetThetas(self):
+        for par in self.getThetaNames():
+            if par in self.initial_vals:
+                self.pars[par].setVal(self.initial_vals[par])
+            else:
+                self.pars[par].setVal(0.)
+
+                
     def addCoeff(self,coeff_name,coeff_range=None):
         if coeff_range==None:
             coeff_range=self.default_range
         self.coeffs.append(RooRealVar(coeff_name,coeff_name,coeff_range[0],coeff_range[1]))
         self.pars[self.coeffs[-1].GetName()]=self.coeffs[-1]
 
-    def addTheta(self,theta_name,theta_range=None):
+    def addTheta(self,theta_name,theta_range=None,free=False,multiplicity=0):
+        if multiplicity!=0:
+            for ibin in range(multiplicity):
+                self.addTheta(theta_name+'_bin'+str(ibin),theta_range,free,multiplicity=0)
+            return
         if theta_name in [t.GetName() for t in self.thetas]:
+            if free and not theta_name in self.free_theta_names:
+                raise Exception('Tried to create unconstrained uncertainty for constrained parameter '+theta_name)
+            elif not free and theta_name in self.free_theta_names:
+                raise Exception('Tried to create constrained uncertainty for unconstrained parameter '+theta_name)                
             return
         if theta_range==None:
             theta_range=self.theta_range
+        if free:
+            self.free_theta_names.append(theta_name)
+        else:
+            self.global_obs[theta_name]=RooRealVar(theta_name+'_in',theta_name+'_in',0,theta_range[0],theta_range[1])
+            self.global_obs[theta_name].setConstant()
         self.thetas.append(RooRealVar(theta_name,theta_name,theta_range[0],theta_range[1]))
         self.pars[self.thetas[-1].GetName()]=self.thetas[-1]
 
@@ -75,7 +99,7 @@ class Theory:
         else:
             for c in self.coeffs+self.thetas:
                 if c.GetName() == coeff:
-                    print 'setting',coeff,'constant to',value 
+                    logging.info('setting {} constant to {}'.format(coeff,value) )
                     c.setVal(value)
                     c.setConstant()
                     return
@@ -91,7 +115,7 @@ class Theory:
         else:
             for c in self.coeffs+self.thetas:
                 if c.GetName() == coeff:
-                    print 'setting',coeff,'floating'
+                    logging.info('setting '+coeff+' floating')
                     c.setConstant(False)
                     for theta in self.thetas:
                         if re.match(self.makeMCstatName('.+',c.GetName(),'\d+'),theta.GetName()):
@@ -112,7 +136,7 @@ class Theory:
             return
         for theta in self.thetas:
             if pattern=='all' or re.match(pattern,theta.GetName()):
-                print 'deactivating uncertainty',theta.GetName()
+                logging.info('deactivating uncertainty '+theta.GetName())
                 theta.setVal(0.)
                 theta.setConstant(True)
 
@@ -160,12 +184,32 @@ class Theory:
 
     def getThetaNames(self):
         return [c.GetName() for c in self.thetas]
+    
+    def getCoeffValues(self):
+        res={}
+        for c in self.coeffs:
+            res[c.GetName()]=c.getVal()
+        return res
+    
+    def getThetaValues(self):
+        res={}
+        for c in self.thetas:
+            res[c.GetName()]=c.getVal()
+        return res
 
     def getThetaArgList(self):
         l=RooArgList()
         for t in self.thetas:
             l.add(t)
         return l
+    def getParArgList(self):
+        l=RooArgList()
+        for t in self.thetas:
+            l.add(t)
+        for c in self.coeffs:
+            l.add(c)
+        return l
+
 
     def getPar(self,par_name):
         if not par_name in self.pars:
@@ -185,7 +229,7 @@ class Theory:
     def setInitialVal(self,par_name,val):
         self.setVal(par_name,val)
         self.initial_vals[par_name]=val
-        print 'setting initival val for',par_name,'to',val
+        logging.info('setting initival val for {} to {}'.format(par_name,val))
     
 
     def makeMCstatName(self,name,coeff_names,iBin):
@@ -196,20 +240,37 @@ class Theory:
 
     def dumpPars(self):
         for c in self.coeffs:
-            print c.GetName(),c.getVal(),c.isConstant()
+            logging.info(' '.join([c.GetName(),str(c.getVal()),str(c.isConstant())]))
         for c in self.thetas:
-            print c.GetName(),c.getVal(),c.isConstant()
+            logging.info(' '.join([c.GetName(),str(c.getVal()),str(c.isConstant())]))
 
     def rePara(self,cs_new,mapping):
-        print 'reparametrizing:'
-        print 'Note: parameter range will be:',self.default_range
+        logging.info('reparametrizing:')
+        logging.info('Note: parameter range will be: '+str(self.default_range))
         cs_old=self.getCoeffNames()
         self.coeffs=[]
         for cnew in cs_new:
             if cnew in cs_old:
                 raise Exception('Need new parameter name for '+cnew)
-            print cnew,'=',mapping[cnew]
+            logging.info(cnew+' = '+mapping[cnew])
             self.addCoeff(cnew)
         self.mapping=mapping
 
+    def isConstant(self):
+        for c in self.coeffs + self.thetas:
+            if not c.isConstant():
+                return False
+        return True
+
+    def shuffleGlobalObs(self,central_vals):
+        for n,g in self.global_obs.items():
+            if not self.pars[n].isConstant():
+                g.setVal(central_vals[n]+RooRandom.gaussian())
+
+    def resetGlobalObs(self):
+        for g in self.global_obs.values():
+            g.setVal(0.)
+
+    def getGlobalObs(self):
+        return self.global_obs.values()
 

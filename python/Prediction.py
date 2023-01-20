@@ -5,6 +5,7 @@ import re
 import os
 import Utils
 import Uncertainty
+import logging
 from Background import Background
 
 class Prediction:
@@ -147,7 +148,7 @@ class Prediction:
         return effect
         
 
-    def getPredictionStrings(self):
+    def getPredictionStrings(self,incl_bkgs=True):
         eftprediction = []
 
         for iBin in range(self.nbins):
@@ -192,8 +193,9 @@ class Prediction:
                         sys_scaling[iBin]+='*'+ustr
 
         predictions=['('+e+')'+s for e,s in zip(eftprediction,sys_scaling)]
-        for background in self.backgrounds.values():
-            predictions=[p+'+'+b for p,b in zip(predictions,background.getPredictionStrings())]                
+        if incl_bkgs:
+            for background in self.backgrounds.values():
+                predictions=[p+'+'+b for p,b in zip(predictions,background.getPredictionStrings())]
         return predictions                   
 
     def getPredictionFormulas(self):
@@ -212,6 +214,21 @@ class Prediction:
             bin_prediction=RooFormulaVar("pred_{}_{}".format(self.name,binlabel),"pred_{}_{}".format(self.name,binlabel),formula,params)
             self.predictions.append(bin_prediction)
         return self.predictions
+
+    def printPara(self):
+        for iBin in range(self.nbins):
+            sm=self.sm[iBin]
+            name='\\left(\\frac{\\sigma_{'+self.name+'}}{\\sigma_{'+self.name+'}^\\text{SM}}\\right)_{\\text{bin~'+str(iBin)+'}}'
+            print '$',name,'=1 ',
+            for c in self.theory.getCoeffNames():
+                if c in self.linear_effects:
+                    e=self.getLinearEffect(c,iBin)
+                    if  abs(round(e/sm,2))>1e-2:
+                        c=c.replace('1','o').replace('3','t').replace('8','e')
+                        print ('' if e<0 else '+')+str(round(e/sm,2))+'\\'+str(c),
+            print '$\\\\'
+
+        
 
     def plotPrefit(self, outfile,statonly=False):
         histoname=self.name+'_prefit'
@@ -280,7 +297,20 @@ class Prediction:
                 form=RooFormulaVar('form_'+self.name+'_'+b.name,f,self.theory.getThetaArgList())
                 h.SetBinContent(i+1,form.getVal()/self.rescaled)
                 h.SetBinError(i+1,form.getPropagatedError(fitresult)/self.rescaled)
-            hs.append(h)           
+            hs.append(h)
+            outfile.cd()
+            h.Write()
+        if len(self.backgrounds)>0:
+            hn=self.name+'_signal_postfit'
+            if self.binning!=None:
+                h=TH1F(hn,hn,self.nbins,array('f',self.binning))
+            else:
+                h=TH1F(hn,hn,self.nbins,0,1)
+            for i,f in enumerate(self.getPredictionStrings(incl_bkgs=False)):
+                form=RooFormulaVar('form_'+self.name+'_signal',f,self.theory.getParArgList())
+                h.SetBinContent(i+1,form.getVal()/self.rescaled)
+                h.SetBinError(i+1,form.getPropagatedError(fitresult)/self.rescaled)
+            hs.append(h)
             outfile.cd()
             h.Write()
         return hs
@@ -342,8 +372,10 @@ class Prediction:
         for c in coeff_names:
             if not c in self.coeff_names:
                 self.coeff_names+=[c]
-        assert len(coeff_names) == power
-        assert len(effect)==self.nbins
+        if len(coeff_names) != power:
+            raise Exception('linear/quadratic effects need 1/2 coefficients')
+        if len(effect)!=self.nbins:
+            raise Exception('Effect of {} has wrong number of bins'.format(','.join(coeff_names)))
         assert len(uncertainty)==self.nbins
         actual_effect=[]
         for x,u in zip(effect,uncertainty):
@@ -473,7 +505,7 @@ class Prediction:
    
     def addUncertainty(self,uncertainty):
         if uncertainty==None:
-            print 'WARNING: empty uncertainty (likely not found in histo file)'
+            logging.warning('empty uncertainty (likely not found in histo file)')
             return
         if uncertainty.is_bkg_unc:
             found_bkg=False
@@ -482,20 +514,20 @@ class Prediction:
                     self.backgrounds[a].addUncertainty(uncertainty)
                     found_bkg=True
             if found_bkg:
-                self.theory.addTheta(uncertainty.name)
+                self.theory.addTheta(uncertainty.name,free=uncertainty.free,multiplicity = uncertainty.nbins if uncertainty.uncorr else 0)
             return found_bkg
 
         for u in self.uncertainties:
             if u.name==uncertainty.name:
                 for a in uncertainty.affected:
                     if a in u.affected:
-                        print 'WARNING: uncertainty with name',uncertainty.name,'affecting',a,'already exists, skipping'
+                        logging.warning('uncertainty with name '+uncertainty.name+' affecting '+a+' already exists, skipping')
                         return False
                     elif ',' in  a and a.split(',')[1]+','+a.split(',')[0] in u.affected:
-                        print 'WARNING: uncertainty with name',uncertainty.name,'affecting',a,'already exists, skipping'
+                        logging.warning('uncertainty with name '+uncertainty.name+' affecting '+a+' already exists, skipping')
                         return False
         self.uncertainties.append(uncertainty)
-        self.theory.addTheta(uncertainty.name)
+        self.theory.addTheta(uncertainty.name,free=uncertainty.free,multiplicity = uncertainty.nbins if uncertainty.uncorr else 0)
         return True
 
     def scale(self,s):
@@ -569,7 +601,7 @@ class Prediction:
         return matrix
                     
     def rePara(self,cs_new,mapping):
-        print 'Warning, during reparametrization, statistical uncertainties are currently not propagated for quadratic effects'
+        logging.warning('during reparametrization, statistical uncertainties are currently not propagated for quadratic effects')
        
         lin_old=self.linear_effects
         effects_matrices_old=[]
@@ -622,7 +654,7 @@ class Prediction:
 
         self.binlabels=None
         self.binning=None
-        print 'WARNING Rebinning: binlabels, blinding, bin boundaries, and backgrounds currently not properly updated'
+        logging.warning('WARNING Rebinning: binlabels, blinding, bin boundaries, and backgrounds currently not properly updated')
         self.blind=[1 if b!=0 else 0 for b in Utils.mergeBins(self.blind,combine)]
         assert len(self.backgrounds)==0
 
