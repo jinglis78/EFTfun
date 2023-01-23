@@ -1,5 +1,6 @@
 import os,multiprocessing,subprocess,time,stat
 import logging
+from functools import reduce
 
 def prepareScripts(outname,options,pois,njobs,nsteps):
     if len(nsteps)==1:

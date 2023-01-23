@@ -20,7 +20,7 @@ class Background:
         ps=[]
         for iBin,x in enumerate(self.getNominal()):
             ps+=[str(x)]
-            for u in self.uncertainties.values():
+            for u in list(self.uncertainties.values()):
                 ustr=u.getStr(iBin)
                 if ustr!=None:
                     ps[-1]+="*"+u.getStr(iBin)

@@ -263,14 +263,14 @@ class Theory:
         return True
 
     def shuffleGlobalObs(self,central_vals):
-        for n,g in self.global_obs.items():
+        for n,g in list(self.global_obs.items()):
             if not self.pars[n].isConstant():
                 g.setVal(central_vals[n]+RooRandom.gaussian())
 
     def resetGlobalObs(self):
-        for g in self.global_obs.values():
+        for g in list(self.global_obs.values()):
             g.setVal(0.)
 
     def getGlobalObs(self):
-        return self.global_obs.values()
+        return list(self.global_obs.values())
 

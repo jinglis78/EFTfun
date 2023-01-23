@@ -80,13 +80,13 @@ class Combination:
             combined_measured=[]
             correlated_uncertainty_names=set()
             for m1 in measurements:
-                for u in m1.uncertainties.values():
+                for u in list(m1.uncertainties.values()):
                     if u.uncorr or u.with_nuis_par:
                         continue
                     for m2 in measurements:
                         if m2==m1:
                             continue
-                        if u.name in m2.uncertainties.keys() and not u.uncorr and not u.with_nuis_par:
+                        if u.name in list(m2.uncertainties.keys()) and not u.uncorr and not u.with_nuis_par:
                             correlated_uncertainty_names.add(u.name)
             correlated_uncertainties={}
             for u in correlated_uncertainty_names:
@@ -106,7 +106,7 @@ class Combination:
                 combined_cov.SetSub(combined_ibin,combined_ibin,measurement.getCov(exclude=correlated_uncertainty_names))
                 combined_ibin+=measurement.nbins
                 found=[]
-                for u in measurement.uncertainties.values():
+                for u in list(measurement.uncertainties.values()):
                     if u.name in correlated_uncertainty_names:
                         correlated_uncertainties[u.name]+=[e*n for e,n in zip(u.getRelEffectSym(),measurement.getNominal())]
                         found+=[u.name]
@@ -213,7 +213,7 @@ class Combination:
         more_results={}
         percent=0
         i_step=0
-        steps=range(nsteps)[nsteps/2:]+list(reversed(range(nsteps)[:nsteps/2]))
+        steps=list(range(nsteps))[nsteps/2:]+list(reversed(list(range(nsteps))[:nsteps/2]))
         for i_step,i in enumerate(steps):
 #            if i==nsteps/2-1:
             self.theory.reset()
@@ -806,7 +806,7 @@ class Combination:
             #logging.info(m_para)
             a=m_para*c_inv*m_para.getT()
             w,v=np.linalg.eigh(a)
-            res=zip(w,v.getT())
+            res=list(zip(w,v.getT()))
             res.sort(reverse=True, key=lambda x : x[0])
             results+=[(r[0],sorted(zip(r[1].tolist()[0],coeffs),key=lambda x: abs(x[0]),reverse=True)) for r in res]
             

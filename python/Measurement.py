@@ -33,7 +33,7 @@ class Measurement:
         if self.blind is None:
             self.blind=self.nbins*[1]
         if self.binlabels is None:
-            self.binlabels=range(self.nbins)
+            self.binlabels=list(range(self.nbins))
         self.central_values = []
         for i,(x_meas,b,binlabel) in enumerate(zip(measured,self.blind,self.binlabels)):
             x=RooRealVar(self.name+"_meas_"+str(binlabel),self.name+"_meas_"+str(binlabel),0,1e9)
@@ -46,7 +46,7 @@ class Measurement:
 
     def getMeasurementCorrectionString(self):
         need_to_correct=False
-        for u in self.uncertainties.values():
+        for u in list(self.uncertainties.values()):
             if u.with_nuis_par:
                 need_to_correct=True
                 break
@@ -56,7 +56,7 @@ class Measurement:
         formulas=[]
         for i,x in enumerate(self.central_values):
             form='-{}+{}'.format(x.getVal(),x.getVal())
-            for u in self.uncertainties.values():
+            for u in list(self.uncertainties.values()):
                 if  u.with_nuis_par:
                     s=u.getStr(i)
                     if s!=None:
@@ -70,7 +70,7 @@ class Measurement:
             return [None]*self.nbins
         self.measurement_correction=[]
         if self.binlabels is None:
-            self.binlabels=range(self.nbins)
+            self.binlabels=list(range(self.nbins))
         for binlabel,form in zip(self.binlabels,formulas):
             params=RooArgList()
             for t in self.theory.thetas:
@@ -371,10 +371,10 @@ class Measurement:
             cov=TMatrixDSym(self.covMatrix)
         else:
             cov=TMatrixDSym(self.nbins)
-        for u in self.uncertainties.values():            
+        for u in list(self.uncertainties.values()):            
             if u.already_in_cov:
                 cov-=u.getCov(self.getMeas(),incl_np=True)
-        for u in self.uncertainties.values():
+        for u in list(self.uncertainties.values()):
             if u.name in exclude:
                 continue
             if incl_np or not u.with_nuis_par:
@@ -436,7 +436,7 @@ class Measurement:
                     cov_np[-1].append(self.covMatrix[i,j])
             cov_np=np.matrix(cov_np)
             w,v=np.linalg.eigh(cov_np)
-            res=zip(w,v.getT())
+            res=list(zip(w,v.getT()))
             cov_np_new=np.matrix([[0.]*len(combine)]*len(combine))
             for l,v in res:
                 dummy_u=[l**0.5*x for x in v.tolist()[0]]
@@ -448,12 +448,12 @@ class Measurement:
                     self.covMatrix[i,j]=cov_np_new[i,j]
 
         new_central_values=Utils.mergeBins(self.getNominal(),combine)
-        for u in self.uncertainties.values():
+        for u in list(self.uncertainties.values()):
             newEffectUp=Utils.mergeBins([x[1] for x in u.getEffect(self.getNominal())],combine)
             newEffectDown=Utils.mergeBins([x[0] for x in u.getEffect(self.getNominal())],combine)
             newRelEffectUp=[e/n for e,n in zip(newEffectUp,new_central_values)]
             newRelEffectDown=[e/n for e,n in zip(newEffectDown,new_central_values)]
-            u.releffect=zip(newRelEffectDown,newRelEffectUp)
+            u.releffect=list(zip(newRelEffectDown,newRelEffectUp))
             u.nbins=len(combine)
                           
         self.nbins=len(combine)

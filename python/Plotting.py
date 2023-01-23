@@ -536,7 +536,7 @@ def canvasImpactsPage(pulls,impacts,poi,outfile,outfolder,max_impact,pars,number
     relmax=0.8
     rescale=relmax*xmax/max_impact
     for i,imp in enumerate(pars):
-        print imp,impacts[imp]
+        print(imp,impacts[imp])
         hdown.SetBinContent(n-i,impacts[imp][0]*rescale)
         hdown.GetXaxis().SetBinLabel(n-i,imp)
         hup.SetBinContent(n-i,impacts[imp][1]*rescale)

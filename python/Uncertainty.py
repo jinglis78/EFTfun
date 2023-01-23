@@ -170,7 +170,7 @@ def createUncertaintyFromFile(reference,name,down_filename,up_filename,down_hist
     up=[u/n-1 if n!=0 else 0 for u,n in zip(up,nominal)]
     down=[d/n-1 if n!=0 else 0 for d,n in zip(down,nominal)]
     
-    releffect=zip(down,up)
+    releffect=list(zip(down,up))
 
     return createUncertainty(reference,name,releffect,affected,interpol,uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym,free=free)
 

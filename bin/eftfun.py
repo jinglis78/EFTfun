@@ -372,7 +372,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             if asimov:
                 measurement.setMeasuredFromCfg(cfg.getAndRm('Measurement','measured'))
                 asmimov_data=prediction.getNominal()
-                for b in prediction.backgrounds.values():
+                for b in list(prediction.backgrounds.values()):
                     asmimov_data=[x+y for x,y in zip(asmimov_data,b.getNominal())]
                 measurement.setMeasured(asmimov_data)
 
@@ -467,7 +467,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
 
 
         if not force and not quiet:
-            raw_input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
+            input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
 
     start_time = time.time()
 
@@ -519,7 +519,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     profs.append(combination.profile1D(poi,actual_scanrange,nsteps[0],extra_outfile=extra_outfile,inclOffset=True))
                 prof=[]
                 total_min=1e9
-                for pointresults in map(list, zip(*profs)):
+                for pointresults in map(list, list(zip(*profs))):
                     best=1e9
                     for x in pointresults:
                         best=min(x[1],best)
@@ -557,7 +557,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     profs.append(combination.profileND(pois,actual_scanranges,nsteps,extra_outfile=extra_outfile,inclOffset=True,first=int(first),last=int(last))[0])
                 prof=[]
                 total_min=1e9
-                for pointresults in map(list, zip(*profs)):
+                for pointresults in map(list, list(zip(*profs))):
                     best=1e9
                     for x in pointresults:
                         best=min(x[-1],best)

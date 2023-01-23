@@ -194,13 +194,13 @@ class Prediction:
 
         predictions=['('+e+')'+s for e,s in zip(eftprediction,sys_scaling)]
         if incl_bkgs:
-            for background in self.backgrounds.values():
+            for background in list(self.backgrounds.values()):
                 predictions=[p+'+'+b for p,b in zip(predictions,background.getPredictionStrings())]
         return predictions                   
 
     def getPredictionFormulas(self):
         if self.binlabels is None:
-            self.binlabels=range(self.nbins)
+            self.binlabels=list(range(self.nbins))
         self.predictions = []
         formulas=self.getPredictionStrings()
         for binlabel,formula in zip(self.binlabels,formulas):
@@ -219,14 +219,14 @@ class Prediction:
         for iBin in range(self.nbins):
             sm=self.sm[iBin]
             name='\\left(\\frac{\\sigma_{'+self.name+'}}{\\sigma_{'+self.name+'}^\\text{SM}}\\right)_{\\text{bin~'+str(iBin)+'}}'
-            print '$',name,'=1 ',
+            print('$',name,'=1 ', end=' ')
             for c in self.theory.getCoeffNames():
                 if c in self.linear_effects:
                     e=self.getLinearEffect(c,iBin)
                     if  abs(round(e/sm,2))>1e-2:
                         c=c.replace('1','o').replace('3','t').replace('8','e')
-                        print ('' if e<0 else '+')+str(round(e/sm,2))+'\\'+str(c),
-            print '$\\\\'
+                        print(('' if e<0 else '+')+str(round(e/sm,2))+'\\'+str(c), end=' ')
+            print('$\\\\')
 
         
 
@@ -287,7 +287,7 @@ class Prediction:
 
     def plotBkgPostfit(self, outfile, fitresult):
         hs=[]
-        for b in self.backgrounds.values():
+        for b in list(self.backgrounds.values()):
             hn=self.name+'_'+b.name+'_postfit'
             if self.binning!=None:
                 h=TH1F(hn,hn,self.nbins,array('f',self.binning))
@@ -664,18 +664,18 @@ class Prediction:
             newEffectDown=Utils.mergeBins([x[0] for x in u.getEffect(self.getNominal())],combine)
             newRelEffectUp=[e/n for e,n in zip(newEffectUp,new_sm)]
             newRelEffectDown=[e/n for e,n in zip(newEffectDown,new_sm)]
-            u.releffect=zip(newRelEffectDown,newRelEffectUp)
+            u.releffect=list(zip(newRelEffectDown,newRelEffectUp))
             u.nbins=len(combine)        
 
         for c in self.linear_effects:
             vals=Utils.mergeBins([x[0] for x in self.linear_effects[c]],combine)
             errs=Utils.mergeBins([x[1] for x in self.linear_effects[c]],combine)
-            self.linear_effects[c]=zip(vals,errs)
+            self.linear_effects[c]=list(zip(vals,errs))
         for c1 in self.quadratic_effects:
             for c2 in self.quadratic_effects[c1]:
                 vals=Utils.mergeBins([x[0] for x in self.quadratic_effects[c1][c2]],combine)
                 errs=Utils.mergeBins([x[1] for x in self.quadratic_effects[c1][c2]],combine)
-                self.quadratic_effects[c1][c2]=zip(vals,errs)
+                self.quadratic_effects[c1][c2]=list(zip(vals,errs))
         if not self.extra_scaling is None and isinstance(self.extra_scaling,list):
             self.extra_scaling=Utils.mergeBins(self.extra_scaling,combine,mode=0)
 

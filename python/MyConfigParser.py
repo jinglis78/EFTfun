@@ -1,4 +1,4 @@
-from ConfigParser import ConfigParser,SafeConfigParser
+from configparser import ConfigParser,SafeConfigParser
 from collections import OrderedDict
 import itertools,re
 import Utils
@@ -49,15 +49,15 @@ def expandCfg(cfg_name,overrides,static):
         sections_new[section]=section_new
     for s in replacements:
         for o in replacements[s]:
-            print 'will try to override option',o,'in section',s,'in',cfg_name,'with',replacements[s][o]
+            print('will try to override option',o,'in section',s,'in',cfg_name,'with',replacements[s][o])
             if s in sections_new:
                 if o in sections_new[s]:
-                    print 'replacing old value',sections_new[s][o],'with',replacements[s][o]
+                    print('replacing old value',sections_new[s][o],'with',replacements[s][o])
                 else:
-                    print 'adding new option',o,'with value',replacements[s][o]
+                    print('adding new option',o,'with value',replacements[s][o])
                 sections_new[s][o]=replacements[s][o]
             else:
-                print 'adding new section',s,'and new option',o,'with value',replacements[s][o]
+                print('adding new section',s,'and new option',o,'with value',replacements[s][o])
                 sections_new[s]=OrderedDict()
                 sections_new[s][o]=replacements[s][o]
 
@@ -78,7 +78,7 @@ def expandCfg(cfg_name,overrides,static):
 
 
     for section in sections_new:
-        for option in sections_new[section]:
+        for option in sections_new[section].copy():
             for wc in wildcards:
                 if '@('+wc+')' in option:
                     for replacement in wildcards[wc]:
@@ -87,7 +87,7 @@ def expandCfg(cfg_name,overrides,static):
                             sections_new[section][new_option]=sections_new[section][option].replace('@('+wc+')',replacement)
 
     for section in sections_new:
-        for option,value in sections_new[section].items():
+        for option,value in list(sections_new[section].items()):
             for wc in wildcards:
                 res=re.findall('@\('+wc+'\d+\)',option)
                 if len(res)>0:
@@ -102,7 +102,7 @@ def expandCfg(cfg_name,overrides,static):
                                 sections_new[section][new_option]=new_value
 
     for section in sections_new:
-        for option,value in sections_new[section].items():
+        for option,value in list(sections_new[section].items()):
             for wc in wildcards:
                 res=re.findall('@\('+wc+'\d*\)',option)
                 if '$('+wc+')' in value or '$('+wc+')' in option or len(res)>0:
@@ -121,6 +121,6 @@ def expandCfg(cfg_name,overrides,static):
     config_new.remove_section('Variables')
 
     new_cfg_name=cfg_name+'.exp'
-    with open(new_cfg_name, 'wb') as configfile:
+    with open(new_cfg_name, 'w') as configfile:
         config_new.write(configfile)
     return new_cfg_name
