@@ -213,7 +213,7 @@ class Combination:
         more_results={}
         percent=0
         i_step=0
-        steps=list(range(nsteps))[nsteps/2:]+list(reversed(list(range(nsteps))[:nsteps/2]))
+        steps=list(range(nsteps))[nsteps//2:]+list(reversed(list(range(nsteps))[:nsteps//2]))
         for i_step,i in enumerate(steps):
 #            if i==nsteps/2-1:
             self.theory.reset()
