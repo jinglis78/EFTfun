@@ -109,7 +109,7 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
         logging.warning('abs/rel wont have an effect on uncertainties from hepdata')
     if renorm!=None:
         logging.warning('renorm/keepnorm wont have an effect on uncertainties from hepdata')
-    return createUncertaintyFromYaml(reference,thetaname,data,affected=affected,interpol=interpol,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip)
+    return createUncertaintyFromYaml(reference,thetaname,data,affected=affected,interpol=interpol,uncorr=uncorr,with_nuis_par=with_nuis_par,already_in_cov=already_in_cov,is_bkg_unc=is_bkg_unc,flip=flip,sym=sym,free=free)
 
 
 def createUncertaintyFromYaml(reference,name,data,affected,interpol,uncorr,with_nuis_par=False,already_in_cov=False,is_bkg_unc=False,flip=False,sym=False,free=False):
