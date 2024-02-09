@@ -1,0 +1,441 @@
+additional_resources:
+- {description: web page with auxiliary material, location: 'http://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PAPERS/HIGG-2017-11/'}
+comment: 'CERN-LHC. Differential cross-section measurements for the electroweak production
+  of two jets in association with a $Z$ boson. These measurements are sensitive to
+  the vector-boson fusion production mechanism and provide a fundamental test of the
+  gauge structure of the Standard Model. The analysis is performed using proton-proton
+  collision data collected by ATLAS at a centre-of-mass energy of 13 TeV and an integrated
+  luminosity of 139 fb$^{-1}$. The differential cross-sections are measured in the
+  $Z \to \ell\ell$ decay channel ($\ell = e,mu$) as a function of four observables:
+  the dijet invariant mass $m_{jj}$, the rapidity interval spanned by the two jets
+  $|\Delta y_{jj}|$, the signed azimuthal angle between the two jets $\Delta\phi_{jj}$,
+  and the transverse momentum of the dilepton pair $p_{\mathrm{T},\ell\ell}$. The
+  data are corrected for the effects of detector inefficiency and resolution. The
+  definition of the fiducial region can be found in Table 3 of the paper and are applied
+  in the associated Rivet routine.'
+hepdata_doi: 10.17182/hepdata.94218.v1
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_fig_07a.png}
+data_file: meas_ewzjj_m_jj_SR.yaml
+description: Differential cross-sections for EW $Zjj$ production as a function of
+  $m_{jj}$ with breakdown of associated uncertainties. The statistical uncertainty
+  is correlated across bins according to the statistical cross correlation matrix
+  presented in Table 21.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DM]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      invariant mass]
+location: Figure 7a
+name: Table 1
+table_doi: 10.17182/hepdata.94218.v1/t1
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_fig_07b.png}
+data_file: meas_ewzjj_Dy_jj_SR.yaml
+description: Differential cross-sections for EW $Zjj$ production as a function of
+  $|\Delta y_{jj}|$ with breakdown of associated uncertainties. The statistical uncertainty
+  is correlated across bins according to the statistical cross correlation matrix
+  presented in Table 21.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [DSIG/DY]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      rapidity separation]
+location: Figure 7b
+name: Table 2
+table_doi: 10.17182/hepdata.94218.v1/t2
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_fig_07c.png}
+data_file: meas_ewzjj_pT_ll_SR.yaml
+description: Differential cross-sections for EW $Zjj$ production as a function of
+  $p_{\mathrm{T},\ell\ell}$ with breakdown of associated uncertainties. The statistical
+  uncertainty is correlated across bins according to the statistical cross correlation
+  matrix presented in Table 21.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [DSIG/DPT]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dilepton
+      transverse momentum]
+location: Figure 7c
+name: Table 3
+table_doi: 10.17182/hepdata.94218.v1/t3
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_fig_07d.png}
+data_file: meas_ewzjj_Dphi_jj_SR.yaml
+description: Differential cross-sections for EW $Zjj$ production as a function of
+  $\Delta\phi_{jj}$ with breakdown of associated uncertainties. The statistical uncertainty
+  is correlated across bins according to the statistical cross correlation matrix
+  presented in Table 21.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [DSIG/DPHI]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      azimuthal separation]
+location: Figure 7d
+name: Table 4
+table_doi: 10.17182/hepdata.94218.v1/t4
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_fig_08a.png}
+data_file: meas_zjj_m_jj_SR.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in the EW
+  $Zjj$ signal region ($N^\mathrm{gap}_\mathrm{jets}=0$, $\xi_Z < 0.5$) as a function
+  of $m_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DM]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      invariant mass]
+location: Figure 8a
+name: Table 5
+table_doi: 10.17182/hepdata.94218.v1/t5
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_fig_08b.png}
+data_file: meas_zjj_Dy_jj_SR.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in the EW
+  $Zjj$ signal region ($N^\mathrm{gap}_\mathrm{jets}=0$, $\xi_Z < 0.5$) as a function
+  of $\Delta y_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DY]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      rapidity separation]
+location: Figure 8b
+name: Table 6
+table_doi: 10.17182/hepdata.94218.v1/t6
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_fig_08c.png}
+data_file: meas_zjj_pT_ll_SR.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in the EW
+  $Zjj$ signal region ($N^\mathrm{gap}_\mathrm{jets}=0$, $\xi_Z < 0.5$) as a function
+  of $p_{\mathrm{T},\ell\ell}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DPT]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dilepton
+      transverse momentum]
+location: Figure 8c
+name: Table 7
+table_doi: 10.17182/hepdata.94218.v1/t7
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_fig_08d.png}
+data_file: meas_zjj_Dphi_jj_SR.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in the EW
+  $Zjj$ signal region ($N^\mathrm{gap}_\mathrm{jets}=0$, $\xi_Z < 0.5$) as a function
+  of $\Delta\phi_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DPHI]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      azimuthal separation]
+location: Figure 8d
+name: Table 8
+table_doi: 10.17182/hepdata.94218.v1/t8
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_fig_09a.png}
+data_file: meas_zjj_m_jj_CRa.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRa ($N^\mathrm{gap}_\mathrm{jets} \geq 1$, $\xi_Z < 0.5$) as a function
+  of $m_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DM]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      invariant mass]
+location: Figure 9a
+name: Table 9
+table_doi: 10.17182/hepdata.94218.v1/t9
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_figaux_01a.png}
+data_file: meas_zjj_Dy_jj_CRa.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRa ($N^\mathrm{gap}_\mathrm{jets} \geq 1$, $\xi_Z < 0.5$) as a function
+  of $\Delta y_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DY]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      rapidity separation]
+location: Figure 11a
+name: Table 10
+table_doi: 10.17182/hepdata.94218.v1/t10
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_fig_09b.png}
+data_file: meas_zjj_pT_ll_CRa.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRa ($N^\mathrm{gap}_\mathrm{jets} \geq 1$, $\xi_Z < 0.5$) as a function
+  of $p_{\mathrm{T},\ell\ell}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DPT]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dilepton
+      transverse momentum]
+location: Figure 9b
+name: Table 11
+table_doi: 10.17182/hepdata.94218.v1/t11
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_figaux_01b.png}
+data_file: meas_zjj_Dphi_jj_CRa.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRa ($N^\mathrm{gap}_\mathrm{jets} \geq 1$, $\xi_Z < 0.5$) as a function
+  of $\Delta\phi_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DPHI]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      azimuthal separation]
+location: Figure 11b
+name: Table 12
+table_doi: 10.17182/hepdata.94218.v1/t12
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_figaux_02a.png}
+data_file: meas_zjj_m_jj_CRb.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRb ($N^\mathrm{gap}_\mathrm{jets} \geq 1$, $\xi_Z > 0.5$) as a function
+  of $m_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DM]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      invariant mass]
+location: Figure 12a
+name: Table 13
+table_doi: 10.17182/hepdata.94218.v1/t13
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_figaux_02b.png}
+data_file: meas_zjj_Dy_jj_CRb.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRb ($N^\mathrm{gap}_\mathrm{jets} \geq 1$, $\xi_Z > 0.5$) as a function
+  of $\Delta y_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DY]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      rapidity separation]
+location: Figure 12b
+name: Table 14
+table_doi: 10.17182/hepdata.94218.v1/t14
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_figaux_02c.png}
+data_file: meas_zjj_pT_ll_CRb.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRb ($N^\mathrm{gap}_\mathrm{jets} \geq 1$, $\xi_Z > 0.5$) as a function
+  of $p_{\mathrm{T},\ell\ell}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DPT]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dilepton
+      transverse momentum]
+location: Figure 12c
+name: Table 15
+table_doi: 10.17182/hepdata.94218.v1/t15
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_figaux_02d.png}
+data_file: meas_zjj_Dphi_jj_CRb.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRb ($N^\mathrm{gap}_\mathrm{jets} \geq 1$, $\xi_Z > 0.5$) as a function
+  of $\Delta\phi_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DPHI]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      azimuthal separation]
+location: Figure 12d
+name: Table 16
+table_doi: 10.17182/hepdata.94218.v1/t16
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_figaux_03a.png}
+data_file: meas_zjj_m_jj_CRc.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRc ($N^\mathrm{gap}_\mathrm{jets} = 0$, $\xi_Z > 0.5$) as a function of
+  $m_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DM]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      invariant mass]
+location: Figure 13a
+name: Table 17
+table_doi: 10.17182/hepdata.94218.v1/t17
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_figaux_03b.png}
+data_file: meas_zjj_Dy_jj_CRc.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRc ($N^\mathrm{gap}_\mathrm{jets} = 0$, $\xi_Z > 0.5$) as a function of
+  $\Delta y_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DY]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      rapidity separation]
+location: Figure 13b
+name: Table 18
+table_doi: 10.17182/hepdata.94218.v1/t18
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_figaux_03c.png}
+data_file: meas_zjj_pT_ll_CRc.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRc ($N^\mathrm{gap}_\mathrm{jets} = 0$, $\xi_Z > 0.5$) as a function of
+  $p_{\mathrm{T},\ell\ell}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DPT]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dilepton
+      transverse momentum]
+location: Figure 13c
+name: Table 19
+table_doi: 10.17182/hepdata.94218.v1/t19
+---
+additional_resources:
+- {description: Thumbnail image file, location: thumb_figaux_03c.png}
+data_file: meas_zjj_Dphi_jj_CRc.yaml
+description: Differential cross-sections for inclusive $Zjj$ production in control
+  region CRc ($N^\mathrm{gap}_\mathrm{jets} = 0$, $\xi_Z > 0.5$) as a function of
+  $\Delta\phi_{jj}$ with breakdown of associated uncertainties.
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [SIG/DPHI]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, dijet
+      azimuthal separation]
+location: Figure 13d
+name: Table 20
+table_doi: 10.17182/hepdata.94218.v1/t20
+---
+data_file: meas_ewzjj_SR_stat_corr.yaml
+description: Statistical correlation between bins of the differential cross-section
+  measurements of EW $Zjj$ production in the signal region ($N^\mathrm{gap}_\mathrm{jets}
+  = 0$, $\xi_Z < 0.5$). The associated measured central values, statistical uncertainty
+  magnitude and bin ranges are presented in Tables 1-4. The bins are presented in
+  order such that for example mjj_bin_1 spans $m_{jj} \in (1000,1500)$ GeV (see Table
+  1), while pT_ll_bin7 spans $p_\mathrm{T}^{ll} \in (200,275)$ GeV (see Table 3).
+keywords:
+- name: reactions
+  values: [P P --> Z JET(S) X]
+- name: observables
+  values: [Results]
+- name: cmenergies
+  values: [13000.0]
+- name: phrases
+  values: [Z+jets, Zjj, Vector boson fusion, VBF, Differential cross section, statistical
+      correlation]
+location: Figure7
+name: Table 21
+table_doi: 10.17182/hepdata.94218.v1/t21

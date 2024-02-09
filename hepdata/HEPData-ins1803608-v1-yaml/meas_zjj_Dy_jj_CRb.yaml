@@ -1,0 +1,348 @@
+dependent_variables:
+- header: {name: Differential cross-section, units: fb}
+  qualifiers:
+  - {name: Distribution, value: Data}
+  - {name: SQRT(S), units: GeV, value: 13000}
+  - {name: LUMINOSITY, units: 'fb$^{-1}$', value: 139}
+  values:
+  - errors:
+    - {label: stat, symerror: 0.444}
+    - {label: JES_EtaIntercalibration_Modelling, symerror: 0.167}
+    - {label: JES_EffectiveNP_Modelling1, symerror: -0.0297}
+    - {label: JES_Flavor_Composition, symerror: -0.122}
+    - {label: JES_Flavor_Response, symerror: 0.493}
+    - {label: JES_Pileup_OffsetMu, symerror: 0.238}
+    - {label: JES_Pileup_OffsetNPV, symerror: 0.197}
+    - {label: JES_Pileup_RhoTopology, symerror: 0.122}
+    - {label: JVT, symerror: -0.0394}
+    - {label: JER_EffectiveNP_1, symerror: -0.018}
+    - {label: JER_EffectiveNP_2, symerror: 0.0322}
+    - {label: JER_EffectiveNP_3, symerror: -0.0141}
+    - {label: JER_EffectiveNP_4, symerror: -0.00516}
+    - {label: JER_EffectiveNP_5, symerror: 0}
+    - {label: JER_EffectiveNP_6, symerror: -0.00787}
+    - {label: JER_EffectiveNP_7, symerror: 0.0119}
+    - {label: JER_EffectiveNP_8, symerror: -0.012}
+    - {label: JER_EffectiveNP_9, symerror: -0.00473}
+    - {label: JER_EffectiveNP_10, symerror: -0.00359}
+    - {label: JER_EffectiveNP_11, symerror: 0.00636}
+    - {label: JER_EffectiveNP_12restTerm, symerror: -0.0113}
+    - {label: JER_DataVsMC, symerror: 0.252}
+    - {label: MUON_SAGITTA_RHO, symerror: 0.00509}
+    - {label: ELECTRON_ID, symerror: -0.0807}
+    - {label: MUON_EFF, symerror: -0.0704}
+    - {label: pileup_model, symerror: -0.151}
+    - {label: unf_MCgen, symerror: -0.117}
+    - {label: unf_DataRew, symerror: -0.00863}
+    - {label: bkg_VV_theory, symerror: -0.000329}
+    - {label: bkg_top_theory, symerror: -0.000447}
+    - {label: bkg_VVtop_exp, symerror: -0.000849}
+    - {label: Lumi, symerror: 0.183}
+    value: 10.771
+  - errors:
+    - {label: stat, symerror: 0.571}
+    - {label: JES_EtaIntercalibration_Modelling, symerror: 0.118}
+    - {label: JES_EffectiveNP_Modelling1, symerror: -0.0844}
+    - {label: JES_Flavor_Composition, symerror: -0.278}
+    - {label: JES_Flavor_Response, symerror: 0.638}
+    - {label: JES_Pileup_OffsetMu, symerror: 0.24}
+    - {label: JES_Pileup_OffsetNPV, symerror: 0.206}
+    - {label: JES_Pileup_RhoTopology, symerror: 0.0962}
+    - {label: JVT, symerror: -0.0533}
+    - {label: JER_EffectiveNP_1, symerror: 0.016}
+    - {label: JER_EffectiveNP_2, symerror: -0.0348}
+    - {label: JER_EffectiveNP_3, symerror: -0.0497}
+    - {label: JER_EffectiveNP_4, symerror: -0.0401}
+    - {label: JER_EffectiveNP_5, symerror: 0}
+    - {label: JER_EffectiveNP_6, symerror: -0.0113}
+    - {label: JER_EffectiveNP_7, symerror: 0.0037}
+    - {label: JER_EffectiveNP_8, symerror: 0.019}
+    - {label: JER_EffectiveNP_9, symerror: -0.00292}
+    - {label: JER_EffectiveNP_10, symerror: 0.0245}
+    - {label: JER_EffectiveNP_11, symerror: -0.00544}
+    - {label: JER_EffectiveNP_12restTerm, symerror: 0.0133}
+    - {label: JER_DataVsMC, symerror: 0.289}
+    - {label: MUON_SAGITTA_RHO, symerror: 0.0059}
+    - {label: ELECTRON_ID, symerror: -0.0986}
+    - {label: MUON_EFF, symerror: -0.0921}
+    - {label: pileup_model, symerror: -0.2}
+    - {label: unf_MCgen, symerror: -0.185}
+    - {label: unf_DataRew, symerror: -0.00501}
+    - {label: bkg_VV_theory, symerror: -0.000319}
+    - {label: bkg_top_theory, symerror: -0.000725}
+    - {label: bkg_VVtop_exp, symerror: -0.0011}
+    - {label: Lumi, symerror: 0.236}
+    value: 13.855
+  - errors:
+    - {label: stat, symerror: 0.603}
+    - {label: JES_EtaIntercalibration_Modelling, symerror: 0.0322}
+    - {label: JES_EffectiveNP_Modelling1, symerror: -0.142}
+    - {label: JES_Flavor_Composition, symerror: -0.447}
+    - {label: JES_Flavor_Response, symerror: 0.708}
+    - {label: JES_Pileup_OffsetMu, symerror: 0.191}
+    - {label: JES_Pileup_OffsetNPV, symerror: 0.153}
+    - {label: JES_Pileup_RhoTopology, symerror: 0.0468}
+    - {label: JVT, symerror: -0.0595}
+    - {label: JER_EffectiveNP_1, symerror: -0.0065}
+    - {label: JER_EffectiveNP_2, symerror: -0.00598}
+    - {label: JER_EffectiveNP_3, symerror: -0.0185}
+    - {label: JER_EffectiveNP_4, symerror: -0.000977}
+    - {label: JER_EffectiveNP_5, symerror: 0}
+    - {label: JER_EffectiveNP_6, symerror: 0.00111}
+    - {label: JER_EffectiveNP_7, symerror: -0.0133}
+    - {label: JER_EffectiveNP_8, symerror: 0.00543}
+    - {label: JER_EffectiveNP_9, symerror: 0.00221}
+    - {label: JER_EffectiveNP_10, symerror: 0.000764}
+    - {label: JER_EffectiveNP_11, symerror: 0.00256}
+    - {label: JER_EffectiveNP_12restTerm, symerror: -0.00821}
+    - {label: JER_DataVsMC, symerror: 0.26}
+    - {label: MUON_SAGITTA_RHO, symerror: 0.00558}
+    - {label: ELECTRON_ID, symerror: -0.106}
+    - {label: MUON_EFF, symerror: -0.101}
+    - {label: pileup_model, symerror: -0.221}
+    - {label: unf_MCgen, symerror: -0.257}
+    - {label: unf_DataRew, symerror: 0.000402}
+    - {label: bkg_VV_theory, symerror: -0.000318}
+    - {label: bkg_top_theory, symerror: -0.000708}
+    - {label: bkg_VVtop_exp, symerror: -0.0011}
+    - {label: Lumi, symerror: 0.258}
+    value: 15.164
+  - errors:
+    - {label: stat, symerror: 0.757}
+    - {label: JES_EtaIntercalibration_Modelling, symerror: -0.116}
+    - {label: JES_EffectiveNP_Modelling1, symerror: -0.263}
+    - {label: JES_Flavor_Composition, symerror: -0.623}
+    - {label: JES_Flavor_Response, symerror: 0.685}
+    - {label: JES_Pileup_OffsetMu, symerror: 0.0695}
+    - {label: JES_Pileup_OffsetNPV, symerror: 0.0896}
+    - {label: JES_Pileup_RhoTopology, symerror: -0.0415}
+    - {label: JVT, symerror: -0.0566}
+    - {label: JER_EffectiveNP_1, symerror: -0.0043}
+    - {label: JER_EffectiveNP_2, symerror: 0.0109}
+    - {label: JER_EffectiveNP_3, symerror: 0.0283}
+    - {label: JER_EffectiveNP_4, symerror: 0.0324}
+    - {label: JER_EffectiveNP_5, symerror: 0}
+    - {label: JER_EffectiveNP_6, symerror: -0.00426}
+    - {label: JER_EffectiveNP_7, symerror: -0.0158}
+    - {label: JER_EffectiveNP_8, symerror: -0.0389}
+    - {label: JER_EffectiveNP_9, symerror: -0.00622}
+    - {label: JER_EffectiveNP_10, symerror: 0.0496}
+    - {label: JER_EffectiveNP_11, symerror: 0.00708}
+    - {label: JER_EffectiveNP_12restTerm, symerror: -0.0117}
+    - {label: JER_DataVsMC, symerror: 0.19}
+    - {label: MUON_SAGITTA_RHO, symerror: 0.00447}
+    - {label: ELECTRON_ID, symerror: -0.0954}
+    - {label: MUON_EFF, symerror: -0.0942}
+    - {label: pileup_model, symerror: -0.208}
+    - {label: unf_MCgen, symerror: -0.286}
+    - {label: unf_DataRew, symerror: 0.00401}
+    - {label: bkg_VV_theory, symerror: -0.000419}
+    - {label: bkg_top_theory, symerror: -0.00144}
+    - {label: bkg_VVtop_exp, symerror: -0.00208}
+    - {label: Lumi, symerror: 0.239}
+    value: 14.079
+  - errors:
+    - {label: stat, symerror: 0.733}
+    - {label: JES_EtaIntercalibration_Modelling, symerror: -0.206}
+    - {label: JES_EffectiveNP_Modelling1, symerror: -0.278}
+    - {label: JES_Flavor_Composition, symerror: -0.766}
+    - {label: JES_Flavor_Response, symerror: 0.644}
+    - {label: JES_Pileup_OffsetMu, symerror: 0.0296}
+    - {label: JES_Pileup_OffsetNPV, symerror: 0.056}
+    - {label: JES_Pileup_RhoTopology, symerror: -0.09}
+    - {label: JVT, symerror: -0.0524}
+    - {label: JER_EffectiveNP_1, symerror: -0.0127}
+    - {label: JER_EffectiveNP_2, symerror: -0.0487}
+    - {label: JER_EffectiveNP_3, symerror: 0.00719}
+    - {label: JER_EffectiveNP_4, symerror: 0.0207}
+    - {label: JER_EffectiveNP_5, symerror: 0}
+    - {label: JER_EffectiveNP_6, symerror: -0.00293}
+    - {label: JER_EffectiveNP_7, symerror: -0.0107}
+    - {label: JER_EffectiveNP_8, symerror: -0.00978}
+    - {label: JER_EffectiveNP_9, symerror: 0.0151}
+    - {label: JER_EffectiveNP_10, symerror: 0.0267}
+    - {label: JER_EffectiveNP_11, symerror: -0.0234}
+    - {label: JER_EffectiveNP_12restTerm, symerror: -0.0178}
+    - {label: JER_DataVsMC, symerror: 0.218}
+    - {label: MUON_SAGITTA_RHO, symerror: 0.00363}
+    - {label: ELECTRON_ID, symerror: -0.0877}
+    - {label: MUON_EFF, symerror: -0.0882}
+    - {label: pileup_model, symerror: -0.192}
+    - {label: unf_MCgen, symerror: -0.276}
+    - {label: unf_DataRew, symerror: 0.00473}
+    - {label: bkg_VV_theory, symerror: -0.000339}
+    - {label: bkg_top_theory, symerror: -0.00157}
+    - {label: bkg_VVtop_exp, symerror: -0.00202}
+    - {label: Lumi, symerror: 0.223}
+    value: 13.137
+  - errors:
+    - {label: stat, symerror: 0.555}
+    - {label: JES_EtaIntercalibration_Modelling, symerror: -0.294}
+    - {label: JES_EffectiveNP_Modelling1, symerror: -0.238}
+    - {label: JES_Flavor_Composition, symerror: -0.696}
+    - {label: JES_Flavor_Response, symerror: 0.414}
+    - {label: JES_Pileup_OffsetMu, symerror: -0.046}
+    - {label: JES_Pileup_OffsetNPV, symerror: 0.00123}
+    - {label: JES_Pileup_RhoTopology, symerror: -0.0656}
+    - {label: JVT, symerror: -0.0385}
+    - {label: JER_EffectiveNP_1, symerror: -0.0288}
+    - {label: JER_EffectiveNP_2, symerror: 0.0358}
+    - {label: JER_EffectiveNP_3, symerror: -0.0886}
+    - {label: JER_EffectiveNP_4, symerror: -0.0662}
+    - {label: JER_EffectiveNP_5, symerror: 0}
+    - {label: JER_EffectiveNP_6, symerror: 0.00379}
+    - {label: JER_EffectiveNP_7, symerror: -0.00163}
+    - {label: JER_EffectiveNP_8, symerror: 0.0373}
+    - {label: JER_EffectiveNP_9, symerror: 0.0224}
+    - {label: JER_EffectiveNP_10, symerror: -0.000198}
+    - {label: JER_EffectiveNP_11, symerror: -0.033}
+    - {label: JER_EffectiveNP_12restTerm, symerror: -0.00202}
+    - {label: JER_DataVsMC, symerror: 0.0971}
+    - {label: MUON_SAGITTA_RHO, symerror: 0.0015}
+    - {label: ELECTRON_ID, symerror: -0.064}
+    - {label: MUON_EFF, symerror: -0.064}
+    - {label: pileup_model, symerror: -0.141}
+    - {label: unf_MCgen, symerror: -0.194}
+    - {label: unf_DataRew, symerror: 0.00211}
+    - {label: bkg_VV_theory, symerror: -0.000378}
+    - {label: bkg_top_theory, symerror: -0.000965}
+    - {label: bkg_VVtop_exp, symerror: -0.0016}
+    - {label: Lumi, symerror: 0.164}
+    value: 9.6485
+  - errors:
+    - {label: stat, symerror: 0.431}
+    - {label: JES_EtaIntercalibration_Modelling, symerror: -0.107}
+    - {label: JES_EffectiveNP_Modelling1, symerror: -0.087}
+    - {label: JES_Flavor_Composition, symerror: -0.317}
+    - {label: JES_Flavor_Response, symerror: 0.371}
+    - {label: JES_Pileup_OffsetMu, symerror: 0.00987}
+    - {label: JES_Pileup_OffsetNPV, symerror: 0.0137}
+    - {label: JES_Pileup_RhoTopology, symerror: -0.0156}
+    - {label: JVT, symerror: -0.0249}
+    - {label: JER_EffectiveNP_1, symerror: 0.00563}
+    - {label: JER_EffectiveNP_2, symerror: -0.0107}
+    - {label: JER_EffectiveNP_3, symerror: -0.0209}
+    - {label: JER_EffectiveNP_4, symerror: -0.123}
+    - {label: JER_EffectiveNP_5, symerror: 0}
+    - {label: JER_EffectiveNP_6, symerror: -0.00831}
+    - {label: JER_EffectiveNP_7, symerror: -0.0064}
+    - {label: JER_EffectiveNP_8, symerror: -0.00623}
+    - {label: JER_EffectiveNP_9, symerror: -0.0311}
+    - {label: JER_EffectiveNP_10, symerror: 0.0455}
+    - {label: JER_EffectiveNP_11, symerror: -0.00547}
+    - {label: JER_EffectiveNP_12restTerm, symerror: -0.018}
+    - {label: JER_DataVsMC, symerror: 0.0517}
+    - {label: MUON_SAGITTA_RHO, symerror: 0.000901}
+    - {label: ELECTRON_ID, symerror: -0.0381}
+    - {label: MUON_EFF, symerror: -0.0415}
+    - {label: pileup_model, symerror: -0.0903}
+    - {label: unf_MCgen, symerror: -0.12}
+    - {label: unf_DataRew, symerror: -0.00141}
+    - {label: bkg_VV_theory, symerror: -0.000308}
+    - {label: bkg_top_theory, symerror: -0.00105}
+    - {label: bkg_VVtop_exp, symerror: -0.00164}
+    - {label: Lumi, symerror: 0.103}
+    value: 6.0824
+  - errors:
+    - {label: stat, symerror: 0.113}
+    - {label: JES_EtaIntercalibration_Modelling, symerror: -0.0189}
+    - {label: JES_EffectiveNP_Modelling1, symerror: -0.0402}
+    - {label: JES_Flavor_Composition, symerror: -0.0801}
+    - {label: JES_Flavor_Response, symerror: 0.0564}
+    - {label: JES_Pileup_OffsetMu, symerror: -0.00967}
+    - {label: JES_Pileup_OffsetNPV, symerror: -0.00474}
+    - {label: JES_Pileup_RhoTopology, symerror: -0.0159}
+    - {label: JVT, symerror: -0.00483}
+    - {label: JER_EffectiveNP_1, symerror: 0.00303}
+    - {label: JER_EffectiveNP_2, symerror: 0.000405}
+    - {label: JER_EffectiveNP_3, symerror: 0.00293}
+    - {label: JER_EffectiveNP_4, symerror: -0.00502}
+    - {label: JER_EffectiveNP_5, symerror: 0}
+    - {label: JER_EffectiveNP_6, symerror: 0.00816}
+    - {label: JER_EffectiveNP_7, symerror: -0.0013}
+    - {label: JER_EffectiveNP_8, symerror: 0.00788}
+    - {label: JER_EffectiveNP_9, symerror: 0.00266}
+    - {label: JER_EffectiveNP_10, symerror: 0.0221}
+    - {label: JER_EffectiveNP_11, symerror: -0.0181}
+    - {label: JER_EffectiveNP_12restTerm, symerror: 0.00845}
+    - {label: JER_DataVsMC, symerror: 0.0269}
+    - {label: MUON_SAGITTA_RHO, symerror: 0.000158}
+    - {label: ELECTRON_ID, symerror: -0.00671}
+    - {label: MUON_EFF, symerror: -0.00757}
+    - {label: pileup_model, symerror: -0.0168}
+    - {label: unf_MCgen, symerror: -0.0216}
+    - {label: unf_DataRew, symerror: -0.00105}
+    - {label: bkg_VV_theory, symerror: -0.000106}
+    - {label: bkg_top_theory, symerror: -0.00047}
+    - {label: bkg_VVtop_exp, symerror: -0.00068}
+    - {label: Lumi, symerror: 0.0186}
+    value: 1.0952
+- header: {name: Differential cross-section, units: fb}
+  qualifiers:
+  - {name: Distribution, value: Sherpa 2.2.1 (strong Zjj) + X}
+  - {name: SQRT(S), units: GeV, value: 13000}
+  values:
+  - errors:
+    - asymerror: {minus: -5.1, plus: 8.51}
+    value: 17.036
+  - errors:
+    - asymerror: {minus: -7.5, plus: 12.7}
+    value: 24.049
+  - errors:
+    - asymerror: {minus: -8.73, plus: 15}
+    value: 27.789
+  - errors:
+    - asymerror: {minus: -9.12, plus: 15.9}
+    value: 28.818
+  - errors:
+    - asymerror: {minus: -8.47, plus: 14.9}
+    value: 26.293
+  - errors:
+    - asymerror: {minus: -6.61, plus: 11.7}
+    value: 21.002
+  - errors:
+    - asymerror: {minus: -3.75, plus: 6.71}
+    value: 12.739
+  - errors:
+    - asymerror: {minus: -0.965, plus: 1.77}
+    value: 2.974
+- header: {name: Differential cross-section, units: fb}
+  qualifiers:
+  - {name: Distribution, value: MG5_aMC@NLO (strong Zjj) + X}
+  - {name: SQRT(S), units: GeV, value: 13000}
+  values:
+  - errors:
+    - asymerror: {minus: -1.43, plus: 1.43}
+    value: 11.29
+  - errors:
+    - asymerror: {minus: -1.74, plus: 1.74}
+    value: 13.949
+  - errors:
+    - asymerror: {minus: -1.87, plus: 1.87}
+    value: 15.191
+  - errors:
+    - asymerror: {minus: -1.7, plus: 1.7}
+    value: 14.048
+  - errors:
+    - asymerror: {minus: -1.5, plus: 1.5}
+    value: 12.604
+  - errors:
+    - asymerror: {minus: -1.12, plus: 1.12}
+    value: 9.6335
+  - errors:
+    - asymerror: {minus: -0.583, plus: 0.583}
+    value: 5.0995
+  - errors:
+    - asymerror: {minus: -0.112, plus: 0.112}
+    value: 1.0003
+independent_variables:
+- header: {name: '$\Delta y_\mathrm{jj}$'}
+  values:
+  - {high: 2.6, low: 2}
+  - {high: 3.1, low: 2.6}
+  - {high: 3.6, low: 3.1}
+  - {high: 3.9, low: 3.6}
+  - {high: 4.2, low: 3.9}
+  - {high: 4.6, low: 4.2}
+  - {high: 5, low: 4.6}
+  - {high: 6, low: 5}
