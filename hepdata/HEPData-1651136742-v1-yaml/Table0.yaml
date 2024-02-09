@@ -1,0 +1,2148 @@
+dependent_variables:
+- header: {name: DSIG/DPT_THAD (breakdown of systematics), units: 'pb GeV$^{-1}$'}
+  qualifiers:
+  - {name: SQRT(S), value: '13000.0'}
+  values:
+  - errors:
+    - {label: stat, symerror: +0.945%}
+    - asymerror: {minus: -0.006%, plus: +0.123%}
+      label: sys,ISR
+    - asymerror: {minus: -1.061%, plus: +1.061%}
+      label: sys,hardscat-model
+    - asymerror: {minus: -0.007%, plus: +0.007%}
+      label: sys,b extrapolation
+    - asymerror: {minus: +0.492%, plus: -0.389%}
+      label: sys,(jes) Flavor Response
+    - asymerror: {minus: -0.182%, plus: +0.182%}
+      label: sys,Hdamp
+    - asymerror: {minus: -0.142%, plus: +0.201%}
+      label: sys,SingleTop Radiation
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90924
+    - asymerror: {minus: +0.131%, plus: -0.163%}
+      label: sys,(jes) EffectiveNP Mixed1
+    - asymerror: {minus: -0.066%, plus: +0.066%}
+      label: sys,eff EL SF Isol
+    - asymerror: {minus: -0.046%, plus: +0.007%}
+      label: sys,(jes) EffectiveNP Mixed2
+    - asymerror: {minus: -0.000%, plus: 0.000%}
+      label: sys,(jes) EtaIntercalibration NonClosure +ve eta
+    - asymerror: {minus: -0.207%, plus: +0.275%}
+      label: sys,(jes) Pileup OffsetNPV
+    - asymerror: {minus: -0.161%, plus: +0.136%}
+      label: sys,(jes) EtaIntercalibration NonClosure 2018 data
+    - asymerror: {minus: -0.007%, plus: +0.007%}
+      label: sys,PDF4LHC 90921
+    - asymerror: {minus: -2.441%, plus: +0.883%}
+      label: sys,FSR
+    - asymerror: {minus: -0.197%, plus: +0.137%}
+      label: sys,jvt
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,El energy scale AF2
+    - asymerror: {minus: +0.340%, plus: -0.340%}
+      label: sys,jer NP 2
+    - asymerror: {minus: -0.024%, plus: +0.024%}
+      label: sys,eff MU SF ID STAT
+    - asymerror: {minus: -0.256%, plus: +0.287%}
+      label: sys,eff MU SF Isol SYST
+    - asymerror: {minus: -0.121%, plus: +0.121%}
+      label: sys,eff MU SF Isol STAT
+    - asymerror: {minus: +0.090%, plus: -0.090%}
+      label: sys,jer data vs MC
+    - asymerror: {minus: -0.109%, plus: +0.084%}
+      label: sys,(jes) Pileup OffsetMu
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 8)
+    - asymerror: {minus: -0.216%, plus: +0.216%}
+      label: sys,b tag eff (eig 3)
+    - asymerror: {minus: -0.467%, plus: +0.468%}
+      label: sys,b tag eff (eig 2)
+    - asymerror: {minus: +1.595%, plus: -1.583%}
+      label: sys,b tag eff (eig 1)
+    - asymerror: {minus: +1.667%, plus: -1.642%}
+      label: sys,b tag eff (eig 0)
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,b tag eff (eig 7)
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,b tag eff (eig 6)
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,b tag eff (eig 5)
+    - asymerror: {minus: -0.020%, plus: +0.020%}
+      label: sys,b tag eff (eig 4)
+    - asymerror: {minus: -0.037%, plus: +0.037%}
+      label: sys,Zjets xsec
+    - asymerror: {minus: -0.135%, plus: +0.135%}
+      label: sys,SingleTop DR/DS
+    - asymerror: {minus: -0.053%, plus: +0.052%}
+      label: sys,(jes) EtaIntercalibration TotalStat
+    - asymerror: {minus: -0.015%, plus: +0.015%}
+      label: sys,PDF4LHC 90911
+    - asymerror: {minus: -0.002%, plus: +0.004%}
+      label: sys,El energy scale
+    - asymerror: {minus: -0.342%, plus: +0.342%}
+      label: sys,MC-stat
+    - asymerror: {minus: +0.273%, plus: -0.273%}
+      label: sys,jer NP 6
+    - asymerror: {minus: -0.004%, plus: +0.004%}
+      label: sys,PDF4LHC 90907
+    - asymerror: {minus: -0.089%, plus: +0.094%}
+      label: sys,(jes) EffectiveNP Statistical3
+    - asymerror: {minus: +0.029%, plus: -0.007%}
+      label: sys,(jes) EffectiveNP Statistical2
+    - asymerror: {minus: +0.093%, plus: -0.126%}
+      label: sys,(jes) EffectiveNP Statistical1
+    - asymerror: {minus: +0.250%, plus: -0.250%}
+      label: sys,jer NP 5
+    - asymerror: {minus: +0.022%, plus: -0.012%}
+      label: sys,(jes) EffectiveNP Statistical5
+    - asymerror: {minus: -0.017%, plus: +0.019%}
+      label: sys,(jes) EffectiveNP Statistical4
+    - asymerror: {minus: -0.017%, plus: 0.000%}
+      label: sys,El energy resolution
+    - asymerror: {minus: -0.017%, plus: +0.074%}
+      label: sys,(jes) Pileup PtTerm
+    - asymerror: {minus: -0.079%, plus: +0.079%}
+      label: sys,eff EL SF Reco
+    - asymerror: {minus: +0.072%, plus: -0.072%}
+      label: sys,c tag eff (eig 1)
+    - asymerror: {minus: -0.006%, plus: 0.000%}
+      label: sys,(jes) EtaIntercalibration NonClosure -ve eta
+    - asymerror: {minus: -0.264%, plus: +0.415%}
+      label: sys,(jes) EtaIntercalibration Modelling
+    - asymerror: {minus: +0.042%, plus: -0.017%}
+      label: sys,(jes) EffectiveNP Mixed3
+    - asymerror: {minus: 0.000%, plus: +0.014%}
+      label: sys,(jes) Flavor Composition
+    - asymerror: {minus: -0.006%, plus: +0.012%}
+      label: sys,Mu momentum resolution (ID)
+    - asymerror: {minus: +0.245%, plus: -0.245%}
+      label: sys,jer NP 7
+    - asymerror: {minus: -0.795%, plus: +0.809%}
+      label: sys,(jes) Pileup RhoTopology
+    - asymerror: {minus: +0.012%, plus: -0.012%}
+      label: sys,PDF4LHC 90920
+    - asymerror: {minus: +0.228%, plus: -0.131%}
+      label: sys,Wjets Scales
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,light-jet tag eff (eig 2)
+    - asymerror: {minus: -0.008%, plus: +0.008%}
+      label: sys,PDF4LHC 90903
+    - asymerror: {minus: -0.029%, plus: +0.029%}
+      label: sys,PDF4LHC 90902
+    - asymerror: {minus: -0.015%, plus: +0.015%}
+      label: sys,PDF4LHC 90901
+    - asymerror: {minus: 0.000%, plus: +0.000%}
+      label: sys,(jes) EtaIntercalibration NonClosure high E
+    - asymerror: {minus: -0.090%, plus: +0.090%}
+      label: sys,PDF4LHC 90905
+    - asymerror: {minus: +0.006%, plus: -0.006%}
+      label: sys,PDF4LHC 90904
+    - asymerror: {minus: -0.107%, plus: +0.124%}
+      label: sys,JSF MC stat.
+    - asymerror: {minus: -0.006%, plus: +0.006%}
+      label: sys,PDF4LHC 90909
+    - asymerror: {minus: -0.027%, plus: +0.027%}
+      label: sys,PDF4LHC 90908
+    - asymerror: {minus: 0.000%, plus: +0.011%}
+      label: sys,(jes) Punch-through
+    - asymerror: {minus: -0.018%, plus: +0.018%}
+      label: sys,b extrapolation from c
+    - asymerror: {minus: -0.482%, plus: +0.482%}
+      label: sys,eff EL SF ID
+    - asymerror: {minus: +0.306%, plus: -0.300%}
+      label: sys,eff MU SF Trigger SYST
+    - asymerror: {minus: -0.082%, plus: +0.082%}
+      label: sys,SingleTop xsec
+    - asymerror: {minus: -0.017%, plus: +0.017%}
+      label: sys,Diboson xsec
+    - asymerror: {minus: +0.271%, plus: -0.271%}
+      label: sys,jer NP 1
+    - asymerror: {minus: -0.024%, plus: +0.027%}
+      label: sys,eff MU SF TTVA SYST
+    - asymerror: {minus: -0.022%, plus: +0.022%}
+      label: sys,PDF4LHC 90906
+    - asymerror: {minus: -1.750%, plus: +1.750%}
+      label: sys,Lumi
+    - asymerror: {minus: -0.012%, plus: +0.012%}
+      label: sys,PDF4LHC 90910
+    - asymerror: {minus: -0.011%, plus: +0.011%}
+      label: sys,PDF4LHC 90912
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90913
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90914
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90915
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,PDF4LHC 90916
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,PDF4LHC 90917
+    - asymerror: {minus: +0.005%, plus: -0.005%}
+      label: sys,PDF4LHC 90918
+    - asymerror: {minus: -0.026%, plus: +0.026%}
+      label: sys,PDF4LHC 90919
+    - asymerror: {minus: +0.137%, plus: -0.137%}
+      label: sys,SOFTMET RESOPARA
+    - asymerror: {minus: +0.240%, plus: -0.240%}
+      label: sys,jer NP 4
+    - asymerror: {minus: -0.428%, plus: +0.428%}
+      label: sys,multijet background
+    - asymerror: {minus: -1.231%, plus: 0.000%}
+      label: sys,top-quark mass
+    - asymerror: {minus: 0.000%, plus: +0.019%}
+      label: sys,(jes) EffectiveNP Statistical6
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90929
+    - asymerror: {minus: 0.000%, plus: +0.004%}
+      label: sys,Mu sagitta res bias
+    - asymerror: {minus: -0.002%, plus: +0.002%}
+      label: sys,PDF4LHC 90925
+    - asymerror: {minus: -0.012%, plus: +0.012%}
+      label: sys,PDF4LHC 90927
+    - asymerror: {minus: -0.009%, plus: +0.009%}
+      label: sys,PDF4LHC 90926
+    - asymerror: {minus: +0.007%, plus: -0.014%}
+      label: sys,Mu energy scale
+    - asymerror: {minus: -3.600%, plus: +3.600%}
+      label: sys,hadronis-model
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90923
+    - asymerror: {minus: +0.073%, plus: -0.073%}
+      label: sys,PDF4LHC 90922
+    - asymerror: {minus: -0.133%, plus: +0.134%}
+      label: sys,eff MU SF ID SYST
+    - asymerror: {minus: +0.258%, plus: -0.258%}
+      label: sys,jer NP 3
+    - asymerror: {minus: 0.000%, plus: +0.006%}
+      label: sys,(jes) EffectiveNP Detector2
+    - asymerror: {minus: +0.012%, plus: -0.019%}
+      label: sys,(jes) EffectiveNP Detector1
+    - asymerror: {minus: +0.010%, plus: -0.010%}
+      label: sys,light-jet tag eff (eig 1)
+    - asymerror: {minus: +0.103%, plus: -0.103%}
+      label: sys,light-jet tag eff (eig 0)
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,light-jet tag eff (eig 3)
+    - asymerror: {minus: -0.138%, plus: +0.100%}
+      label: sys,SingleTop FSR
+    - asymerror: {minus: -0.019%, plus: +0.019%}
+      label: sys,eff MU SF TTVA STAT
+    - asymerror: {minus: +0.359%, plus: -0.304%}
+      label: sys,pileup
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90930
+    - asymerror: {minus: -0.105%, plus: +0.105%}
+      label: sys,t+X xsec
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,SOFTMET SCALE
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,Mu sagitta correction
+    - asymerror: {minus: -0.275%, plus: +0.333%}
+      label: sys,JSF stat.
+    - asymerror: {minus: -0.005%, plus: +0.005%}
+      label: sys,c tag eff (eig 2)
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,c tag eff (eig 3)
+    - asymerror: {minus: +0.177%, plus: -0.177%}
+      label: sys,c tag eff (eig 0)
+    - asymerror: {minus: -0.081%, plus: +0.078%}
+      label: sys,eff MU SF Trigger STAT
+    - asymerror: {minus: -0.028%, plus: +0.028%}
+      label: sys,PDF4LHC 90928
+    - asymerror: {minus: +0.101%, plus: -0.101%}
+      label: sys,SOFTMET RESOPERP
+    - asymerror: {minus: +0.003%, plus: -0.010%}
+      label: sys,Mu momentum resolution (MS)
+    - asymerror: {minus: +0.000%, plus: 0.000%}
+      label: sys,(jes) SingleParticle HighPt
+    - asymerror: {minus: -0.082%, plus: +0.082%}
+      label: sys,eff EL SF Trigger
+    - asymerror: {minus: -0.305%, plus: +0.308%}
+      label: sys,(jes) BJES Response
+    - asymerror: {minus: +0.115%, plus: -0.119%}
+      label: sys,(jes) EffectiveNP Modelling2
+    - asymerror: {minus: +0.078%, plus: -0.047%}
+      label: sys,(jes) EffectiveNP Modelling4
+    - asymerror: {minus: +0.036%, plus: -0.017%}
+      label: sys,(jes) EffectiveNP Modelling3
+    - asymerror: {minus: -0.499%, plus: +0.500%}
+      label: sys,(jes) EffectiveNP Modelling1
+    value: 0.01129501
+  - errors:
+    - {label: stat, symerror: +0.707%}
+    - asymerror: {minus: -0.102%, plus: +0.068%}
+      label: sys,ISR
+    - asymerror: {minus: -0.157%, plus: +0.157%}
+      label: sys,hardscat-model
+    - asymerror: {minus: -0.013%, plus: +0.013%}
+      label: sys,b extrapolation
+    - asymerror: {minus: +0.098%, plus: -0.081%}
+      label: sys,(jes) Flavor Response
+    - asymerror: {minus: -0.548%, plus: +0.548%}
+      label: sys,Hdamp
+    - asymerror: {minus: -0.189%, plus: +0.260%}
+      label: sys,SingleTop Radiation
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,PDF4LHC 90924
+    - asymerror: {minus: +0.163%, plus: -0.194%}
+      label: sys,(jes) EffectiveNP Mixed1
+    - asymerror: {minus: -0.071%, plus: +0.071%}
+      label: sys,eff EL SF Isol
+    - asymerror: {minus: 0.000%, plus: +0.017%}
+      label: sys,(jes) EffectiveNP Mixed2
+    - asymerror: {minus: +0.011%, plus: -0.008%}
+      label: sys,(jes) EtaIntercalibration NonClosure +ve eta
+    - asymerror: {minus: -0.173%, plus: +0.143%}
+      label: sys,(jes) Pileup OffsetNPV
+    - asymerror: {minus: -0.117%, plus: +0.029%}
+      label: sys,(jes) EtaIntercalibration NonClosure 2018 data
+    - asymerror: {minus: -0.006%, plus: +0.006%}
+      label: sys,PDF4LHC 90921
+    - asymerror: {minus: -0.440%, plus: +0.439%}
+      label: sys,FSR
+    - asymerror: {minus: -0.204%, plus: +0.123%}
+      label: sys,jvt
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,El energy scale AF2
+    - asymerror: {minus: +0.374%, plus: -0.374%}
+      label: sys,jer NP 2
+    - asymerror: {minus: -0.023%, plus: +0.023%}
+      label: sys,eff MU SF ID STAT
+    - asymerror: {minus: -0.246%, plus: +0.277%}
+      label: sys,eff MU SF Isol SYST
+    - asymerror: {minus: -0.120%, plus: +0.120%}
+      label: sys,eff MU SF Isol STAT
+    - asymerror: {minus: -0.056%, plus: +0.056%}
+      label: sys,jer data vs MC
+    - asymerror: {minus: -0.046%, plus: +0.055%}
+      label: sys,(jes) Pileup OffsetMu
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 8)
+    - asymerror: {minus: -0.179%, plus: +0.179%}
+      label: sys,b tag eff (eig 3)
+    - asymerror: {minus: -0.354%, plus: +0.355%}
+      label: sys,b tag eff (eig 2)
+    - asymerror: {minus: +1.683%, plus: -1.670%}
+      label: sys,b tag eff (eig 1)
+    - asymerror: {minus: +1.616%, plus: -1.603%}
+      label: sys,b tag eff (eig 0)
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 7)
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 6)
+    - asymerror: {minus: -0.002%, plus: +0.002%}
+      label: sys,b tag eff (eig 5)
+    - asymerror: {minus: -0.020%, plus: +0.020%}
+      label: sys,b tag eff (eig 4)
+    - asymerror: {minus: -0.043%, plus: +0.043%}
+      label: sys,Zjets xsec
+    - asymerror: {minus: -0.114%, plus: +0.114%}
+      label: sys,SingleTop DR/DS
+    - asymerror: {minus: -0.017%, plus: +0.047%}
+      label: sys,(jes) EtaIntercalibration TotalStat
+    - asymerror: {minus: -0.012%, plus: +0.012%}
+      label: sys,PDF4LHC 90911
+    - asymerror: {minus: 0.000%, plus: +0.007%}
+      label: sys,El energy scale
+    - asymerror: {minus: -0.260%, plus: +0.260%}
+      label: sys,MC-stat
+    - asymerror: {minus: +0.292%, plus: -0.292%}
+      label: sys,jer NP 6
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90907
+    - asymerror: {minus: -0.055%, plus: +0.055%}
+      label: sys,(jes) EffectiveNP Statistical3
+    - asymerror: {minus: +0.005%, plus: -0.010%}
+      label: sys,(jes) EffectiveNP Statistical2
+    - asymerror: {minus: +0.091%, plus: -0.110%}
+      label: sys,(jes) EffectiveNP Statistical1
+    - asymerror: {minus: +0.266%, plus: -0.266%}
+      label: sys,jer NP 5
+    - asymerror: {minus: -0.037%, plus: +0.035%}
+      label: sys,(jes) EffectiveNP Statistical5
+    - asymerror: {minus: -0.051%, plus: +0.051%}
+      label: sys,(jes) EffectiveNP Statistical4
+    - asymerror: {minus: +0.005%, plus: -0.009%}
+      label: sys,El energy resolution
+    - asymerror: {minus: +0.037%, plus: -0.064%}
+      label: sys,(jes) Pileup PtTerm
+    - asymerror: {minus: -0.080%, plus: +0.080%}
+      label: sys,eff EL SF Reco
+    - asymerror: {minus: +0.081%, plus: -0.081%}
+      label: sys,c tag eff (eig 1)
+    - asymerror: {minus: +0.007%, plus: -0.003%}
+      label: sys,(jes) EtaIntercalibration NonClosure -ve eta
+    - asymerror: {minus: -0.180%, plus: +0.144%}
+      label: sys,(jes) EtaIntercalibration Modelling
+    - asymerror: {minus: +0.020%, plus: -0.014%}
+      label: sys,(jes) EffectiveNP Mixed3
+    - asymerror: {minus: -0.005%, plus: 0.000%}
+      label: sys,(jes) Flavor Composition
+    - asymerror: {minus: -0.004%, plus: +0.019%}
+      label: sys,Mu momentum resolution (ID)
+    - asymerror: {minus: +0.286%, plus: -0.286%}
+      label: sys,jer NP 7
+    - asymerror: {minus: -0.373%, plus: +0.380%}
+      label: sys,(jes) Pileup RhoTopology
+    - asymerror: {minus: +0.010%, plus: -0.010%}
+      label: sys,PDF4LHC 90920
+    - asymerror: {minus: +0.227%, plus: -0.145%}
+      label: sys,Wjets Scales
+    - asymerror: {minus: +0.008%, plus: -0.008%}
+      label: sys,light-jet tag eff (eig 2)
+    - asymerror: {minus: -0.008%, plus: +0.008%}
+      label: sys,PDF4LHC 90903
+    - asymerror: {minus: -0.025%, plus: +0.025%}
+      label: sys,PDF4LHC 90902
+    - asymerror: {minus: -0.014%, plus: +0.014%}
+      label: sys,PDF4LHC 90901
+    - asymerror: {minus: 0.000%, plus: +0.000%}
+      label: sys,(jes) EtaIntercalibration NonClosure high E
+    - asymerror: {minus: -0.062%, plus: +0.062%}
+      label: sys,PDF4LHC 90905
+    - asymerror: {minus: +0.013%, plus: -0.013%}
+      label: sys,PDF4LHC 90904
+    - asymerror: {minus: -0.125%, plus: +0.093%}
+      label: sys,JSF MC stat.
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90909
+    - asymerror: {minus: -0.024%, plus: +0.024%}
+      label: sys,PDF4LHC 90908
+    - asymerror: {minus: +0.019%, plus: -0.018%}
+      label: sys,(jes) Punch-through
+    - asymerror: {minus: -0.013%, plus: +0.013%}
+      label: sys,b extrapolation from c
+    - asymerror: {minus: -0.530%, plus: +0.530%}
+      label: sys,eff EL SF ID
+    - asymerror: {minus: +0.306%, plus: -0.300%}
+      label: sys,eff MU SF Trigger SYST
+    - asymerror: {minus: -0.090%, plus: +0.090%}
+      label: sys,SingleTop xsec
+    - asymerror: {minus: -0.022%, plus: +0.022%}
+      label: sys,Diboson xsec
+    - asymerror: {minus: +0.230%, plus: -0.230%}
+      label: sys,jer NP 1
+    - asymerror: {minus: -0.024%, plus: +0.027%}
+      label: sys,eff MU SF TTVA SYST
+    - asymerror: {minus: -0.016%, plus: +0.016%}
+      label: sys,PDF4LHC 90906
+    - asymerror: {minus: -1.755%, plus: +1.755%}
+      label: sys,Lumi
+    - asymerror: {minus: -0.012%, plus: +0.012%}
+      label: sys,PDF4LHC 90910
+    - asymerror: {minus: -0.013%, plus: +0.013%}
+      label: sys,PDF4LHC 90912
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,PDF4LHC 90913
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90914
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90915
+    - asymerror: {minus: +0.012%, plus: -0.012%}
+      label: sys,PDF4LHC 90916
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90917
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90918
+    - asymerror: {minus: -0.021%, plus: +0.021%}
+      label: sys,PDF4LHC 90919
+    - asymerror: {minus: +0.094%, plus: -0.094%}
+      label: sys,SOFTMET RESOPARA
+    - asymerror: {minus: +0.143%, plus: -0.143%}
+      label: sys,jer NP 4
+    - asymerror: {minus: -0.384%, plus: +0.384%}
+      label: sys,multijet background
+    - asymerror: {minus: +0.840%, plus: -0.866%}
+      label: sys,top-quark mass
+    - asymerror: {minus: +0.005%, plus: -0.001%}
+      label: sys,(jes) EffectiveNP Statistical6
+    - asymerror: {minus: -0.002%, plus: +0.002%}
+      label: sys,PDF4LHC 90929
+    - asymerror: {minus: 0.000%, plus: +0.006%}
+      label: sys,Mu sagitta res bias
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,PDF4LHC 90925
+    - asymerror: {minus: -0.009%, plus: +0.009%}
+      label: sys,PDF4LHC 90927
+    - asymerror: {minus: -0.009%, plus: +0.009%}
+      label: sys,PDF4LHC 90926
+    - asymerror: {minus: +0.016%, plus: -0.003%}
+      label: sys,Mu energy scale
+    - asymerror: {minus: -2.968%, plus: +2.968%}
+      label: sys,hadronis-model
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,PDF4LHC 90923
+    - asymerror: {minus: +0.057%, plus: -0.057%}
+      label: sys,PDF4LHC 90922
+    - asymerror: {minus: -0.141%, plus: +0.142%}
+      label: sys,eff MU SF ID SYST
+    - asymerror: {minus: +0.167%, plus: -0.167%}
+      label: sys,jer NP 3
+    - asymerror: {minus: +0.007%, plus: -0.012%}
+      label: sys,(jes) EffectiveNP Detector2
+    - asymerror: {minus: +0.006%, plus: -0.007%}
+      label: sys,(jes) EffectiveNP Detector1
+    - asymerror: {minus: +0.014%, plus: -0.014%}
+      label: sys,light-jet tag eff (eig 1)
+    - asymerror: {minus: +0.119%, plus: -0.119%}
+      label: sys,light-jet tag eff (eig 0)
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,light-jet tag eff (eig 3)
+    - asymerror: {minus: 0.000%, plus: +0.045%}
+      label: sys,SingleTop FSR
+    - asymerror: {minus: -0.020%, plus: +0.019%}
+      label: sys,eff MU SF TTVA STAT
+    - asymerror: {minus: +0.269%, plus: -0.335%}
+      label: sys,pileup
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90930
+    - asymerror: {minus: -0.113%, plus: +0.113%}
+      label: sys,t+X xsec
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,SOFTMET SCALE
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,Mu sagitta correction
+    - asymerror: {minus: -0.313%, plus: +0.274%}
+      label: sys,JSF stat.
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,c tag eff (eig 2)
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,c tag eff (eig 3)
+    - asymerror: {minus: +0.182%, plus: -0.182%}
+      label: sys,c tag eff (eig 0)
+    - asymerror: {minus: -0.080%, plus: +0.078%}
+      label: sys,eff MU SF Trigger STAT
+    - asymerror: {minus: -0.022%, plus: +0.022%}
+      label: sys,PDF4LHC 90928
+    - asymerror: {minus: +0.072%, plus: -0.072%}
+      label: sys,SOFTMET RESOPERP
+    - asymerror: {minus: 0.000%, plus: +0.017%}
+      label: sys,Mu momentum resolution (MS)
+    - asymerror: {minus: +0.000%, plus: 0.000%}
+      label: sys,(jes) SingleParticle HighPt
+    - asymerror: {minus: -0.082%, plus: +0.082%}
+      label: sys,eff EL SF Trigger
+    - asymerror: {minus: -0.192%, plus: +0.173%}
+      label: sys,(jes) BJES Response
+    - asymerror: {minus: +0.105%, plus: -0.104%}
+      label: sys,(jes) EffectiveNP Modelling2
+    - asymerror: {minus: +0.044%, plus: -0.045%}
+      label: sys,(jes) EffectiveNP Modelling4
+    - asymerror: {minus: 0.000%, plus: +0.019%}
+      label: sys,(jes) EffectiveNP Modelling3
+    - asymerror: {minus: -0.340%, plus: +0.312%}
+      label: sys,(jes) EffectiveNP Modelling1
+    value: 0.008518551
+  - errors:
+    - {label: stat, symerror: +0.893%}
+    - asymerror: {minus: -0.204%, plus: +0.488%}
+      label: sys,ISR
+    - asymerror: {minus: +0.157%, plus: -0.157%}
+      label: sys,hardscat-model
+    - asymerror: {minus: -0.030%, plus: +0.030%}
+      label: sys,b extrapolation
+    - asymerror: {minus: -0.020%, plus: +0.158%}
+      label: sys,(jes) Flavor Response
+    - asymerror: {minus: -1.046%, plus: +1.046%}
+      label: sys,Hdamp
+    - asymerror: {minus: -0.198%, plus: +0.301%}
+      label: sys,SingleTop Radiation
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90924
+    - asymerror: {minus: +0.261%, plus: -0.230%}
+      label: sys,(jes) EffectiveNP Mixed1
+    - asymerror: {minus: -0.079%, plus: +0.079%}
+      label: sys,eff EL SF Isol
+    - asymerror: {minus: 0.000%, plus: +0.024%}
+      label: sys,(jes) EffectiveNP Mixed2
+    - asymerror: {minus: 0.000%, plus: +0.006%}
+      label: sys,(jes) EtaIntercalibration NonClosure +ve eta
+    - asymerror: {minus: -0.089%, plus: 0.000%}
+      label: sys,(jes) Pileup OffsetNPV
+    - asymerror: {minus: -0.080%, plus: +0.137%}
+      label: sys,(jes) EtaIntercalibration NonClosure 2018 data
+    - asymerror: {minus: -0.002%, plus: +0.002%}
+      label: sys,PDF4LHC 90921
+    - asymerror: {minus: -1.007%, plus: +0.739%}
+      label: sys,FSR
+    - asymerror: {minus: -0.184%, plus: +0.118%}
+      label: sys,jvt
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,El energy scale AF2
+    - asymerror: {minus: +0.043%, plus: -0.043%}
+      label: sys,jer NP 2
+    - asymerror: {minus: -0.023%, plus: +0.023%}
+      label: sys,eff MU SF ID STAT
+    - asymerror: {minus: -0.234%, plus: +0.264%}
+      label: sys,eff MU SF Isol SYST
+    - asymerror: {minus: -0.119%, plus: +0.119%}
+      label: sys,eff MU SF Isol STAT
+    - asymerror: {minus: +0.010%, plus: -0.010%}
+      label: sys,jer data vs MC
+    - asymerror: {minus: -0.042%, plus: +0.015%}
+      label: sys,(jes) Pileup OffsetMu
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 8)
+    - asymerror: {minus: -0.113%, plus: +0.113%}
+      label: sys,b tag eff (eig 3)
+    - asymerror: {minus: -0.186%, plus: +0.186%}
+      label: sys,b tag eff (eig 2)
+    - asymerror: {minus: +1.821%, plus: -1.805%}
+      label: sys,b tag eff (eig 1)
+    - asymerror: {minus: +1.567%, plus: -1.541%}
+      label: sys,b tag eff (eig 0)
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 7)
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 6)
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,b tag eff (eig 5)
+    - asymerror: {minus: -0.011%, plus: +0.011%}
+      label: sys,b tag eff (eig 4)
+    - asymerror: {minus: -0.052%, plus: +0.052%}
+      label: sys,Zjets xsec
+    - asymerror: {minus: -0.022%, plus: +0.022%}
+      label: sys,SingleTop DR/DS
+    - asymerror: {minus: 0.000%, plus: +0.027%}
+      label: sys,(jes) EtaIntercalibration TotalStat
+    - asymerror: {minus: -0.004%, plus: +0.004%}
+      label: sys,PDF4LHC 90911
+    - asymerror: {minus: +0.001%, plus: -0.007%}
+      label: sys,El energy scale
+    - asymerror: {minus: -0.319%, plus: +0.319%}
+      label: sys,MC-stat
+    - asymerror: {minus: -0.048%, plus: +0.048%}
+      label: sys,jer NP 6
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90907
+    - asymerror: {minus: -0.005%, plus: +0.044%}
+      label: sys,(jes) EffectiveNP Statistical3
+    - asymerror: {minus: 0.000%, plus: +0.028%}
+      label: sys,(jes) EffectiveNP Statistical2
+    - asymerror: {minus: +0.165%, plus: -0.116%}
+      label: sys,(jes) EffectiveNP Statistical1
+    - asymerror: {minus: -0.067%, plus: +0.067%}
+      label: sys,jer NP 5
+    - asymerror: {minus: -0.061%, plus: +0.102%}
+      label: sys,(jes) EffectiveNP Statistical5
+    - asymerror: {minus: -0.083%, plus: +0.097%}
+      label: sys,(jes) EffectiveNP Statistical4
+    - asymerror: {minus: -0.018%, plus: 0.000%}
+      label: sys,El energy resolution
+    - asymerror: {minus: +0.023%, plus: -0.043%}
+      label: sys,(jes) Pileup PtTerm
+    - asymerror: {minus: -0.082%, plus: +0.082%}
+      label: sys,eff EL SF Reco
+    - asymerror: {minus: +0.093%, plus: -0.092%}
+      label: sys,c tag eff (eig 1)
+    - asymerror: {minus: 0.000%, plus: +0.008%}
+      label: sys,(jes) EtaIntercalibration NonClosure -ve eta
+    - asymerror: {minus: -0.121%, plus: +0.037%}
+      label: sys,(jes) EtaIntercalibration Modelling
+    - asymerror: {minus: +0.054%, plus: -0.023%}
+      label: sys,(jes) EffectiveNP Mixed3
+    - asymerror: {minus: 0.000%, plus: +0.027%}
+      label: sys,(jes) Flavor Composition
+    - asymerror: {minus: +0.006%, plus: -0.008%}
+      label: sys,Mu momentum resolution (ID)
+    - asymerror: {minus: -0.089%, plus: +0.089%}
+      label: sys,jer NP 7
+    - asymerror: {minus: 0.000%, plus: +0.087%}
+      label: sys,(jes) Pileup RhoTopology
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90920
+    - asymerror: {minus: +0.257%, plus: -0.150%}
+      label: sys,Wjets Scales
+    - asymerror: {minus: +0.018%, plus: -0.018%}
+      label: sys,light-jet tag eff (eig 2)
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90903
+    - asymerror: {minus: -0.006%, plus: +0.006%}
+      label: sys,PDF4LHC 90902
+    - asymerror: {minus: -0.004%, plus: +0.004%}
+      label: sys,PDF4LHC 90901
+    - asymerror: {minus: 0.000%, plus: +0.000%}
+      label: sys,(jes) EtaIntercalibration NonClosure high E
+    - asymerror: {minus: -0.011%, plus: +0.011%}
+      label: sys,PDF4LHC 90905
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90904
+    - asymerror: {minus: -0.080%, plus: +0.138%}
+      label: sys,JSF MC stat.
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90909
+    - asymerror: {minus: -0.009%, plus: +0.009%}
+      label: sys,PDF4LHC 90908
+    - asymerror: {minus: 0.000%, plus: +0.004%}
+      label: sys,(jes) Punch-through
+    - asymerror: {minus: -0.012%, plus: +0.012%}
+      label: sys,b extrapolation from c
+    - asymerror: {minus: -0.609%, plus: +0.609%}
+      label: sys,eff EL SF ID
+    - asymerror: {minus: +0.302%, plus: -0.296%}
+      label: sys,eff MU SF Trigger SYST
+    - asymerror: {minus: -0.102%, plus: +0.102%}
+      label: sys,SingleTop xsec
+    - asymerror: {minus: -0.023%, plus: +0.023%}
+      label: sys,Diboson xsec
+    - asymerror: {minus: -0.027%, plus: +0.027%}
+      label: sys,jer NP 1
+    - asymerror: {minus: -0.025%, plus: +0.027%}
+      label: sys,eff MU SF TTVA SYST
+    - asymerror: {minus: -0.008%, plus: +0.008%}
+      label: sys,PDF4LHC 90906
+    - asymerror: {minus: -1.761%, plus: +1.761%}
+      label: sys,Lumi
+    - asymerror: {minus: -0.006%, plus: +0.006%}
+      label: sys,PDF4LHC 90910
+    - asymerror: {minus: -0.006%, plus: +0.006%}
+      label: sys,PDF4LHC 90912
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90913
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,PDF4LHC 90914
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90915
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,PDF4LHC 90916
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90917
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90918
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90919
+    - asymerror: {minus: +0.085%, plus: -0.085%}
+      label: sys,SOFTMET RESOPARA
+    - asymerror: {minus: -0.160%, plus: +0.160%}
+      label: sys,jer NP 4
+    - asymerror: {minus: -0.416%, plus: +0.416%}
+      label: sys,multijet background
+    - asymerror: {minus: +1.503%, plus: -1.098%}
+      label: sys,top-quark mass
+    - asymerror: {minus: 0.000%, plus: +0.026%}
+      label: sys,(jes) EffectiveNP Statistical6
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90929
+    - asymerror: {minus: 0.000%, plus: +0.009%}
+      label: sys,Mu sagitta res bias
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90925
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90927
+    - asymerror: {minus: -0.002%, plus: +0.002%}
+      label: sys,PDF4LHC 90926
+    - asymerror: {minus: +0.014%, plus: -0.007%}
+      label: sys,Mu energy scale
+    - asymerror: {minus: -1.368%, plus: +1.368%}
+      label: sys,hadronis-model
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,PDF4LHC 90923
+    - asymerror: {minus: +0.030%, plus: -0.030%}
+      label: sys,PDF4LHC 90922
+    - asymerror: {minus: -0.152%, plus: +0.153%}
+      label: sys,eff MU SF ID SYST
+    - asymerror: {minus: -0.037%, plus: +0.037%}
+      label: sys,jer NP 3
+    - asymerror: {minus: 0.000%, plus: +0.004%}
+      label: sys,(jes) EffectiveNP Detector2
+    - asymerror: {minus: 0.000%, plus: +0.021%}
+      label: sys,(jes) EffectiveNP Detector1
+    - asymerror: {minus: +0.023%, plus: -0.023%}
+      label: sys,light-jet tag eff (eig 1)
+    - asymerror: {minus: +0.140%, plus: -0.140%}
+      label: sys,light-jet tag eff (eig 0)
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,light-jet tag eff (eig 3)
+    - asymerror: {minus: -0.286%, plus: +0.025%}
+      label: sys,SingleTop FSR
+    - asymerror: {minus: -0.020%, plus: +0.020%}
+      label: sys,eff MU SF TTVA STAT
+    - asymerror: {minus: +0.276%, plus: -0.297%}
+      label: sys,pileup
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90930
+    - asymerror: {minus: -0.124%, plus: +0.124%}
+      label: sys,t+X xsec
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,SOFTMET SCALE
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,Mu sagitta correction
+    - asymerror: {minus: -0.316%, plus: +0.317%}
+      label: sys,JSF stat.
+    - asymerror: {minus: +0.005%, plus: -0.005%}
+      label: sys,c tag eff (eig 2)
+    - asymerror: {minus: +0.006%, plus: -0.006%}
+      label: sys,c tag eff (eig 3)
+    - asymerror: {minus: +0.176%, plus: -0.176%}
+      label: sys,c tag eff (eig 0)
+    - asymerror: {minus: -0.079%, plus: +0.077%}
+      label: sys,eff MU SF Trigger STAT
+    - asymerror: {minus: -0.010%, plus: +0.010%}
+      label: sys,PDF4LHC 90928
+    - asymerror: {minus: +0.074%, plus: -0.074%}
+      label: sys,SOFTMET RESOPERP
+    - asymerror: {minus: 0.000%, plus: +0.009%}
+      label: sys,Mu momentum resolution (MS)
+    - asymerror: {minus: +0.000%, plus: 0.000%}
+      label: sys,(jes) SingleParticle HighPt
+    - asymerror: {minus: -0.082%, plus: +0.082%}
+      label: sys,eff EL SF Trigger
+    - asymerror: {minus: -0.041%, plus: +0.079%}
+      label: sys,(jes) BJES Response
+    - asymerror: {minus: +0.140%, plus: -0.133%}
+      label: sys,(jes) EffectiveNP Modelling2
+    - asymerror: {minus: +0.013%, plus: -0.003%}
+      label: sys,(jes) EffectiveNP Modelling4
+    - asymerror: {minus: +0.039%, plus: -0.017%}
+      label: sys,(jes) EffectiveNP Modelling3
+    - asymerror: {minus: -0.066%, plus: +0.075%}
+      label: sys,(jes) EffectiveNP Modelling1
+    value: 0.005196489
+  - errors:
+    - {label: stat, symerror: +1.185%}
+    - asymerror: {minus: -0.203%, plus: +0.462%}
+      label: sys,ISR
+    - asymerror: {minus: -0.379%, plus: +0.379%}
+      label: sys,hardscat-model
+    - asymerror: {minus: -0.112%, plus: +0.112%}
+      label: sys,b extrapolation
+    - asymerror: {minus: -0.501%, plus: +0.572%}
+      label: sys,(jes) Flavor Response
+    - asymerror: {minus: -1.172%, plus: +1.172%}
+      label: sys,Hdamp
+    - asymerror: {minus: -0.356%, plus: +0.452%}
+      label: sys,SingleTop Radiation
+    - asymerror: {minus: -0.010%, plus: +0.010%}
+      label: sys,PDF4LHC 90924
+    - asymerror: {minus: +0.214%, plus: -0.252%}
+      label: sys,(jes) EffectiveNP Mixed1
+    - asymerror: {minus: -0.088%, plus: +0.088%}
+      label: sys,eff EL SF Isol
+    - asymerror: {minus: +0.045%, plus: -0.078%}
+      label: sys,(jes) EffectiveNP Mixed2
+    - asymerror: {minus: -0.004%, plus: 0.000%}
+      label: sys,(jes) EtaIntercalibration NonClosure +ve eta
+    - asymerror: {minus: +0.270%, plus: -0.217%}
+      label: sys,(jes) Pileup OffsetNPV
+    - asymerror: {minus: -0.035%, plus: +0.059%}
+      label: sys,(jes) EtaIntercalibration NonClosure 2018 data
+    - asymerror: {minus: -0.005%, plus: +0.005%}
+      label: sys,PDF4LHC 90921
+    - asymerror: {minus: -1.372%, plus: +0.702%}
+      label: sys,FSR
+    - asymerror: {minus: -0.197%, plus: +0.076%}
+      label: sys,jvt
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,El energy scale AF2
+    - asymerror: {minus: +0.198%, plus: -0.198%}
+      label: sys,jer NP 2
+    - asymerror: {minus: -0.023%, plus: +0.023%}
+      label: sys,eff MU SF ID STAT
+    - asymerror: {minus: -0.227%, plus: +0.260%}
+      label: sys,eff MU SF Isol SYST
+    - asymerror: {minus: -0.122%, plus: +0.122%}
+      label: sys,eff MU SF Isol STAT
+    - asymerror: {minus: +0.119%, plus: -0.119%}
+      label: sys,jer data vs MC
+    - asymerror: {minus: +0.066%, plus: -0.031%}
+      label: sys,(jes) Pileup OffsetMu
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 8)
+    - asymerror: {minus: -0.024%, plus: +0.024%}
+      label: sys,b tag eff (eig 3)
+    - asymerror: {minus: +0.014%, plus: -0.014%}
+      label: sys,b tag eff (eig 2)
+    - asymerror: {minus: +1.994%, plus: -1.976%}
+      label: sys,b tag eff (eig 1)
+    - asymerror: {minus: +1.517%, plus: -1.537%}
+      label: sys,b tag eff (eig 0)
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,b tag eff (eig 7)
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,b tag eff (eig 6)
+    - asymerror: {minus: +0.005%, plus: -0.005%}
+      label: sys,b tag eff (eig 5)
+    - asymerror: {minus: +0.012%, plus: -0.012%}
+      label: sys,b tag eff (eig 4)
+    - asymerror: {minus: -0.050%, plus: +0.050%}
+      label: sys,Zjets xsec
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,SingleTop DR/DS
+    - asymerror: {minus: +0.046%, plus: -0.079%}
+      label: sys,(jes) EtaIntercalibration TotalStat
+    - asymerror: {minus: -0.002%, plus: +0.002%}
+      label: sys,PDF4LHC 90911
+    - asymerror: {minus: -0.004%, plus: 0.000%}
+      label: sys,El energy scale
+    - asymerror: {minus: -0.425%, plus: +0.425%}
+      label: sys,MC-stat
+    - asymerror: {minus: +0.190%, plus: -0.190%}
+      label: sys,jer NP 6
+    - asymerror: {minus: -0.004%, plus: +0.004%}
+      label: sys,PDF4LHC 90907
+    - asymerror: {minus: +0.030%, plus: -0.064%}
+      label: sys,(jes) EffectiveNP Statistical3
+    - asymerror: {minus: -0.043%, plus: +0.018%}
+      label: sys,(jes) EffectiveNP Statistical2
+    - asymerror: {minus: +0.018%, plus: -0.058%}
+      label: sys,(jes) EffectiveNP Statistical1
+    - asymerror: {minus: +0.239%, plus: -0.239%}
+      label: sys,jer NP 5
+    - asymerror: {minus: -0.132%, plus: +0.093%}
+      label: sys,(jes) EffectiveNP Statistical5
+    - asymerror: {minus: -0.085%, plus: +0.069%}
+      label: sys,(jes) EffectiveNP Statistical4
+    - asymerror: {minus: 0.000%, plus: +0.017%}
+      label: sys,El energy resolution
+    - asymerror: {minus: +0.196%, plus: -0.082%}
+      label: sys,(jes) Pileup PtTerm
+    - asymerror: {minus: -0.083%, plus: +0.083%}
+      label: sys,eff EL SF Reco
+    - asymerror: {minus: +0.108%, plus: -0.108%}
+      label: sys,c tag eff (eig 1)
+    - asymerror: {minus: 0.000%, plus: +0.003%}
+      label: sys,(jes) EtaIntercalibration NonClosure -ve eta
+    - asymerror: {minus: +0.111%, plus: -0.060%}
+      label: sys,(jes) EtaIntercalibration Modelling
+    - asymerror: {minus: +0.062%, plus: -0.088%}
+      label: sys,(jes) EffectiveNP Mixed3
+    - asymerror: {minus: +0.016%, plus: -0.041%}
+      label: sys,(jes) Flavor Composition
+    - asymerror: {minus: -0.007%, plus: 0.000%}
+      label: sys,Mu momentum resolution (ID)
+    - asymerror: {minus: +0.316%, plus: -0.316%}
+      label: sys,jer NP 7
+    - asymerror: {minus: +0.443%, plus: -0.423%}
+      label: sys,(jes) Pileup RhoTopology
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90920
+    - asymerror: {minus: +0.263%, plus: -0.204%}
+      label: sys,Wjets Scales
+    - asymerror: {minus: +0.025%, plus: -0.025%}
+      label: sys,light-jet tag eff (eig 2)
+    - asymerror: {minus: -0.007%, plus: +0.007%}
+      label: sys,PDF4LHC 90903
+    - asymerror: {minus: -0.014%, plus: +0.014%}
+      label: sys,PDF4LHC 90902
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90901
+    - asymerror: {minus: 0.000%, plus: +0.001%}
+      label: sys,(jes) EtaIntercalibration NonClosure high E
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90905
+    - asymerror: {minus: -0.006%, plus: +0.006%}
+      label: sys,PDF4LHC 90904
+    - asymerror: {minus: -0.167%, plus: +0.132%}
+      label: sys,JSF MC stat.
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,PDF4LHC 90909
+    - asymerror: {minus: -0.008%, plus: +0.008%}
+      label: sys,PDF4LHC 90908
+    - asymerror: {minus: 0.000%, plus: +0.014%}
+      label: sys,(jes) Punch-through
+    - asymerror: {minus: -0.014%, plus: +0.014%}
+      label: sys,b extrapolation from c
+    - asymerror: {minus: -0.704%, plus: +0.704%}
+      label: sys,eff EL SF ID
+    - asymerror: {minus: +0.300%, plus: -0.295%}
+      label: sys,eff MU SF Trigger SYST
+    - asymerror: {minus: -0.109%, plus: +0.109%}
+      label: sys,SingleTop xsec
+    - asymerror: {minus: -0.023%, plus: +0.023%}
+      label: sys,Diboson xsec
+    - asymerror: {minus: +0.419%, plus: -0.419%}
+      label: sys,jer NP 1
+    - asymerror: {minus: -0.026%, plus: +0.029%}
+      label: sys,eff MU SF TTVA SYST
+    - asymerror: {minus: -0.011%, plus: +0.011%}
+      label: sys,PDF4LHC 90906
+    - asymerror: {minus: -1.768%, plus: +1.768%}
+      label: sys,Lumi
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,PDF4LHC 90910
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90912
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90913
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90914
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90915
+    - asymerror: {minus: +0.005%, plus: -0.005%}
+      label: sys,PDF4LHC 90916
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90917
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90918
+    - asymerror: {minus: +0.013%, plus: -0.013%}
+      label: sys,PDF4LHC 90919
+    - asymerror: {minus: +0.096%, plus: -0.096%}
+      label: sys,SOFTMET RESOPARA
+    - asymerror: {minus: +0.139%, plus: -0.139%}
+      label: sys,jer NP 4
+    - asymerror: {minus: -0.484%, plus: +0.484%}
+      label: sys,multijet background
+    - asymerror: {minus: +1.578%, plus: -1.421%}
+      label: sys,top-quark mass
+    - asymerror: {minus: -0.010%, plus: 0.000%}
+      label: sys,(jes) EffectiveNP Statistical6
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90929
+    - asymerror: {minus: -0.005%, plus: 0.000%}
+      label: sys,Mu sagitta res bias
+    - asymerror: {minus: -0.004%, plus: +0.004%}
+      label: sys,PDF4LHC 90925
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90927
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90926
+    - asymerror: {minus: +0.006%, plus: -0.013%}
+      label: sys,Mu energy scale
+    - asymerror: {minus: -0.930%, plus: +0.930%}
+      label: sys,hadronis-model
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90923
+    - asymerror: {minus: +0.030%, plus: -0.030%}
+      label: sys,PDF4LHC 90922
+    - asymerror: {minus: -0.161%, plus: +0.162%}
+      label: sys,eff MU SF ID SYST
+    - asymerror: {minus: +0.262%, plus: -0.262%}
+      label: sys,jer NP 3
+    - asymerror: {minus: -0.008%, plus: 0.000%}
+      label: sys,(jes) EffectiveNP Detector2
+    - asymerror: {minus: -0.013%, plus: 0.000%}
+      label: sys,(jes) EffectiveNP Detector1
+    - asymerror: {minus: +0.026%, plus: -0.026%}
+      label: sys,light-jet tag eff (eig 1)
+    - asymerror: {minus: +0.186%, plus: -0.185%}
+      label: sys,light-jet tag eff (eig 0)
+    - asymerror: {minus: +0.011%, plus: -0.011%}
+      label: sys,light-jet tag eff (eig 3)
+    - asymerror: {minus: -0.302%, plus: +0.021%}
+      label: sys,SingleTop FSR
+    - asymerror: {minus: -0.021%, plus: +0.020%}
+      label: sys,eff MU SF TTVA STAT
+    - asymerror: {minus: +0.533%, plus: -0.479%}
+      label: sys,pileup
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90930
+    - asymerror: {minus: -0.149%, plus: +0.149%}
+      label: sys,t+X xsec
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,SOFTMET SCALE
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,Mu sagitta correction
+    - asymerror: {minus: -0.390%, plus: +0.409%}
+      label: sys,JSF stat.
+    - asymerror: {minus: +0.011%, plus: -0.011%}
+      label: sys,c tag eff (eig 2)
+    - asymerror: {minus: +0.008%, plus: -0.008%}
+      label: sys,c tag eff (eig 3)
+    - asymerror: {minus: +0.179%, plus: -0.179%}
+      label: sys,c tag eff (eig 0)
+    - asymerror: {minus: -0.081%, plus: +0.079%}
+      label: sys,eff MU SF Trigger STAT
+    - asymerror: {minus: -0.005%, plus: +0.005%}
+      label: sys,PDF4LHC 90928
+    - asymerror: {minus: +0.087%, plus: -0.087%}
+      label: sys,SOFTMET RESOPERP
+    - asymerror: {minus: -0.002%, plus: +0.015%}
+      label: sys,Mu momentum resolution (MS)
+    - asymerror: {minus: -0.000%, plus: 0.000%}
+      label: sys,(jes) SingleParticle HighPt
+    - asymerror: {minus: -0.083%, plus: +0.083%}
+      label: sys,eff EL SF Trigger
+    - asymerror: {minus: -0.082%, plus: 0.000%}
+      label: sys,(jes) BJES Response
+    - asymerror: {minus: +0.141%, plus: -0.096%}
+      label: sys,(jes) EffectiveNP Modelling2
+    - asymerror: {minus: -0.043%, plus: 0.000%}
+      label: sys,(jes) EffectiveNP Modelling4
+    - asymerror: {minus: -0.021%, plus: +0.028%}
+      label: sys,(jes) EffectiveNP Modelling3
+    - asymerror: {minus: +0.300%, plus: -0.367%}
+      label: sys,(jes) EffectiveNP Modelling1
+    value: 0.002585358
+  - errors:
+    - {label: stat, symerror: +1.728%}
+    - asymerror: {minus: -0.572%, plus: +0.993%}
+      label: sys,ISR
+    - asymerror: {minus: -2.916%, plus: +2.916%}
+      label: sys,hardscat-model
+    - asymerror: {minus: -0.313%, plus: +0.313%}
+      label: sys,b extrapolation
+    - asymerror: {minus: -1.726%, plus: +1.559%}
+      label: sys,(jes) Flavor Response
+    - asymerror: {minus: +0.863%, plus: -0.863%}
+      label: sys,Hdamp
+    - asymerror: {minus: -0.463%, plus: +0.653%}
+      label: sys,SingleTop Radiation
+    - asymerror: {minus: -0.002%, plus: +0.002%}
+      label: sys,PDF4LHC 90924
+    - asymerror: {minus: -0.152%, plus: +0.002%}
+      label: sys,(jes) EffectiveNP Mixed1
+    - asymerror: {minus: -0.098%, plus: +0.098%}
+      label: sys,eff EL SF Isol
+    - asymerror: {minus: -0.063%, plus: 0.000%}
+      label: sys,(jes) EffectiveNP Mixed2
+    - asymerror: {minus: +0.007%, plus: -0.003%}
+      label: sys,(jes) EtaIntercalibration NonClosure +ve eta
+    - asymerror: {minus: +0.547%, plus: -0.601%}
+      label: sys,(jes) Pileup OffsetNPV
+    - asymerror: {minus: +0.116%, plus: -0.146%}
+      label: sys,(jes) EtaIntercalibration NonClosure 2018 data
+    - asymerror: {minus: -0.002%, plus: +0.002%}
+      label: sys,PDF4LHC 90921
+    - asymerror: {minus: -2.102%, plus: +0.537%}
+      label: sys,FSR
+    - asymerror: {minus: -0.180%, plus: +0.127%}
+      label: sys,jvt
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,El energy scale AF2
+    - asymerror: {minus: +0.760%, plus: -0.760%}
+      label: sys,jer NP 2
+    - asymerror: {minus: -0.023%, plus: +0.023%}
+      label: sys,eff MU SF ID STAT
+    - asymerror: {minus: -0.227%, plus: +0.257%}
+      label: sys,eff MU SF Isol SYST
+    - asymerror: {minus: -0.124%, plus: +0.124%}
+      label: sys,eff MU SF Isol STAT
+    - asymerror: {minus: +0.161%, plus: -0.161%}
+      label: sys,jer data vs MC
+    - asymerror: {minus: +0.066%, plus: -0.184%}
+      label: sys,(jes) Pileup OffsetMu
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 8)
+    - asymerror: {minus: +0.067%, plus: -0.067%}
+      label: sys,b tag eff (eig 3)
+    - asymerror: {minus: +0.200%, plus: -0.200%}
+      label: sys,b tag eff (eig 2)
+    - asymerror: {minus: +2.167%, plus: -2.145%}
+      label: sys,b tag eff (eig 1)
+    - asymerror: {minus: +1.518%, plus: -1.475%}
+      label: sys,b tag eff (eig 0)
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,b tag eff (eig 7)
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,b tag eff (eig 6)
+    - asymerror: {minus: +0.014%, plus: -0.014%}
+      label: sys,b tag eff (eig 5)
+    - asymerror: {minus: +0.041%, plus: -0.041%}
+      label: sys,b tag eff (eig 4)
+    - asymerror: {minus: -0.061%, plus: +0.061%}
+      label: sys,Zjets xsec
+    - asymerror: {minus: +0.253%, plus: -0.253%}
+      label: sys,SingleTop DR/DS
+    - asymerror: {minus: +0.031%, plus: -0.167%}
+      label: sys,(jes) EtaIntercalibration TotalStat
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90911
+    - asymerror: {minus: +0.017%, plus: -0.022%}
+      label: sys,El energy scale
+    - asymerror: {minus: -0.609%, plus: +0.609%}
+      label: sys,MC-stat
+    - asymerror: {minus: +0.547%, plus: -0.547%}
+      label: sys,jer NP 6
+    - asymerror: {minus: +0.008%, plus: -0.008%}
+      label: sys,PDF4LHC 90907
+    - asymerror: {minus: +0.128%, plus: -0.195%}
+      label: sys,(jes) EffectiveNP Statistical3
+    - asymerror: {minus: -0.115%, plus: +0.073%}
+      label: sys,(jes) EffectiveNP Statistical2
+    - asymerror: {minus: -0.180%, plus: +0.121%}
+      label: sys,(jes) EffectiveNP Statistical1
+    - asymerror: {minus: +0.315%, plus: -0.315%}
+      label: sys,jer NP 5
+    - asymerror: {minus: -0.064%, plus: +0.088%}
+      label: sys,(jes) EffectiveNP Statistical5
+    - asymerror: {minus: +0.039%, plus: -0.100%}
+      label: sys,(jes) EffectiveNP Statistical4
+    - asymerror: {minus: +0.006%, plus: -0.008%}
+      label: sys,El energy resolution
+    - asymerror: {minus: +0.288%, plus: -0.356%}
+      label: sys,(jes) Pileup PtTerm
+    - asymerror: {minus: -0.085%, plus: +0.085%}
+      label: sys,eff EL SF Reco
+    - asymerror: {minus: +0.126%, plus: -0.126%}
+      label: sys,c tag eff (eig 1)
+    - asymerror: {minus: +0.002%, plus: -0.000%}
+      label: sys,(jes) EtaIntercalibration NonClosure -ve eta
+    - asymerror: {minus: +0.236%, plus: -0.345%}
+      label: sys,(jes) EtaIntercalibration Modelling
+    - asymerror: {minus: +0.045%, plus: -0.074%}
+      label: sys,(jes) EffectiveNP Mixed3
+    - asymerror: {minus: +0.081%, plus: -0.078%}
+      label: sys,(jes) Flavor Composition
+    - asymerror: {minus: -0.036%, plus: +0.015%}
+      label: sys,Mu momentum resolution (ID)
+    - asymerror: {minus: +0.355%, plus: -0.355%}
+      label: sys,jer NP 7
+    - asymerror: {minus: +1.123%, plus: -1.118%}
+      label: sys,(jes) Pileup RhoTopology
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,PDF4LHC 90920
+    - asymerror: {minus: +0.339%, plus: -0.214%}
+      label: sys,Wjets Scales
+    - asymerror: {minus: +0.027%, plus: -0.027%}
+      label: sys,light-jet tag eff (eig 2)
+    - asymerror: {minus: -0.002%, plus: +0.002%}
+      label: sys,PDF4LHC 90903
+    - asymerror: {minus: -0.015%, plus: +0.015%}
+      label: sys,PDF4LHC 90902
+    - asymerror: {minus: +0.015%, plus: -0.015%}
+      label: sys,PDF4LHC 90901
+    - asymerror: {minus: 0.000%, plus: +0.001%}
+      label: sys,(jes) EtaIntercalibration NonClosure high E
+    - asymerror: {minus: +0.014%, plus: -0.014%}
+      label: sys,PDF4LHC 90905
+    - asymerror: {minus: -0.026%, plus: +0.026%}
+      label: sys,PDF4LHC 90904
+    - asymerror: {minus: -0.199%, plus: +0.103%}
+      label: sys,JSF MC stat.
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,PDF4LHC 90909
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90908
+    - asymerror: {minus: -0.010%, plus: +0.014%}
+      label: sys,(jes) Punch-through
+    - asymerror: {minus: -0.022%, plus: +0.022%}
+      label: sys,b extrapolation from c
+    - asymerror: {minus: -0.797%, plus: +0.797%}
+      label: sys,eff EL SF ID
+    - asymerror: {minus: +0.301%, plus: -0.296%}
+      label: sys,eff MU SF Trigger SYST
+    - asymerror: {minus: -0.133%, plus: +0.133%}
+      label: sys,SingleTop xsec
+    - asymerror: {minus: -0.036%, plus: +0.036%}
+      label: sys,Diboson xsec
+    - asymerror: {minus: +0.504%, plus: -0.504%}
+      label: sys,jer NP 1
+    - asymerror: {minus: -0.026%, plus: +0.029%}
+      label: sys,eff MU SF TTVA SYST
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90906
+    - asymerror: {minus: -1.781%, plus: +1.781%}
+      label: sys,Lumi
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,PDF4LHC 90910
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90912
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,PDF4LHC 90913
+    - asymerror: {minus: -0.007%, plus: +0.007%}
+      label: sys,PDF4LHC 90914
+    - asymerror: {minus: -0.006%, plus: +0.006%}
+      label: sys,PDF4LHC 90915
+    - asymerror: {minus: -0.009%, plus: +0.009%}
+      label: sys,PDF4LHC 90916
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90917
+    - asymerror: {minus: +0.009%, plus: -0.009%}
+      label: sys,PDF4LHC 90918
+    - asymerror: {minus: +0.032%, plus: -0.032%}
+      label: sys,PDF4LHC 90919
+    - asymerror: {minus: +0.059%, plus: -0.059%}
+      label: sys,SOFTMET RESOPARA
+    - asymerror: {minus: +0.399%, plus: -0.399%}
+      label: sys,jer NP 4
+    - asymerror: {minus: -0.518%, plus: +0.518%}
+      label: sys,multijet background
+    - asymerror: {minus: +1.843%, plus: -1.260%}
+      label: sys,top-quark mass
+    - asymerror: {minus: +0.033%, plus: -0.014%}
+      label: sys,(jes) EffectiveNP Statistical6
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90929
+    - asymerror: {minus: -0.000%, plus: +0.001%}
+      label: sys,Mu sagitta res bias
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90925
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90927
+    - asymerror: {minus: +0.006%, plus: -0.006%}
+      label: sys,PDF4LHC 90926
+    - asymerror: {minus: +0.015%, plus: -0.006%}
+      label: sys,Mu energy scale
+    - asymerror: {minus: -0.448%, plus: +0.448%}
+      label: sys,hadronis-model
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90923
+    - asymerror: {minus: +0.014%, plus: -0.014%}
+      label: sys,PDF4LHC 90922
+    - asymerror: {minus: -0.172%, plus: +0.172%}
+      label: sys,eff MU SF ID SYST
+    - asymerror: {minus: +0.382%, plus: -0.382%}
+      label: sys,jer NP 3
+    - asymerror: {minus: -0.023%, plus: 0.000%}
+      label: sys,(jes) EffectiveNP Detector2
+    - asymerror: {minus: +0.040%, plus: -0.147%}
+      label: sys,(jes) EffectiveNP Detector1
+    - asymerror: {minus: +0.035%, plus: -0.035%}
+      label: sys,light-jet tag eff (eig 1)
+    - asymerror: {minus: +0.199%, plus: -0.198%}
+      label: sys,light-jet tag eff (eig 0)
+    - asymerror: {minus: +0.015%, plus: -0.015%}
+      label: sys,light-jet tag eff (eig 3)
+    - asymerror: {minus: -0.246%, plus: +0.297%}
+      label: sys,SingleTop FSR
+    - asymerror: {minus: -0.021%, plus: +0.021%}
+      label: sys,eff MU SF TTVA STAT
+    - asymerror: {minus: +0.477%, plus: -0.586%}
+      label: sys,pileup
+    - asymerror: {minus: -0.005%, plus: +0.005%}
+      label: sys,PDF4LHC 90930
+    - asymerror: {minus: -0.174%, plus: +0.174%}
+      label: sys,t+X xsec
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,SOFTMET SCALE
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,Mu sagitta correction
+    - asymerror: {minus: -0.549%, plus: +0.532%}
+      label: sys,JSF stat.
+    - asymerror: {minus: +0.014%, plus: -0.014%}
+      label: sys,c tag eff (eig 2)
+    - asymerror: {minus: +0.010%, plus: -0.010%}
+      label: sys,c tag eff (eig 3)
+    - asymerror: {minus: +0.207%, plus: -0.206%}
+      label: sys,c tag eff (eig 0)
+    - asymerror: {minus: -0.081%, plus: +0.078%}
+      label: sys,eff MU SF Trigger STAT
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,PDF4LHC 90928
+    - asymerror: {minus: +0.054%, plus: -0.054%}
+      label: sys,SOFTMET RESOPERP
+    - asymerror: {minus: 0.000%, plus: +0.013%}
+      label: sys,Mu momentum resolution (MS)
+    - asymerror: {minus: -0.000%, plus: 0.000%}
+      label: sys,(jes) SingleParticle HighPt
+    - asymerror: {minus: -0.083%, plus: +0.083%}
+      label: sys,eff EL SF Trigger
+    - asymerror: {minus: +0.067%, plus: -0.003%}
+      label: sys,(jes) BJES Response
+    - asymerror: {minus: -0.100%, plus: 0.000%}
+      label: sys,(jes) EffectiveNP Modelling2
+    - asymerror: {minus: -0.052%, plus: +0.073%}
+      label: sys,(jes) EffectiveNP Modelling4
+    - asymerror: {minus: -0.225%, plus: +0.071%}
+      label: sys,(jes) EffectiveNP Modelling3
+    - asymerror: {minus: +0.891%, plus: -0.930%}
+      label: sys,(jes) EffectiveNP Modelling1
+    value: 0.00109922
+  - errors:
+    - {label: stat, symerror: +2.714%}
+    - asymerror: {minus: -1.326%, plus: +2.151%}
+      label: sys,ISR
+    - asymerror: {minus: +0.689%, plus: -0.689%}
+      label: sys,hardscat-model
+    - asymerror: {minus: -0.575%, plus: +0.576%}
+      label: sys,b extrapolation
+    - asymerror: {minus: -3.024%, plus: +2.854%}
+      label: sys,(jes) Flavor Response
+    - asymerror: {minus: -0.222%, plus: +0.222%}
+      label: sys,Hdamp
+    - asymerror: {minus: -0.530%, plus: +0.737%}
+      label: sys,SingleTop Radiation
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90924
+    - asymerror: {minus: -0.777%, plus: +0.763%}
+      label: sys,(jes) EffectiveNP Mixed1
+    - asymerror: {minus: -0.109%, plus: +0.109%}
+      label: sys,eff EL SF Isol
+    - asymerror: {minus: -0.157%, plus: +0.156%}
+      label: sys,(jes) EffectiveNP Mixed2
+    - asymerror: {minus: 0.000%, plus: +0.001%}
+      label: sys,(jes) EtaIntercalibration NonClosure +ve eta
+    - asymerror: {minus: +0.901%, plus: -1.088%}
+      label: sys,(jes) Pileup OffsetNPV
+    - asymerror: {minus: +0.068%, plus: -0.446%}
+      label: sys,(jes) EtaIntercalibration NonClosure 2018 data
+    - asymerror: {minus: -0.010%, plus: +0.010%}
+      label: sys,PDF4LHC 90921
+    - asymerror: {minus: -3.950%, plus: +0.177%}
+      label: sys,FSR
+    - asymerror: {minus: -0.171%, plus: +0.075%}
+      label: sys,jvt
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,El energy scale AF2
+    - asymerror: {minus: +0.048%, plus: -0.048%}
+      label: sys,jer NP 2
+    - asymerror: {minus: -0.023%, plus: +0.023%}
+      label: sys,eff MU SF ID STAT
+    - asymerror: {minus: -0.232%, plus: +0.261%}
+      label: sys,eff MU SF Isol SYST
+    - asymerror: {minus: -0.133%, plus: +0.133%}
+      label: sys,eff MU SF Isol STAT
+    - asymerror: {minus: +0.092%, plus: -0.092%}
+      label: sys,jer data vs MC
+    - asymerror: {minus: +0.362%, plus: -0.378%}
+      label: sys,(jes) Pileup OffsetMu
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 8)
+    - asymerror: {minus: +0.134%, plus: -0.134%}
+      label: sys,b tag eff (eig 3)
+    - asymerror: {minus: +0.316%, plus: -0.315%}
+      label: sys,b tag eff (eig 2)
+    - asymerror: {minus: +2.247%, plus: -2.224%}
+      label: sys,b tag eff (eig 1)
+    - asymerror: {minus: +1.499%, plus: -1.498%}
+      label: sys,b tag eff (eig 0)
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,b tag eff (eig 7)
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,b tag eff (eig 6)
+    - asymerror: {minus: +0.020%, plus: -0.020%}
+      label: sys,b tag eff (eig 5)
+    - asymerror: {minus: +0.065%, plus: -0.065%}
+      label: sys,b tag eff (eig 4)
+    - asymerror: {minus: -0.092%, plus: +0.092%}
+      label: sys,Zjets xsec
+    - asymerror: {minus: +0.360%, plus: -0.360%}
+      label: sys,SingleTop DR/DS
+    - asymerror: {minus: +0.318%, plus: -0.231%}
+      label: sys,(jes) EtaIntercalibration TotalStat
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90911
+    - asymerror: {minus: -0.032%, plus: 0.000%}
+      label: sys,El energy scale
+    - asymerror: {minus: -0.976%, plus: +0.976%}
+      label: sys,MC-stat
+    - asymerror: {minus: +0.681%, plus: -0.681%}
+      label: sys,jer NP 6
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,PDF4LHC 90907
+    - asymerror: {minus: +0.288%, plus: -0.256%}
+      label: sys,(jes) EffectiveNP Statistical3
+    - asymerror: {minus: -0.192%, plus: +0.195%}
+      label: sys,(jes) EffectiveNP Statistical2
+    - asymerror: {minus: -0.491%, plus: +0.392%}
+      label: sys,(jes) EffectiveNP Statistical1
+    - asymerror: {minus: +0.294%, plus: -0.294%}
+      label: sys,jer NP 5
+    - asymerror: {minus: -0.023%, plus: +0.004%}
+      label: sys,(jes) EffectiveNP Statistical5
+    - asymerror: {minus: +0.285%, plus: -0.294%}
+      label: sys,(jes) EffectiveNP Statistical4
+    - asymerror: {minus: +0.016%, plus: -0.009%}
+      label: sys,El energy resolution
+    - asymerror: {minus: +0.408%, plus: -0.771%}
+      label: sys,(jes) Pileup PtTerm
+    - asymerror: {minus: -0.086%, plus: +0.086%}
+      label: sys,eff EL SF Reco
+    - asymerror: {minus: +0.133%, plus: -0.133%}
+      label: sys,c tag eff (eig 1)
+    - asymerror: {minus: -0.001%, plus: +0.002%}
+      label: sys,(jes) EtaIntercalibration NonClosure -ve eta
+    - asymerror: {minus: +0.433%, plus: -0.622%}
+      label: sys,(jes) EtaIntercalibration Modelling
+    - asymerror: {minus: -0.077%, plus: +0.096%}
+      label: sys,(jes) EffectiveNP Mixed3
+    - asymerror: {minus: +0.062%, plus: -0.062%}
+      label: sys,(jes) Flavor Composition
+    - asymerror: {minus: +0.014%, plus: -0.033%}
+      label: sys,Mu momentum resolution (ID)
+    - asymerror: {minus: -0.213%, plus: +0.213%}
+      label: sys,jer NP 7
+    - asymerror: {minus: +1.699%, plus: -2.073%}
+      label: sys,(jes) Pileup RhoTopology
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90920
+    - asymerror: {minus: +0.402%, plus: -0.244%}
+      label: sys,Wjets Scales
+    - asymerror: {minus: +0.054%, plus: -0.054%}
+      label: sys,light-jet tag eff (eig 2)
+    - asymerror: {minus: -0.016%, plus: +0.016%}
+      label: sys,PDF4LHC 90903
+    - asymerror: {minus: -0.012%, plus: +0.012%}
+      label: sys,PDF4LHC 90902
+    - asymerror: {minus: +0.027%, plus: -0.027%}
+      label: sys,PDF4LHC 90901
+    - asymerror: {minus: -0.001%, plus: 0.000%}
+      label: sys,(jes) EtaIntercalibration NonClosure high E
+    - asymerror: {minus: +0.020%, plus: -0.020%}
+      label: sys,PDF4LHC 90905
+    - asymerror: {minus: -0.024%, plus: +0.024%}
+      label: sys,PDF4LHC 90904
+    - asymerror: {minus: -0.284%, plus: +0.301%}
+      label: sys,JSF MC stat.
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90909
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90908
+    - asymerror: {minus: -0.076%, plus: +0.063%}
+      label: sys,(jes) Punch-through
+    - asymerror: {minus: -0.025%, plus: +0.025%}
+      label: sys,b extrapolation from c
+    - asymerror: {minus: -0.900%, plus: +0.900%}
+      label: sys,eff EL SF ID
+    - asymerror: {minus: +0.298%, plus: -0.293%}
+      label: sys,eff MU SF Trigger SYST
+    - asymerror: {minus: -0.149%, plus: +0.149%}
+      label: sys,SingleTop xsec
+    - asymerror: {minus: -0.056%, plus: +0.056%}
+      label: sys,Diboson xsec
+    - asymerror: {minus: -0.315%, plus: +0.315%}
+      label: sys,jer NP 1
+    - asymerror: {minus: -0.026%, plus: +0.029%}
+      label: sys,eff MU SF TTVA SYST
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,PDF4LHC 90906
+    - asymerror: {minus: -1.793%, plus: +1.793%}
+      label: sys,Lumi
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,PDF4LHC 90910
+    - asymerror: {minus: -0.007%, plus: +0.007%}
+      label: sys,PDF4LHC 90912
+    - asymerror: {minus: +0.003%, plus: -0.003%}
+      label: sys,PDF4LHC 90913
+    - asymerror: {minus: -0.005%, plus: +0.005%}
+      label: sys,PDF4LHC 90914
+    - asymerror: {minus: -0.016%, plus: +0.016%}
+      label: sys,PDF4LHC 90915
+    - asymerror: {minus: -0.018%, plus: +0.018%}
+      label: sys,PDF4LHC 90916
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,PDF4LHC 90917
+    - asymerror: {minus: +0.005%, plus: -0.005%}
+      label: sys,PDF4LHC 90918
+    - asymerror: {minus: +0.017%, plus: -0.017%}
+      label: sys,PDF4LHC 90919
+    - asymerror: {minus: +0.112%, plus: -0.112%}
+      label: sys,SOFTMET RESOPARA
+    - asymerror: {minus: -0.209%, plus: +0.209%}
+      label: sys,jer NP 4
+    - asymerror: {minus: -0.451%, plus: +0.451%}
+      label: sys,multijet background
+    - asymerror: {minus: +1.807%, plus: -1.353%}
+      label: sys,top-quark mass
+    - asymerror: {minus: +0.084%, plus: -0.023%}
+      label: sys,(jes) EffectiveNP Statistical6
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90929
+    - asymerror: {minus: 0.000%, plus: +0.023%}
+      label: sys,Mu sagitta res bias
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90925
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90927
+    - asymerror: {minus: +0.006%, plus: -0.006%}
+      label: sys,PDF4LHC 90926
+    - asymerror: {minus: -0.023%, plus: 0.000%}
+      label: sys,Mu energy scale
+    - asymerror: {minus: -0.086%, plus: +0.086%}
+      label: sys,hadronis-model
+    - asymerror: {minus: -0.009%, plus: +0.009%}
+      label: sys,PDF4LHC 90923
+    - asymerror: {minus: +0.002%, plus: -0.002%}
+      label: sys,PDF4LHC 90922
+    - asymerror: {minus: -0.182%, plus: +0.183%}
+      label: sys,eff MU SF ID SYST
+    - asymerror: {minus: -0.400%, plus: +0.400%}
+      label: sys,jer NP 3
+    - asymerror: {minus: -0.002%, plus: +0.022%}
+      label: sys,(jes) EffectiveNP Detector2
+    - asymerror: {minus: +0.142%, plus: -0.143%}
+      label: sys,(jes) EffectiveNP Detector1
+    - asymerror: {minus: +0.052%, plus: -0.053%}
+      label: sys,light-jet tag eff (eig 1)
+    - asymerror: {minus: +0.270%, plus: -0.269%}
+      label: sys,light-jet tag eff (eig 0)
+    - asymerror: {minus: +0.025%, plus: -0.025%}
+      label: sys,light-jet tag eff (eig 3)
+    - asymerror: {minus: +0.184%, plus: -0.204%}
+      label: sys,SingleTop FSR
+    - asymerror: {minus: -0.021%, plus: +0.021%}
+      label: sys,eff MU SF TTVA STAT
+    - asymerror: {minus: +0.846%, plus: -1.014%}
+      label: sys,pileup
+    - asymerror: {minus: +0.000%, plus: -0.000%}
+      label: sys,PDF4LHC 90930
+    - asymerror: {minus: -0.192%, plus: +0.192%}
+      label: sys,t+X xsec
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,SOFTMET SCALE
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,Mu sagitta correction
+    - asymerror: {minus: -0.706%, plus: +0.641%}
+      label: sys,JSF stat.
+    - asymerror: {minus: +0.012%, plus: -0.012%}
+      label: sys,c tag eff (eig 2)
+    - asymerror: {minus: +0.012%, plus: -0.012%}
+      label: sys,c tag eff (eig 3)
+    - asymerror: {minus: +0.221%, plus: -0.221%}
+      label: sys,c tag eff (eig 0)
+    - asymerror: {minus: -0.081%, plus: +0.079%}
+      label: sys,eff MU SF Trigger STAT
+    - asymerror: {minus: +0.010%, plus: -0.010%}
+      label: sys,PDF4LHC 90928
+    - asymerror: {minus: +0.036%, plus: -0.036%}
+      label: sys,SOFTMET RESOPERP
+    - asymerror: {minus: -0.021%, plus: +0.007%}
+      label: sys,Mu momentum resolution (MS)
+    - asymerror: {minus: +0.000%, plus: 0.000%}
+      label: sys,(jes) SingleParticle HighPt
+    - asymerror: {minus: -0.084%, plus: +0.084%}
+      label: sys,eff EL SF Trigger
+    - asymerror: {minus: -0.164%, plus: 0.000%}
+      label: sys,(jes) BJES Response
+    - asymerror: {minus: -0.377%, plus: +0.329%}
+      label: sys,(jes) EffectiveNP Modelling2
+    - asymerror: {minus: -0.063%, plus: +0.007%}
+      label: sys,(jes) EffectiveNP Modelling4
+    - asymerror: {minus: -0.353%, plus: +0.341%}
+      label: sys,(jes) EffectiveNP Modelling3
+    - asymerror: {minus: +1.612%, plus: -1.821%}
+      label: sys,(jes) EffectiveNP Modelling1
+    value: 0.0004466096
+  - errors:
+    - {label: stat, symerror: +4.416%}
+    - asymerror: {minus: -0.838%, plus: +1.680%}
+      label: sys,ISR
+    - asymerror: {minus: +1.271%, plus: -1.271%}
+      label: sys,hardscat-model
+    - asymerror: {minus: -0.872%, plus: +0.873%}
+      label: sys,b extrapolation
+    - asymerror: {minus: -3.268%, plus: +3.699%}
+      label: sys,(jes) Flavor Response
+    - asymerror: {minus: -3.689%, plus: +3.689%}
+      label: sys,Hdamp
+    - asymerror: {minus: -0.752%, plus: +1.164%}
+      label: sys,SingleTop Radiation
+    - asymerror: {minus: -0.009%, plus: +0.009%}
+      label: sys,PDF4LHC 90924
+    - asymerror: {minus: -1.586%, plus: +0.970%}
+      label: sys,(jes) EffectiveNP Mixed1
+    - asymerror: {minus: -0.115%, plus: +0.115%}
+      label: sys,eff EL SF Isol
+    - asymerror: {minus: -0.234%, plus: +0.452%}
+      label: sys,(jes) EffectiveNP Mixed2
+    - asymerror: {minus: -0.014%, plus: 0.000%}
+      label: sys,(jes) EtaIntercalibration NonClosure +ve eta
+    - asymerror: {minus: +0.583%, plus: -0.878%}
+      label: sys,(jes) Pileup OffsetNPV
+    - asymerror: {minus: +0.151%, plus: -0.304%}
+      label: sys,(jes) EtaIntercalibration NonClosure 2018 data
+    - asymerror: {minus: +0.022%, plus: -0.022%}
+      label: sys,PDF4LHC 90921
+    - asymerror: {minus: -7.406%, plus: 0.000%}
+      label: sys,FSR
+    - asymerror: {minus: -0.130%, plus: +0.068%}
+      label: sys,jvt
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,El energy scale AF2
+    - asymerror: {minus: +0.167%, plus: -0.167%}
+      label: sys,jer NP 2
+    - asymerror: {minus: -0.023%, plus: +0.023%}
+      label: sys,eff MU SF ID STAT
+    - asymerror: {minus: -0.237%, plus: +0.266%}
+      label: sys,eff MU SF Isol SYST
+    - asymerror: {minus: -0.137%, plus: +0.137%}
+      label: sys,eff MU SF Isol STAT
+    - asymerror: {minus: +0.184%, plus: -0.184%}
+      label: sys,jer data vs MC
+    - asymerror: {minus: +0.349%, plus: -0.209%}
+      label: sys,(jes) Pileup OffsetMu
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 8)
+    - asymerror: {minus: +0.205%, plus: -0.205%}
+      label: sys,b tag eff (eig 3)
+    - asymerror: {minus: +0.422%, plus: -0.422%}
+      label: sys,b tag eff (eig 2)
+    - asymerror: {minus: +2.372%, plus: -2.347%}
+      label: sys,b tag eff (eig 1)
+    - asymerror: {minus: +1.664%, plus: -1.542%}
+      label: sys,b tag eff (eig 0)
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,b tag eff (eig 7)
+    - asymerror: {minus: +0.005%, plus: -0.005%}
+      label: sys,b tag eff (eig 6)
+    - asymerror: {minus: +0.026%, plus: -0.026%}
+      label: sys,b tag eff (eig 5)
+    - asymerror: {minus: +0.091%, plus: -0.091%}
+      label: sys,b tag eff (eig 4)
+    - asymerror: {minus: -0.099%, plus: +0.099%}
+      label: sys,Zjets xsec
+    - asymerror: {minus: +0.194%, plus: -0.194%}
+      label: sys,SingleTop DR/DS
+    - asymerror: {minus: +0.302%, plus: -0.025%}
+      label: sys,(jes) EtaIntercalibration TotalStat
+    - asymerror: {minus: +0.019%, plus: -0.019%}
+      label: sys,PDF4LHC 90911
+    - asymerror: {minus: 0.000%, plus: +0.065%}
+      label: sys,El energy scale
+    - asymerror: {minus: -1.532%, plus: +1.532%}
+      label: sys,MC-stat
+    - asymerror: {minus: +0.861%, plus: -0.861%}
+      label: sys,jer NP 6
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,PDF4LHC 90907
+    - asymerror: {minus: +0.074%, plus: -0.128%}
+      label: sys,(jes) EffectiveNP Statistical3
+    - asymerror: {minus: 0.000%, plus: +0.291%}
+      label: sys,(jes) EffectiveNP Statistical2
+    - asymerror: {minus: -0.240%, plus: +0.441%}
+      label: sys,(jes) EffectiveNP Statistical1
+    - asymerror: {minus: +0.542%, plus: -0.542%}
+      label: sys,jer NP 5
+    - asymerror: {minus: +0.153%, plus: -0.060%}
+      label: sys,(jes) EffectiveNP Statistical5
+    - asymerror: {minus: +0.437%, plus: -0.176%}
+      label: sys,(jes) EffectiveNP Statistical4
+    - asymerror: {minus: 0.000%, plus: +0.034%}
+      label: sys,El energy resolution
+    - asymerror: {minus: +0.913%, plus: -0.494%}
+      label: sys,(jes) Pileup PtTerm
+    - asymerror: {minus: -0.086%, plus: +0.086%}
+      label: sys,eff EL SF Reco
+    - asymerror: {minus: +0.099%, plus: -0.099%}
+      label: sys,c tag eff (eig 1)
+    - asymerror: {minus: 0.000%, plus: +0.016%}
+      label: sys,(jes) EtaIntercalibration NonClosure -ve eta
+    - asymerror: {minus: +0.243%, plus: -0.734%}
+      label: sys,(jes) EtaIntercalibration Modelling
+    - asymerror: {minus: -0.070%, plus: +0.407%}
+      label: sys,(jes) EffectiveNP Mixed3
+    - asymerror: {minus: +0.229%, plus: -0.006%}
+      label: sys,(jes) Flavor Composition
+    - asymerror: {minus: -0.041%, plus: 0.000%}
+      label: sys,Mu momentum resolution (ID)
+    - asymerror: {minus: +1.159%, plus: -1.159%}
+      label: sys,jer NP 7
+    - asymerror: {minus: +1.733%, plus: -1.663%}
+      label: sys,(jes) Pileup RhoTopology
+    - asymerror: {minus: +0.009%, plus: -0.009%}
+      label: sys,PDF4LHC 90920
+    - asymerror: {minus: +0.672%, plus: -0.363%}
+      label: sys,Wjets Scales
+    - asymerror: {minus: +0.068%, plus: -0.068%}
+      label: sys,light-jet tag eff (eig 2)
+    - asymerror: {minus: -0.003%, plus: +0.003%}
+      label: sys,PDF4LHC 90903
+    - asymerror: {minus: +0.028%, plus: -0.028%}
+      label: sys,PDF4LHC 90902
+    - asymerror: {minus: +0.015%, plus: -0.015%}
+      label: sys,PDF4LHC 90901
+    - asymerror: {minus: +0.015%, plus: -0.001%}
+      label: sys,(jes) EtaIntercalibration NonClosure high E
+    - asymerror: {minus: +0.028%, plus: -0.028%}
+      label: sys,PDF4LHC 90905
+    - asymerror: {minus: +0.024%, plus: -0.024%}
+      label: sys,PDF4LHC 90904
+    - asymerror: {minus: -0.086%, plus: +0.409%}
+      label: sys,JSF MC stat.
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,PDF4LHC 90909
+    - asymerror: {minus: +0.018%, plus: -0.018%}
+      label: sys,PDF4LHC 90908
+    - asymerror: {minus: -0.084%, plus: +0.103%}
+      label: sys,(jes) Punch-through
+    - asymerror: {minus: -0.046%, plus: +0.046%}
+      label: sys,b extrapolation from c
+    - asymerror: {minus: -0.929%, plus: +0.929%}
+      label: sys,eff EL SF ID
+    - asymerror: {minus: +0.292%, plus: -0.288%}
+      label: sys,eff MU SF Trigger SYST
+    - asymerror: {minus: -0.182%, plus: +0.182%}
+      label: sys,SingleTop xsec
+    - asymerror: {minus: -0.034%, plus: +0.034%}
+      label: sys,Diboson xsec
+    - asymerror: {minus: +1.026%, plus: -1.026%}
+      label: sys,jer NP 1
+    - asymerror: {minus: -0.028%, plus: +0.031%}
+      label: sys,eff MU SF TTVA SYST
+    - asymerror: {minus: +0.028%, plus: -0.028%}
+      label: sys,PDF4LHC 90906
+    - asymerror: {minus: -1.813%, plus: +1.813%}
+      label: sys,Lumi
+    - asymerror: {minus: +0.011%, plus: -0.011%}
+      label: sys,PDF4LHC 90910
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90912
+    - asymerror: {minus: -0.007%, plus: +0.007%}
+      label: sys,PDF4LHC 90913
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,PDF4LHC 90914
+    - asymerror: {minus: +0.018%, plus: -0.018%}
+      label: sys,PDF4LHC 90915
+    - asymerror: {minus: +0.032%, plus: -0.032%}
+      label: sys,PDF4LHC 90916
+    - asymerror: {minus: -0.011%, plus: +0.011%}
+      label: sys,PDF4LHC 90917
+    - asymerror: {minus: -0.024%, plus: +0.024%}
+      label: sys,PDF4LHC 90918
+    - asymerror: {minus: +0.021%, plus: -0.021%}
+      label: sys,PDF4LHC 90919
+    - asymerror: {minus: +0.060%, plus: -0.060%}
+      label: sys,SOFTMET RESOPARA
+    - asymerror: {minus: +0.632%, plus: -0.632%}
+      label: sys,jer NP 4
+    - asymerror: {minus: -0.399%, plus: +0.399%}
+      label: sys,multijet background
+    - asymerror: {minus: +1.986%, plus: -2.039%}
+      label: sys,top-quark mass
+    - asymerror: {minus: +0.095%, plus: -0.039%}
+      label: sys,(jes) EffectiveNP Statistical6
+    - asymerror: {minus: -0.001%, plus: +0.001%}
+      label: sys,PDF4LHC 90929
+    - asymerror: {minus: -0.015%, plus: 0.000%}
+      label: sys,Mu sagitta res bias
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90925
+    - asymerror: {minus: -0.014%, plus: +0.014%}
+      label: sys,PDF4LHC 90927
+    - asymerror: {minus: +0.008%, plus: -0.008%}
+      label: sys,PDF4LHC 90926
+    - asymerror: {minus: +0.005%, plus: -0.016%}
+      label: sys,Mu energy scale
+    - asymerror: {minus: -3.500%, plus: +3.500%}
+      label: sys,hadronis-model
+    - asymerror: {minus: -0.004%, plus: +0.004%}
+      label: sys,PDF4LHC 90923
+    - asymerror: {minus: -0.040%, plus: +0.040%}
+      label: sys,PDF4LHC 90922
+    - asymerror: {minus: -0.206%, plus: +0.207%}
+      label: sys,eff MU SF ID SYST
+    - asymerror: {minus: +0.855%, plus: -0.855%}
+      label: sys,jer NP 3
+    - asymerror: {minus: +0.018%, plus: -0.048%}
+      label: sys,(jes) EffectiveNP Detector2
+    - asymerror: {minus: 0.000%, plus: +0.312%}
+      label: sys,(jes) EffectiveNP Detector1
+    - asymerror: {minus: +0.065%, plus: -0.065%}
+      label: sys,light-jet tag eff (eig 1)
+    - asymerror: {minus: +0.342%, plus: -0.341%}
+      label: sys,light-jet tag eff (eig 0)
+    - asymerror: {minus: +0.032%, plus: -0.032%}
+      label: sys,light-jet tag eff (eig 3)
+    - asymerror: {minus: -0.613%, plus: 0.000%}
+      label: sys,SingleTop FSR
+    - asymerror: {minus: -0.022%, plus: +0.022%}
+      label: sys,eff MU SF TTVA STAT
+    - asymerror: {minus: +0.996%, plus: -0.787%}
+      label: sys,pileup
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90930
+    - asymerror: {minus: -0.229%, plus: +0.229%}
+      label: sys,t+X xsec
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,SOFTMET SCALE
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,Mu sagitta correction
+    - asymerror: {minus: -0.549%, plus: +0.702%}
+      label: sys,JSF stat.
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,c tag eff (eig 2)
+    - asymerror: {minus: +0.007%, plus: -0.007%}
+      label: sys,c tag eff (eig 3)
+    - asymerror: {minus: +0.222%, plus: -0.223%}
+      label: sys,c tag eff (eig 0)
+    - asymerror: {minus: -0.081%, plus: +0.079%}
+      label: sys,eff MU SF Trigger STAT
+    - asymerror: {minus: +0.006%, plus: -0.006%}
+      label: sys,PDF4LHC 90928
+    - asymerror: {minus: +0.094%, plus: -0.094%}
+      label: sys,SOFTMET RESOPERP
+    - asymerror: {minus: +0.010%, plus: -0.056%}
+      label: sys,Mu momentum resolution (MS)
+    - asymerror: {minus: +0.000%, plus: 0.000%}
+      label: sys,(jes) SingleParticle HighPt
+    - asymerror: {minus: -0.083%, plus: +0.083%}
+      label: sys,eff EL SF Trigger
+    - asymerror: {minus: -0.065%, plus: +0.064%}
+      label: sys,(jes) BJES Response
+    - asymerror: {minus: -0.309%, plus: +0.493%}
+      label: sys,(jes) EffectiveNP Modelling2
+    - asymerror: {minus: 0.000%, plus: +0.128%}
+      label: sys,(jes) EffectiveNP Modelling4
+    - asymerror: {minus: -0.175%, plus: +0.493%}
+      label: sys,(jes) EffectiveNP Modelling3
+    - asymerror: {minus: +1.640%, plus: -1.845%}
+      label: sys,(jes) EffectiveNP Modelling1
+    value: 0.0001558704
+  - errors:
+    - {label: stat, symerror: +6.449%}
+    - asymerror: {minus: -1.006%, plus: +2.164%}
+      label: sys,ISR
+    - asymerror: {minus: +4.693%, plus: -4.693%}
+      label: sys,hardscat-model
+    - asymerror: {minus: -2.745%, plus: +2.747%}
+      label: sys,b extrapolation
+    - asymerror: {minus: -5.429%, plus: +5.854%}
+      label: sys,(jes) Flavor Response
+    - asymerror: {minus: +2.970%, plus: -2.970%}
+      label: sys,Hdamp
+    - asymerror: {minus: -1.586%, plus: +2.467%}
+      label: sys,SingleTop Radiation
+    - asymerror: {minus: -0.024%, plus: +0.024%}
+      label: sys,PDF4LHC 90924
+    - asymerror: {minus: -2.298%, plus: +2.881%}
+      label: sys,(jes) EffectiveNP Mixed1
+    - asymerror: {minus: -0.124%, plus: +0.124%}
+      label: sys,eff EL SF Isol
+    - asymerror: {minus: -0.809%, plus: +0.787%}
+      label: sys,(jes) EffectiveNP Mixed2
+    - asymerror: {minus: 0.000%, plus: +0.001%}
+      label: sys,(jes) EtaIntercalibration NonClosure +ve eta
+    - asymerror: {minus: +1.748%, plus: -0.826%}
+      label: sys,(jes) Pileup OffsetNPV
+    - asymerror: {minus: +1.046%, plus: -0.473%}
+      label: sys,(jes) EtaIntercalibration NonClosure 2018 data
+    - asymerror: {minus: -0.036%, plus: +0.036%}
+      label: sys,PDF4LHC 90921
+    - asymerror: {minus: +8.224%, plus: -1.875%}
+      label: sys,FSR
+    - asymerror: {minus: -0.101%, plus: +0.068%}
+      label: sys,jvt
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,El energy scale AF2
+    - asymerror: {minus: -0.372%, plus: +0.372%}
+      label: sys,jer NP 2
+    - asymerror: {minus: -0.025%, plus: +0.025%}
+      label: sys,eff MU SF ID STAT
+    - asymerror: {minus: -0.252%, plus: +0.280%}
+      label: sys,eff MU SF Isol SYST
+    - asymerror: {minus: -0.147%, plus: +0.147%}
+      label: sys,eff MU SF Isol STAT
+    - asymerror: {minus: -0.285%, plus: +0.285%}
+      label: sys,jer data vs MC
+    - asymerror: {minus: +0.578%, plus: -0.308%}
+      label: sys,(jes) Pileup OffsetMu
+    - asymerror: {minus: -0.000%, plus: +0.000%}
+      label: sys,b tag eff (eig 8)
+    - asymerror: {minus: +0.301%, plus: -0.301%}
+      label: sys,b tag eff (eig 3)
+    - asymerror: {minus: +0.604%, plus: -0.604%}
+      label: sys,b tag eff (eig 2)
+    - asymerror: {minus: +2.527%, plus: -2.500%}
+      label: sys,b tag eff (eig 1)
+    - asymerror: {minus: +1.526%, plus: -1.512%}
+      label: sys,b tag eff (eig 0)
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,b tag eff (eig 7)
+    - asymerror: {minus: +0.006%, plus: -0.006%}
+      label: sys,b tag eff (eig 6)
+    - asymerror: {minus: +0.034%, plus: -0.034%}
+      label: sys,b tag eff (eig 5)
+    - asymerror: {minus: +0.120%, plus: -0.120%}
+      label: sys,b tag eff (eig 4)
+    - asymerror: {minus: -0.108%, plus: +0.108%}
+      label: sys,Zjets xsec
+    - asymerror: {minus: +2.329%, plus: -2.329%}
+      label: sys,SingleTop DR/DS
+    - asymerror: {minus: +0.186%, plus: -0.278%}
+      label: sys,(jes) EtaIntercalibration TotalStat
+    - asymerror: {minus: +0.006%, plus: -0.006%}
+      label: sys,PDF4LHC 90911
+    - asymerror: {minus: -0.091%, plus: +0.009%}
+      label: sys,El energy scale
+    - asymerror: {minus: -2.178%, plus: +2.178%}
+      label: sys,MC-stat
+    - asymerror: {minus: -0.011%, plus: +0.011%}
+      label: sys,jer NP 6
+    - asymerror: {minus: +0.001%, plus: -0.001%}
+      label: sys,PDF4LHC 90907
+    - asymerror: {minus: -0.015%, plus: +0.112%}
+      label: sys,(jes) EffectiveNP Statistical3
+    - asymerror: {minus: -0.327%, plus: +0.132%}
+      label: sys,(jes) EffectiveNP Statistical2
+    - asymerror: {minus: -0.587%, plus: +0.573%}
+      label: sys,(jes) EffectiveNP Statistical1
+    - asymerror: {minus: -0.563%, plus: +0.563%}
+      label: sys,jer NP 5
+    - asymerror: {minus: +0.036%, plus: -0.002%}
+      label: sys,(jes) EffectiveNP Statistical5
+    - asymerror: {minus: +0.202%, plus: -0.373%}
+      label: sys,(jes) EffectiveNP Statistical4
+    - asymerror: {minus: 0.000%, plus: +0.006%}
+      label: sys,El energy resolution
+    - asymerror: {minus: +0.808%, plus: -0.516%}
+      label: sys,(jes) Pileup PtTerm
+    - asymerror: {minus: -0.089%, plus: +0.089%}
+      label: sys,eff EL SF Reco
+    - asymerror: {minus: +0.168%, plus: -0.167%}
+      label: sys,c tag eff (eig 1)
+    - asymerror: {minus: -0.076%, plus: 0.000%}
+      label: sys,(jes) EtaIntercalibration NonClosure -ve eta
+    - asymerror: {minus: +0.889%, plus: -0.395%}
+      label: sys,(jes) EtaIntercalibration Modelling
+    - asymerror: {minus: -0.361%, plus: +0.097%}
+      label: sys,(jes) EffectiveNP Mixed3
+    - asymerror: {minus: +0.115%, plus: -0.202%}
+      label: sys,(jes) Flavor Composition
+    - asymerror: {minus: +0.119%, plus: -0.030%}
+      label: sys,Mu momentum resolution (ID)
+    - asymerror: {minus: -0.440%, plus: +0.440%}
+      label: sys,jer NP 7
+    - asymerror: {minus: +2.458%, plus: -2.309%}
+      label: sys,(jes) Pileup RhoTopology
+    - asymerror: {minus: +0.031%, plus: -0.031%}
+      label: sys,PDF4LHC 90920
+    - asymerror: {minus: +0.719%, plus: -0.443%}
+      label: sys,Wjets Scales
+    - asymerror: {minus: +0.106%, plus: -0.106%}
+      label: sys,light-jet tag eff (eig 2)
+    - asymerror: {minus: +0.122%, plus: -0.122%}
+      label: sys,PDF4LHC 90903
+    - asymerror: {minus: -0.088%, plus: +0.088%}
+      label: sys,PDF4LHC 90902
+    - asymerror: {minus: +0.103%, plus: -0.103%}
+      label: sys,PDF4LHC 90901
+    - asymerror: {minus: -0.005%, plus: +0.015%}
+      label: sys,(jes) EtaIntercalibration NonClosure high E
+    - asymerror: {minus: +0.039%, plus: -0.039%}
+      label: sys,PDF4LHC 90905
+    - asymerror: {minus: -0.044%, plus: +0.044%}
+      label: sys,PDF4LHC 90904
+    - asymerror: {minus: -0.300%, plus: +0.100%}
+      label: sys,JSF MC stat.
+    - asymerror: {minus: +0.017%, plus: -0.017%}
+      label: sys,PDF4LHC 90909
+    - asymerror: {minus: +0.039%, plus: -0.039%}
+      label: sys,PDF4LHC 90908
+    - asymerror: {minus: -0.168%, plus: +0.101%}
+      label: sys,(jes) Punch-through
+    - asymerror: {minus: -0.004%, plus: +0.004%}
+      label: sys,b extrapolation from c
+    - asymerror: {minus: -1.000%, plus: +1.000%}
+      label: sys,eff EL SF ID
+    - asymerror: {minus: +0.310%, plus: -0.304%}
+      label: sys,eff MU SF Trigger SYST
+    - asymerror: {minus: -0.309%, plus: +0.309%}
+      label: sys,SingleTop xsec
+    - asymerror: {minus: -0.104%, plus: +0.104%}
+      label: sys,Diboson xsec
+    - asymerror: {minus: -0.189%, plus: +0.189%}
+      label: sys,jer NP 1
+    - asymerror: {minus: -0.028%, plus: +0.032%}
+      label: sys,eff MU SF TTVA SYST
+    - asymerror: {minus: +0.054%, plus: -0.054%}
+      label: sys,PDF4LHC 90906
+    - asymerror: {minus: -1.872%, plus: +1.872%}
+      label: sys,Lumi
+    - asymerror: {minus: -0.007%, plus: +0.007%}
+      label: sys,PDF4LHC 90910
+    - asymerror: {minus: +0.029%, plus: -0.029%}
+      label: sys,PDF4LHC 90912
+    - asymerror: {minus: +0.046%, plus: -0.046%}
+      label: sys,PDF4LHC 90913
+    - asymerror: {minus: -0.031%, plus: +0.031%}
+      label: sys,PDF4LHC 90914
+    - asymerror: {minus: -0.034%, plus: +0.034%}
+      label: sys,PDF4LHC 90915
+    - asymerror: {minus: -0.103%, plus: +0.103%}
+      label: sys,PDF4LHC 90916
+    - asymerror: {minus: -0.033%, plus: +0.033%}
+      label: sys,PDF4LHC 90917
+    - asymerror: {minus: +0.033%, plus: -0.033%}
+      label: sys,PDF4LHC 90918
+    - asymerror: {minus: +0.017%, plus: -0.017%}
+      label: sys,PDF4LHC 90919
+    - asymerror: {minus: +0.089%, plus: -0.089%}
+      label: sys,SOFTMET RESOPARA
+    - asymerror: {minus: +0.014%, plus: -0.014%}
+      label: sys,jer NP 4
+    - asymerror: {minus: -0.049%, plus: +0.049%}
+      label: sys,multijet background
+    - asymerror: {minus: +2.520%, plus: -2.430%}
+      label: sys,top-quark mass
+    - asymerror: {minus: 0.000%, plus: +0.093%}
+      label: sys,(jes) EffectiveNP Statistical6
+    - asymerror: {minus: -0.006%, plus: +0.006%}
+      label: sys,PDF4LHC 90929
+    - asymerror: {minus: -0.001%, plus: 0.000%}
+      label: sys,Mu sagitta res bias
+    - asymerror: {minus: -0.064%, plus: +0.064%}
+      label: sys,PDF4LHC 90925
+    - asymerror: {minus: -0.024%, plus: +0.024%}
+      label: sys,PDF4LHC 90927
+    - asymerror: {minus: -0.008%, plus: +0.008%}
+      label: sys,PDF4LHC 90926
+    - asymerror: {minus: 0.000%, plus: +0.008%}
+      label: sys,Mu energy scale
+    - asymerror: {minus: +6.426%, plus: -6.426%}
+      label: sys,hadronis-model
+    - asymerror: {minus: +0.016%, plus: -0.016%}
+      label: sys,PDF4LHC 90923
+    - asymerror: {minus: -0.045%, plus: +0.045%}
+      label: sys,PDF4LHC 90922
+    - asymerror: {minus: -0.220%, plus: +0.221%}
+      label: sys,eff MU SF ID SYST
+    - asymerror: {minus: -0.966%, plus: +0.966%}
+      label: sys,jer NP 3
+    - asymerror: {minus: +0.105%, plus: -0.023%}
+      label: sys,(jes) EffectiveNP Detector2
+    - asymerror: {minus: +0.096%, plus: -0.314%}
+      label: sys,(jes) EffectiveNP Detector1
+    - asymerror: {minus: +0.119%, plus: -0.119%}
+      label: sys,light-jet tag eff (eig 1)
+    - asymerror: {minus: +0.453%, plus: -0.454%}
+      label: sys,light-jet tag eff (eig 0)
+    - asymerror: {minus: +0.052%, plus: -0.052%}
+      label: sys,light-jet tag eff (eig 3)
+    - asymerror: {minus: -2.046%, plus: 0.000%}
+      label: sys,SingleTop FSR
+    - asymerror: {minus: -0.022%, plus: +0.022%}
+      label: sys,eff MU SF TTVA STAT
+    - asymerror: {minus: +1.065%, plus: -0.938%}
+      label: sys,pileup
+    - asymerror: {minus: +0.012%, plus: -0.012%}
+      label: sys,PDF4LHC 90930
+    - asymerror: {minus: -0.302%, plus: +0.302%}
+      label: sys,t+X xsec
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,SOFTMET SCALE
+    - asymerror: {minus: 0.000%, plus: 0.000%}
+      label: sys,Mu sagitta correction
+    - asymerror: {minus: -0.575%, plus: +0.793%}
+      label: sys,JSF stat.
+    - asymerror: {minus: +0.024%, plus: -0.024%}
+      label: sys,c tag eff (eig 2)
+    - asymerror: {minus: +0.018%, plus: -0.018%}
+      label: sys,c tag eff (eig 3)
+    - asymerror: {minus: +0.343%, plus: -0.341%}
+      label: sys,c tag eff (eig 0)
+    - asymerror: {minus: -0.091%, plus: +0.089%}
+      label: sys,eff MU SF Trigger STAT
+    - asymerror: {minus: +0.004%, plus: -0.004%}
+      label: sys,PDF4LHC 90928
+    - asymerror: {minus: +0.270%, plus: -0.270%}
+      label: sys,SOFTMET RESOPERP
+    - asymerror: {minus: +0.002%, plus: -0.030%}
+      label: sys,Mu momentum resolution (MS)
+    - asymerror: {minus: -0.001%, plus: 0.000%}
+      label: sys,(jes) SingleParticle HighPt
+    - asymerror: {minus: -0.084%, plus: +0.084%}
+      label: sys,eff EL SF Trigger
+    - asymerror: {minus: -0.277%, plus: +0.082%}
+      label: sys,(jes) BJES Response
+    - asymerror: {minus: -0.944%, plus: +1.013%}
+      label: sys,(jes) EffectiveNP Modelling2
+    - asymerror: {minus: +0.118%, plus: -0.133%}
+      label: sys,(jes) EffectiveNP Modelling4
+    - asymerror: {minus: -0.577%, plus: +0.549%}
+      label: sys,(jes) EffectiveNP Modelling3
+    - asymerror: {minus: +3.068%, plus: -2.629%}
+      label: sys,(jes) EffectiveNP Modelling1
+    value: 7.694208e-06
+- header: {name: DSIG/DPT_THAD (PWG+PY8), units: 'pb GeV$^{-1}$'}
+  qualifiers:
+  - {name: SQRT(S), value: '13000.0'}
+  values:
+  - {value: 0.01279688}
+  - {value: 0.00972967}
+  - {value: 0.006077057}
+  - {value: 0.00309876}
+  - {value: 0.001362147}
+  - {value: 0.000543925}
+  - {value: 0.0001954953}
+  - {value: 9.935645e-06}
+independent_variables:
+- header: {name: PT_THAD, units: GeV}
+  values:
+  - {high: 381.0, low: 355.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 2000.0, low: 836.0}

@@ -1,0 +1,202 @@
+dependent_variables:
+- header: {name: Covariance matrix, units: 'pb$^{2}$/GeV$^2$'}
+  qualifiers:
+  - {name: SQRT(S), value: '13000.0'}
+  values:
+  - {value: 1.142214e-08}
+  - {value: 1.325784e-09}
+  - {value: -1.663448e-09}
+  - {value: 2.868488e-12}
+  - {value: 3.979517e-11}
+  - {value: 2.339939e-11}
+  - {value: 4.41265e-12}
+  - {value: -2.616067e-13}
+  - {value: 1.325784e-09}
+  - {value: 3.858134e-09}
+  - {value: 3.05611e-10}
+  - {value: -4.043711e-10}
+  - {value: 1.521823e-11}
+  - {value: 3.083766e-11}
+  - {value: 4.475435e-12}
+  - {value: 1.500924e-13}
+  - {value: -1.663448e-09}
+  - {value: 3.05611e-10}
+  - {value: 2.14209e-09}
+  - {value: -4.282184e-11}
+  - {value: -1.242758e-10}
+  - {value: 7.846414e-12}
+  - {value: 8.585527e-13}
+  - {value: -4.532174e-13}
+  - {value: 2.868488e-12}
+  - {value: -4.043711e-10}
+  - {value: -4.282184e-11}
+  - {value: 9.223829e-10}
+  - {value: -2.658358e-11}
+  - {value: -5.051675e-11}
+  - {value: 1.007103e-12}
+  - {value: 1.404324e-13}
+  - {value: 3.979517e-11}
+  - {value: 1.521823e-11}
+  - {value: -1.242758e-10}
+  - {value: -2.658358e-11}
+  - {value: 3.46679e-10}
+  - {value: -1.175331e-11}
+  - {value: -1.582259e-11}
+  - {value: 1.482517e-13}
+  - {value: 2.339939e-11}
+  - {value: 3.083766e-11}
+  - {value: 7.846414e-12}
+  - {value: -5.051675e-11}
+  - {value: -1.175331e-11}
+  - {value: 1.503833e-10}
+  - {value: -4.152634e-12}
+  - {value: -4.322602e-13}
+  - {value: 4.41265e-12}
+  - {value: 4.475435e-12}
+  - {value: 8.585527e-13}
+  - {value: 1.007103e-12}
+  - {value: -1.582259e-11}
+  - {value: -4.152634e-12}
+  - {value: 4.672008e-11}
+  - {value: -4.819765e-13}
+  - {value: -2.616067e-13}
+  - {value: 1.500924e-13}
+  - {value: -4.532174e-13}
+  - {value: 1.404324e-13}
+  - {value: 1.482517e-13}
+  - {value: -4.322602e-13}
+  - {value: -4.819765e-13}
+  - {value: 2.477684e-13}
+independent_variables:
+- header: {name: PT_THAD, units: GeV}
+  values:
+  - {high: 381.0, low: 355.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 2000.0, low: 836.0}
+- header: {name: PT_THAD, units: GeV}
+  values:
+  - {high: 381.0, low: 355.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 2000.0, low: 836.0}
+  - {high: 381.0, low: 355.0}
+  - {high: 420.0, low: 381.0}
+  - {high: 478.0, low: 420.0}
+  - {high: 549.0, low: 478.0}
+  - {high: 633.0, low: 549.0}
+  - {high: 720.0, low: 633.0}
+  - {high: 836.0, low: 720.0}
+  - {high: 2000.0, low: 836.0}
