@@ -1,4 +1,4 @@
-from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, RooMinuit, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH1D, TH2D, TCanvas, TRandom3, RooMsgService, Math
+from ROOT import RooMultiVarGaussian, RooArgList, RooFormulaVar, RooArgSet, TGraph, RooProdPdf, RooFit, RooGaussian, TFile, RooWorkspace, RooDataSet, RooStats, RooFit, RooCmdArg, TH2F, RooPoisson, TMatrixDSym, TH1D, TH2D, TCanvas, TRandom3, RooMsgService, Math, RooMinimizer
 from ROOT.RooStats import ModelConfig,ProfileLikelihoodCalculator,HybridCalculator,FrequentistCalculator,HypoTestInverter,ProfileLikelihoodTestStat
 import itertools,re,math
 import Utils
@@ -158,7 +158,7 @@ class Combination:
         self.dataset.add(RooArgSet(self.data))
         self.nll=self.pdf.createNLL(self.dataset,RooFit.Optimize(False))
 
-        self.minimizer=RooMinuit(self.nll)
+        self.minimizer=RooMinimizer(self.nll)
         unused_pars=theory.getCoeffNames()
         for pred in predictions:
             for l in pred.linear_effects:
