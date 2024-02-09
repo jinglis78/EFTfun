@@ -280,8 +280,8 @@ class Measurement:
 
     def getMeasuredFromYaml(self,filename,index):
         import yaml
-        f=open(filename)
-        data=yaml.load(f)
+        with open(filename) as f:
+            data=yaml.safe_load(f)
         vals=data['dependent_variables'][int(index)]['values']
         return [float(y['value']) for y in vals]
 
@@ -316,8 +316,8 @@ class Measurement:
 
     def getMatrixFromYaml(self,filename,index=0):
         import yaml
-        f=open(filename)
-        data=yaml.load(f)
+        with open(filename) as f:
+            data=yaml.safe_load(f)
         vals=data['dependent_variables'][index]['values']
         assert len(vals)==self.nbins*self.nbins
         matrix=[]

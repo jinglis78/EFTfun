@@ -182,8 +182,8 @@ def createUncertainty(reference,name,releffect,affected='all',interpol='exp',unc
 
 def getErrsFromYaml(reference,filename,err_label,rel=True):
     import yaml
-    f=open(filename)
-    vals=yaml.load(f)['dependent_variables'][0]['values']
+    with open(filename) as f:
+        vals=yaml.safe_load(f)['dependent_variables'][0]['values']
     assert len(vals)==reference.nbins
     errs=[]
     found=False
