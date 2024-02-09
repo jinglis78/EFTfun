@@ -227,9 +227,20 @@ class Prediction:
                         c=c.replace('1','o').replace('3','t').replace('8','e')
                         print(('' if e<0 else '+')+str(round(e/sm,2))+'\\'+str(c), end=' ')
             print('$\\\\')
-
-        
-
+        res={}
+        for iBin in range(self.nbins):
+            name=self.name+'_'+str(iBin)
+            res[name]={}
+            res[name]['lin']={}
+            #res[name]['quad']={}
+            sm=self.sm[iBin]
+            res[name]['sm']=sm
+            for c in self.theory.getCoeffNames():
+                if c in self.linear_effects:
+                    l=self.getLinearEffect(c,iBin)
+                    if  abs(round(l/sm,2))>1e-12:
+                        res[name]['lin'][c]=l
+        return res
     def plotPrefit(self, outfile,statonly=False):
         histoname=self.name+'_prefit'
         if statonly:

@@ -9,6 +9,7 @@ import re,os,time,math
 from subprocess import call
 from glob import glob
 import logging
+import yaml
 gROOT.SetBatch(True)
 
 def main():    
@@ -480,8 +481,11 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         w=combination.createWorkspace(pois)
         w.Write()
     elif method=='printpara':
+        res={}
         for p in predictions:
-            p.printPara()
+            res.update(p.printPara())
+        with open(outname+'.yml','w') as fyml:
+            yaml.dump(res,fyml)
     elif method=='histo':
         for p in predictions:
             p.plotPrefit(f)
