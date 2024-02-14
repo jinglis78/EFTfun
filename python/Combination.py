@@ -502,7 +502,6 @@ class Combination:
         if not self.verbose or print_level<0:
             self.minimizer.setPrintLevel(-1)
             self.minimizer.setPrintEvalErrors(-1)
-            self.minimizer.setNoWarn()
             self.minimizer.setVerbose(False)
         self.minimizer.setStrategy(strategy)
         self.minimizer.setErrorLevel(0.5)
