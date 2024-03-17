@@ -600,6 +600,9 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     Plotting.graphToys2D('g_toyProb_'+'_'.join(pois),toy_limit,f)
                     Plotting.canvasProfile2D('c_prob_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d,toy_result=toy_limit,isNLL=False,ztitle='p value')
     elif method=='fit':
+
+        doBigfit = True
+
         logging.info('doing fit')
         data_histos_prefit=[]
         pred_histos_prefit=[]
@@ -621,6 +624,74 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             h_p_post=p.plotPostfit(f,combination.getFitResult())
             hs_bkg_post=p.plotBkgPostfit(f,combination.getFitResult())
             h_m_post=None
+
+            #  ____Plotting____
+            if doBigfit:
+                formulas=p.getPredictionStrings()
+                
+                preds = p.getPredictionFormulas()
+                lin = p.linear_effects
+
+                pred_unc = p.uncertainties
+                meas_unc = m.uncertainties
+
+                operators = {'cll1', 'chq3', 'clq3', 'chl3'}
+
+                # loop over the prediction formula for each bin
+                for iBin,formula in enumerate(formulas):
+                    print ("iBin: ", iBin)
+
+                    print ("formula: ", formula)
+
+                    for u in pred_unc:
+                        if "sm" in u.affected:
+                            sm_effect = u.releffect[iBin]
+                            print ("pred_unc: ", u.releffect[iBin])
+                    
+                    sm_unc = (sm_effect[0] * p.sm[iBin], sm_effect[1] * p.sm[iBin])
+                    meas_unc = (- m.getErr(incl_np=False)[iBin], m.getErr(incl_np=False)[iBin])
+
+                    print ("sm ", p.sm[iBin])
+                    print ("sm uncertainty ", sm_unc )
+                    print ("measurement ", m.central_values[iBin].getVal())
+                    print ("measurement uncertainty ", meas_unc)
+
+                    data= {'meas': m.central_values[iBin].getVal(), 'sm': p.sm[iBin], 'cll1': 0, 'chq3': 0, 'clq3': 0, 'chl3': 0 }
+
+                    uncertainties = {
+                        'meas': meas_unc,  
+                        'sm': sm_unc,    
+                        'cll1': (0.0, 0.0),
+                        'chq3': (0.0, 0.0),
+                        'clq3': (0.0, 0.0),
+                        'chl3': (0.0, 0.0)
+                    }
+
+                    for j,op in enumerate(operators):
+                        lin_effect = lin[op][iBin]
+                        print ("lin_effect = lin[op][iBin]", op, lin_effect )
+                        data[op] = lin_effect[0]
+                        
+                        for k in range(len(pred_unc)):
+                            if pred_unc[k].name == "hist_"+op:
+                                unc_name = pred_unc[k].name
+                                smeft_effect = pred_unc[k].releffect[iBin]
+
+                        smeft_unc_lower = smeft_effect[0]*data[op]
+                        smeft_unc_upper = smeft_effect[1]*data[op]
+
+                        smeft_unc = (smeft_unc_lower , smeft_unc_upper )
+
+                        print ("smeft uncertainties for ", op, ": ", smeft_unc )
+                        uncertainties[op] = smeft_unc
+                        
+
+                    print (formula)
+                    print (data)
+
+                    Plotting.canvasPredFormula('c_formula_bin'+str(iBin),formula, data, uncertainties, f,outname)
+                    
+
             if m.getMeasurementCorrectionString()!=None:
                 h_m_post=m.plotPostfit(f,combination.getFitResult())
             Plotting.canvasPostfit('c_postfit_'+m.name,h_m_pre,h_m_post,h_p_pre,h_p_post,outfile=f,outfolder=outname)
@@ -631,12 +702,37 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         logging.info('Results when floating all (MINOS errors)')
         for t in theory.coeffs+theory.thetas:
             if t.GetName() in pulls:
-                logging.info('{} = {}_{{ {} }}^{{ {} }}'.format(t.GetName(),*[ Utils.round2(p) for p in pulls[t.GetName()]]))
+                # Assuming pullsEach is a dictionary containing values for t.GetName()
+                for key, values in pulls.items():
+                    # Checking for infinity and formatting the pulls accordingly
+                    formatted_pulls = []
+                    for p in values:
+                        if math.isinf(p):
+                            formatted_pulls.append("999999")
+                        else:
+                            formatted_pulls.append(Utils.round2(p))
+
+                # Constructing the formatted string
+                formatted_string = '{} = {}_{{ {} }}^{{ {} }}'.format(key, *formatted_pulls)
+                logging.info(formatted_string)
+                
         if len(pullsEach)>0:
             logging.info('Results when setting all but one poi to zero (MINOS errors)')
         for t in theory.coeffs:
             if t.GetName() in pullsEach:
-                logging.info('{} = {}_{{ {} }}^{{ {} }}'.format(t.GetName(),*[ Utils.round2(p) for p in pullsEach[t.GetName()]]))
+                # Assuming pullsEach is a dictionary containing values for t.GetName()
+                for key, values in pullsEach.items():
+                    # Checking for infinity
+                    formatted_pulls = []
+                    for p in values:
+                        if math.isinf(p):
+                            formatted_pulls.append("999999") # If p is infinity, just append the string "\infty"
+                        else:
+                            formatted_pulls.append(Utils.round2(p))  # Otherwise, round the value normally
+                
+                # Constructing the formatted string
+                formatted_string = '{} = {}_{{ {} }}^{{ {} }}'.format(key, *formatted_pulls)
+                logging.info(formatted_string)
 
         Plotting.canvasPulls('c_pulls',theory.getThetaNames(),pulls,outfile=f,outfolder=outname)
         Plotting.canvasPulls('c_bestfit_all',theory.getCoeffNames(),pulls,outfile=f,outfolder=outname,pois=True,rescale=True)

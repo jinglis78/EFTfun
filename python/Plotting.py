@@ -21,6 +21,169 @@ def graphProfile1D(name,result,outfile=None,isNLL=True,makeProb=False,conts2d=Fa
         g.Write()
     return g
 
+
+def make_line(formula, op, nu_val):
+    # Create a dictionary to map variable names to values
+    variables = {'cll1': 0, 'chq3': 0, 'clq3': 0, 'chl3': 0 }
+
+    variables.update({
+        'hist_sm': 0,
+        'hist_cll1': 0,
+        'hist_chq3': 0,
+        'hist_clq3': 0,
+        'hist_chl3': 0
+    })
+
+    # Set the value of the relevant nuisance parameter
+    variables["hist_"+op] = nu_val
+
+    return variables
+
+def canvasPredFormula(name, formula, data, uncertainties, outfile, outfolder):
+
+
+    operators = {'cll1', 'chq3', 'clq3', 'chl3'}
+
+    # Dictionary of multigraphs
+
+    multigraphs = {}
+
+    for itr,op in enumerate(operators):
+        print(op)
+
+        # make multi graph
+        mg = ROOT.TMultiGraph()
+        
+        mg.SetTitle("{};{}; Cross section [nb]".format(op, op))
+
+
+        for nu_val in [-1, 0, 1]:
+            print("nu_val = ", nu_val)
+            print("op = ", op)
+
+            results = []
+
+            variables = make_line(formula, op, nu_val)
+
+            graph = ROOT.TGraph()
+            graph.GetXaxis().SetRangeUser(-1, 1)
+
+            line_color = ROOT.kBlue if nu_val == 1 else ROOT.kRed if nu_val == -1 else ROOT.kBlack
+            line_style = 2 if nu_val != 0 else 1
+
+            graph.SetLineColor(line_color)
+            graph.SetLineStyle(line_style)
+
+            min_result = 0
+            max_result = 1
+
+            # Loop over x in the range -1 to 1 with 100 steps
+            for x in range(-20, 21):
+                variables_copy = variables.copy()
+                variables_copy[op] = x / 20.0  # Scale x to be in the range -1 to 1
+
+                result = eval(formula, variables_copy)
+                if x == 20:
+                    print ("x= ", x)
+                    print(formula)
+                    print("x/20 = ", x / 20.0)
+                    #print("printing variables")
+                    # print (variables_copy)
+                    print(result)
+                results.append(result)
+                if result < min_result:
+                    min_result = result
+                if result > max_result:
+                    max_result = result
+
+            print ("min and max results: ", min_result, " and ", max_result)
+            
+            if min_result < 0:
+                graph.GetYaxis().SetRangeUser(min_result*4, max_result*4)
+            else:
+                graph.GetYaxis().SetRangeUser(min_result/4, max_result*4)
+            graph.SetTitle("{};X title;Y title");
+
+            for i, result in enumerate(results):
+                graph.SetPoint(i, (i - 20) / 20.0, result)
+
+            mg.Add(graph,"lp")
+
+
+        multigraphs[op]= mg
+    
+    for op, mg in multigraphs.items():
+        print (op)
+        # Create a new canvas for each multigraph
+        c = ROOT.TCanvas(name+"_"+op, name+"_"+op, 1024, 1024)
+        c.SetRightMargin(0.1)
+        c.SetTopMargin(0.1)
+        c.SetLeftMargin(0.15)
+        c.SetBottomMargin(0.1)
+        c.cd()
+
+
+        data_points = ROOT.TGraphErrors()
+        data_points.SetPoint(0, 0, data["meas"])  # sm meas
+
+        pred_points = ROOT.TGraphErrors()
+        pred_points.SetPoint(0, 0, data["sm"])  # sm pred
+        pred_points.SetPoint(1, 1, data["sm"] + data[op])  # smeft pred
+
+        print ("data[op]: ", data[op], " +- ",uncertainties[op][1])
+        print ("data['sm']: ", data['sm'], " +- ",uncertainties['sm'][1])
+        print ("data['meas']: ", data['meas'], " +- ",uncertainties['meas'][1])
+
+        if (data['meas'] - uncertainties['meas'][1]) < (data["sm"] - data[op] - uncertainties[op][1]):
+            if (data['meas'] - uncertainties['meas'][1]) < 0:
+                mg.SetMinimum((data['meas'] - uncertainties['meas'][1])*1.3)
+            if (data['meas'] - uncertainties['meas'][1]) > 0:
+                mg.SetMinimum((data['meas'] - uncertainties['meas'][1]) / 1.3)
+
+        if (data['meas'] + uncertainties['meas'][1]) > (data["sm"] + data[op] + uncertainties[op][1]):
+            if (data['meas'] + uncertainties['meas'][1]) < 0:
+                mg.SetMaximum((data['meas'] + uncertainties['meas'][1])/1.3)
+            if (data['meas'] + uncertainties['meas'][1]) > 0:
+                mg.SetMaximum((data['meas'] + uncertainties['meas'][1])*1.3)
+
+        mg.Draw("a")
+
+        pred_points.SetPointError(0, 0, uncertainties["sm"][1])  # Set errors for point 0
+        pred_points.SetPointError(1, 0, uncertainties[op][1] )  # Set errors for point 1
+
+        data_points.SetPointError(0, 0,  uncertainties["meas"][1]) # Set errors for point 0
+
+        pred_points.SetFillColor(ROOT.kBlue)
+        pred_points.SetMarkerColor(ROOT.kBlue+1)
+        pred_points.SetLineColor(ROOT.kBlue+1)
+        pred_points.SetFillStyle(3345)
+        pred_points.SetMarkerStyle(20)
+        pred_points.SetMarkerSize(2)
+        pred_points.Draw('P')
+
+        data_points.SetFillColor(ROOT.kRed)
+        data_points.SetMarkerColor(ROOT.kRed+1)
+        data_points.SetLineColor(ROOT.kRed+1)
+        data_points.SetFillStyle(3345)
+        data_points.SetMarkerStyle(20)
+        data_points.SetMarkerSize(2)
+        data_points.Draw('P')
+
+        legend = ROOT.TLegend(0.65, 0.7, 0.9, 0.9)
+        legend.SetTextSize(0.035)
+        legend.SetFillStyle(0)
+        legend.SetBorderSize(0)
+        legend.AddEntry(data_points, "Measurement", "p")
+        legend.AddEntry(pred_points, "Predictions", "p")
+
+
+        legend.Draw("same")
+
+
+        c.Update()
+        c.WaitPrimitive()
+        printAndSave(c, outfile, outfolder)
+
 def graphProfile2D(name,result,outfile=None,isNLL=True,makeProb=False,conts1d=False):
     g=ROOT.TGraph2D()
     result=[r for r in result if not math.isnan(r[2]) and not math.isinf(r[2])]

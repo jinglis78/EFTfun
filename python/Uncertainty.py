@@ -1,8 +1,24 @@
 from ROOT import TMatrixDSym
 import Utils
 import logging
+import re
 
 def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per_bin_width=True,isBkgUnc=False):
+
+    print ("reference: ", reference)
+    print ("data: ", data)
+    print ("name: ", name)
+
+    coeff = "c"
+
+    # Using regular expressions to find the string inside curly braces
+    if "meas" not in name:
+        coeff = re.findall(r'\{(.*?)\}', name)[0]
+
+    # Extracted string
+    print ("coeff: ", coeff)
+    
+
     if '{' in name:
         affected=set(o.strip() for o in name[name.find('{')+1:name.find('}')].split())
         if 'all' in affected:
@@ -93,7 +109,20 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
         if isrel==True:
             releffect=effect
         elif isrel==False:
-            releffect=[(e[0]/s,e[1]/s) if s!=0 else (0,0) for e,s in zip(effect,reference.getNominal())]
+            #releffect=[(e[0]/s,e[1]/s) for e,s in zip(effect,reference.getNominal())]
+            releffect = []
+            i = 0
+            for e,s in zip(effect,reference.getNominal()):
+                #print ("effect: ", e)
+                if coeff == "sm" or "meas" in name:
+                    releffect.append((e[0] / s, e[1] / s))
+                    #print ("reference.GetNominal ", s)
+                else:
+                    #print("reference.getLinearEffect ", reference.getLinearEffect(coeff,i))
+                    eft = reference.getLinearEffect(coeff,i)
+                    releffect.append((e[0] / eft, e[1] / eft))
+                i+=1
+            print ("releffect: ", releffect)
         elif free:
             releffect=effect
         else:

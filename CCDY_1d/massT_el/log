@@ -1,0 +1,1387 @@
+INFO:--------------------------------------
+INFO:running fit with following parameters:
+INFO:config ./configs/CCDY_1d/Tutorial.cfg
+INFO:outname CCDY_1d/massT_el
+INFO:poi None
+INFO:scanrange 3
+INFO:nsteps 200
+INFO:ntoys -1
+INFO:asimov False
+INFO:linear False
+INFO:quad False
+INFO:deactivate_uncertainties None
+INFO:constant None
+INFO:set_initial None
+INFO:quiet False
+INFO:write_more False
+INFO:override None
+INFO:measurements all
+INFO:repara False
+INFO:groups None
+INFO:robust 1
+INFO:offset False
+INFO:implicitscan None
+INFO:conts1d False
+INFO:conts2d False
+INFO:njobs 1
+INFO:cluster None
+INFO:first -1
+INFO:last -1
+INFO:parallel_job False
+INFO:--------------------------------------
+INFO:creating prediction for massT_el
+INFO:creating measurement for massT_el
+WARNING:neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties
+INFO:adding uncertainties for massT_el
+INFO:Ingredients ------------------------------------------------
+INFO:Measurement: massT_el
+INFO:
+INFO:Measured: 1.59795725 0.59400904 0.28333795 0.19270216 0.08467523 0.05179459 0.02925887 0.01079 0.00558303 0.00252366 0.00098439
+INFO:
+INFO:Uncertainty (excluding nuisance parameters): 0.81%  1.15%  0.93%  1.00%  0.91%  1.03%  0.82%  1.18%  0.86%  1.27%  1.90% 
+INFO:
+INFO:Correlation matrix:
+INFO:1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00
+INFO:Prediction formulas:
+INFO:
+INFO:bin 0:
+INFO:(1.57314681*(1+0.008196526807310502*hist_sm)
++cll1*0.1905645*(1+0.000993905966093527*hist_cll1)
++chq3*0.19029027*(1+0.0009921578774965065*hist_chq3)
++clq3*1.72321572*(1+0.01030280829288908*hist_clq3)
++chl3*-0.19073165*(1+0.0009937915457489948*hist_chl3))
+
+INFO:
+INFO:bin 1:
+INFO:(0.59845651*(1+0.01139359316184897*hist_sm)
++cll1*0.07453516*(1+0.0014156918436729847*hist_cll1)
++chq3*0.07222425*(1+0.0013839936338899547*hist_chq3)
++clq3*1.06369666*(1+0.01913495769308283*hist_clq3)
++chl3*-0.0725716*(1+0.0013816208633105186*hist_chl3))
+
+INFO:
+INFO:bin 2:
+INFO:(0.28368662*(1+0.009316477456709098*hist_sm)
++cll1*0.03434048*(1+0.0011266305051679914*hist_cll1)
++chq3*0.03526038*(1+0.0011444318382023092*hist_chq3)
++clq3*0.69527369*(1+0.026461522929773707*hist_clq3)
++chl3*-0.03439958*(1+0.001129662019308489*hist_chl3))
+
+INFO:
+INFO:bin 3:
+INFO:(0.19092354*(1+0.01006182893948017*hist_sm)
++cll1*0.02299494*(1+0.0012172935825514235*hist_cll1)
++chq3*0.02302618*(1+0.0012125796536142164*hist_chq3)
++clq3*0.68996247*(1+0.03596177820712941*hist_clq3)
++chl3*-0.02315*(1+0.0012199648089491742*hist_chl3))
+
+INFO:
+INFO:bin 4:
+INFO:(0.08426679*(1+0.009147375852337557*hist_sm)
++cll1*0.01034163*(1+0.001116691403576664*hist_cll1)
++chq3*0.01022179*(1+0.0011087404658466284*hist_chq3)
++clq3*0.43969982*(1+0.052920136153281734*hist_clq3)
++chl3*-0.01021723*(1+0.0011090964779837942*hist_chl3))
+
+INFO:
+INFO:bin 5:
+INFO:(0.05124044*(1+0.01037852133978553*hist_sm)
++cll1*0.0061272*(1+0.001245890940827206*hist_cll1)
++chq3*0.00623798*(1+0.0012595520257046974*hist_chq3)
++clq3*0.36357364*(1+0.0718520371800086*hist_clq3)
++chl3*-0.00621193*(1+0.0012581859172169482*hist_chl3))
+
+INFO:
+INFO:bin 6:
+INFO:(0.02929289*(1+0.008224862756798665*hist_sm)
++cll1*0.00349274*(1+0.000987953049357711*hist_cll1)
++chq3*0.00354455*(1+0.0009964875435643258*hist_chq3)
++clq3*0.31285709*(1+0.09330967343952748*hist_clq3)
++chl3*-0.0035518*(1+0.0009971703031008549*hist_chl3))
+
+INFO:
+INFO:bin 7:
+INFO:(0.01076004*(1+0.011799212642332184*hist_sm)
++cll1*0.00127589*(1+0.0014079873309021157*hist_cll1)
++chq3*0.00128412*(1+0.0014135635183512329*hist_chq3)
++clq3*0.17125486*(1+0.16651053341809138*hist_clq3)
++chl3*-0.00130461*(1+0.0014302920806985846*hist_chl3))
+
+INFO:
+INFO:bin 8:
+INFO:(0.00547148*(1+0.008770935834545681*hist_sm)
++cll1*0.00065917*(1+0.0010600422554774944*hist_cll1)
++chq3*0.00066183*(1+0.0010618699145386625*hist_chq3)
++clq3*0.12502764*(1+0.21324943159803197*hist_clq3)
++chl3*-0.00066341*(1+0.0010636975735998303*hist_chl3))
+
+INFO:
+INFO:bin 9:
+INFO:(0.00248527*(1+0.012920125378731488*hist_sm)
++cll1*0.0003047*(1+0.0015732697051024638*hist_cll1)
++chq3*0.00030822*(1+0.001585340828159516*hist_chq3)
++clq3*0.08827569*(1+0.388235483468597*hist_clq3)
++chl3*-0.00030128*(1+0.0015652222897310957*hist_chl3))
+
+INFO:
+INFO:bin 10:
+INFO:(0.00097983*(1+0.01913597256666973*hist_sm)
++cll1*0.00011716*(1+0.002306522560035925*hist_cll1)
++chq3*0.00012035*(1+0.0023371401161425965*hist_chq3)
++clq3*0.05890434*(1+0.7255748446159028*hist_clq3)
++chl3*-0.0001188*(1+0.002316728412071482*hist_chl3))
+
+INFO:
+INFO:------------------------------------------------
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519558e-74) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519536e-52
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519536e-52) rescaling measurement and prediction by 10
+INFO:New determinant: 2.614576993751955e-30
+INFO:Tiny covariance matrix determinant (massT_el: 2.614576993751955e-30) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519535e-08
+INFO:doing fit
+INFO:Method took 0.9173872470855713 seconds
+WARNING:updating CCDY_1d/massT_el.root
+INFO:--------------------------------------
+INFO:running fit with following parameters:
+INFO:config ./configs/CCDY_1d/Tutorial.cfg
+INFO:outname CCDY_1d/massT_el
+INFO:poi None
+INFO:scanrange 3
+INFO:nsteps 200
+INFO:ntoys -1
+INFO:asimov False
+INFO:linear False
+INFO:quad False
+INFO:deactivate_uncertainties None
+INFO:constant None
+INFO:set_initial None
+INFO:quiet False
+INFO:write_more False
+INFO:override None
+INFO:measurements all
+INFO:repara False
+INFO:groups None
+INFO:robust 1
+INFO:offset False
+INFO:implicitscan None
+INFO:conts1d False
+INFO:conts2d False
+INFO:njobs 1
+INFO:cluster None
+INFO:first -1
+INFO:last -1
+INFO:parallel_job False
+INFO:--------------------------------------
+INFO:creating prediction for massT_el
+INFO:creating measurement for massT_el
+WARNING:neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties
+INFO:adding uncertainties for massT_el
+INFO:Ingredients ------------------------------------------------
+INFO:Measurement: massT_el
+INFO:
+INFO:Measured: 1.59795725 0.59400904 0.28333795 0.19270216 0.08467523 0.05179459 0.02925887 0.01079 0.00558303 0.00252366 0.00098439
+INFO:
+INFO:Uncertainty (excluding nuisance parameters): 0.81%  1.15%  0.93%  1.00%  0.91%  1.03%  0.82%  1.18%  0.86%  1.27%  1.90% 
+INFO:
+INFO:Correlation matrix:
+INFO:1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00
+INFO:Prediction formulas:
+INFO:
+INFO:bin 0:
+INFO:(1.57314681*(1+0.008196526807310502*hist_sm)
++cll1*0.1905645*(1+0.000993905966093527*hist_cll1)
++chq3*0.19029027*(1+0.0009921578774965065*hist_chq3)
++clq3*1.72321572*(1+0.01030280829288908*hist_clq3)
++chl3*-0.19073165*(1+0.0009937915457489948*hist_chl3))
+
+INFO:
+INFO:bin 1:
+INFO:(0.59845651*(1+0.01139359316184897*hist_sm)
++cll1*0.07453516*(1+0.0014156918436729847*hist_cll1)
++chq3*0.07222425*(1+0.0013839936338899547*hist_chq3)
++clq3*1.06369666*(1+0.01913495769308283*hist_clq3)
++chl3*-0.0725716*(1+0.0013816208633105186*hist_chl3))
+
+INFO:
+INFO:bin 2:
+INFO:(0.28368662*(1+0.009316477456709098*hist_sm)
++cll1*0.03434048*(1+0.0011266305051679914*hist_cll1)
++chq3*0.03526038*(1+0.0011444318382023092*hist_chq3)
++clq3*0.69527369*(1+0.026461522929773707*hist_clq3)
++chl3*-0.03439958*(1+0.001129662019308489*hist_chl3))
+
+INFO:
+INFO:bin 3:
+INFO:(0.19092354*(1+0.01006182893948017*hist_sm)
++cll1*0.02299494*(1+0.0012172935825514235*hist_cll1)
++chq3*0.02302618*(1+0.0012125796536142164*hist_chq3)
++clq3*0.68996247*(1+0.03596177820712941*hist_clq3)
++chl3*-0.02315*(1+0.0012199648089491742*hist_chl3))
+
+INFO:
+INFO:bin 4:
+INFO:(0.08426679*(1+0.009147375852337557*hist_sm)
++cll1*0.01034163*(1+0.001116691403576664*hist_cll1)
++chq3*0.01022179*(1+0.0011087404658466284*hist_chq3)
++clq3*0.43969982*(1+0.052920136153281734*hist_clq3)
++chl3*-0.01021723*(1+0.0011090964779837942*hist_chl3))
+
+INFO:
+INFO:bin 5:
+INFO:(0.05124044*(1+0.01037852133978553*hist_sm)
++cll1*0.0061272*(1+0.001245890940827206*hist_cll1)
++chq3*0.00623798*(1+0.0012595520257046974*hist_chq3)
++clq3*0.36357364*(1+0.0718520371800086*hist_clq3)
++chl3*-0.00621193*(1+0.0012581859172169482*hist_chl3))
+
+INFO:
+INFO:bin 6:
+INFO:(0.02929289*(1+0.008224862756798665*hist_sm)
++cll1*0.00349274*(1+0.000987953049357711*hist_cll1)
++chq3*0.00354455*(1+0.0009964875435643258*hist_chq3)
++clq3*0.31285709*(1+0.09330967343952748*hist_clq3)
++chl3*-0.0035518*(1+0.0009971703031008549*hist_chl3))
+
+INFO:
+INFO:bin 7:
+INFO:(0.01076004*(1+0.011799212642332184*hist_sm)
++cll1*0.00127589*(1+0.0014079873309021157*hist_cll1)
++chq3*0.00128412*(1+0.0014135635183512329*hist_chq3)
++clq3*0.17125486*(1+0.16651053341809138*hist_clq3)
++chl3*-0.00130461*(1+0.0014302920806985846*hist_chl3))
+
+INFO:
+INFO:bin 8:
+INFO:(0.00547148*(1+0.008770935834545681*hist_sm)
++cll1*0.00065917*(1+0.0010600422554774944*hist_cll1)
++chq3*0.00066183*(1+0.0010618699145386625*hist_chq3)
++clq3*0.12502764*(1+0.21324943159803197*hist_clq3)
++chl3*-0.00066341*(1+0.0010636975735998303*hist_chl3))
+
+INFO:
+INFO:bin 9:
+INFO:(0.00248527*(1+0.012920125378731488*hist_sm)
++cll1*0.0003047*(1+0.0015732697051024638*hist_cll1)
++chq3*0.00030822*(1+0.001585340828159516*hist_chq3)
++clq3*0.08827569*(1+0.388235483468597*hist_clq3)
++chl3*-0.00030128*(1+0.0015652222897310957*hist_chl3))
+
+INFO:
+INFO:bin 10:
+INFO:(0.00097983*(1+0.01913597256666973*hist_sm)
++cll1*0.00011716*(1+0.002306522560035925*hist_cll1)
++chq3*0.00012035*(1+0.0023371401161425965*hist_chq3)
++clq3*0.05890434*(1+0.7255748446159028*hist_clq3)
++chl3*-0.0001188*(1+0.002316728412071482*hist_chl3))
+
+INFO:
+INFO:------------------------------------------------
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519558e-74) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519536e-52
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519536e-52) rescaling measurement and prediction by 10
+INFO:New determinant: 2.614576993751955e-30
+INFO:Tiny covariance matrix determinant (massT_el: 2.614576993751955e-30) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519535e-08
+INFO:Minimizing for pulls
+INFO:Minimizing for pulls, with all POIs but chq3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but chl3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but cll1 fixed at zero
+INFO:Minimizing for pulls, with all POIs but clq3 fixed at zero
+INFO:Results when floating all (MINOS errors)
+INFO:chq3 = -0.802_{ 0 }^{ 0 }
+INFO:chl3 = -0.816_{ 0 }^{ 0 }
+INFO:cll1 = 0.0599_{ 0 }^{ 0 }
+INFO:clq3 = 0.000302_{ -0.000316 }^{ 0.000516 }
+INFO:hist_sm = -0.477_{ -0.898 }^{ 0.907 }
+INFO:hist_cll1 = 0.00033_{ -1.0 }^{ 1.0 }
+INFO:hist_chq3 = 0.00551_{ -1.0 }^{ 1.0 }
+INFO:hist_clq3 = -0.152_{ -0.955 }^{ 1.05 }
+INFO:hist_chl3 = -0.00569_{ -1.0 }^{ 1.0 }
+INFO:Results when setting all but one poi to zero (MINOS errors)
+INFO:chq3 = 0.0732_{ -0.0721 }^{ 0.0721 }
+INFO:chl3 = -0.0736_{ -0.072 }^{ 0.072 }
+INFO:cll1 = 0.0728_{ -0.0722 }^{ 0.0724 }
+INFO:clq3 = 0.000394_{ -0.000398 }^{ 0.000663 }
+INFO:Method took 0.9877481460571289 seconds
+WARNING:updating CCDY_1d/massT_el.root
+INFO:--------------------------------------
+INFO:running fit with following parameters:
+INFO:config ./configs/CCDY_1d/Tutorial.cfg
+INFO:outname CCDY_1d/massT_el
+INFO:poi None
+INFO:scanrange 3
+INFO:nsteps 200
+INFO:ntoys -1
+INFO:asimov False
+INFO:linear False
+INFO:quad False
+INFO:deactivate_uncertainties None
+INFO:constant None
+INFO:set_initial None
+INFO:quiet False
+INFO:write_more False
+INFO:override None
+INFO:measurements all
+INFO:repara False
+INFO:groups None
+INFO:robust 1
+INFO:offset False
+INFO:implicitscan None
+INFO:conts1d False
+INFO:conts2d False
+INFO:njobs 1
+INFO:cluster None
+INFO:first -1
+INFO:last -1
+INFO:parallel_job False
+INFO:--------------------------------------
+INFO:creating prediction for massT_el
+WARNING:updating CCDY_1d/massT_el.root
+INFO:--------------------------------------
+INFO:running fit with following parameters:
+INFO:config ./configs/CCDY_1d/Tutorial.cfg
+INFO:outname CCDY_1d/massT_el
+INFO:poi None
+INFO:scanrange 3
+INFO:nsteps 200
+INFO:ntoys -1
+INFO:asimov False
+INFO:linear False
+INFO:quad False
+INFO:deactivate_uncertainties None
+INFO:constant None
+INFO:set_initial None
+INFO:quiet False
+INFO:write_more False
+INFO:override None
+INFO:measurements all
+INFO:repara False
+INFO:groups None
+INFO:robust 1
+INFO:offset False
+INFO:implicitscan None
+INFO:conts1d False
+INFO:conts2d False
+INFO:njobs 1
+INFO:cluster None
+INFO:first -1
+INFO:last -1
+INFO:parallel_job False
+INFO:--------------------------------------
+INFO:creating prediction for massT_el
+INFO:creating measurement for massT_el
+WARNING:neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties
+INFO:adding uncertainties for massT_el
+INFO:Ingredients ------------------------------------------------
+INFO:Measurement: massT_el
+INFO:
+INFO:Measured: 1.59795725 0.59400904 0.28333795 0.19270216 0.08467523 0.05179459 0.02925887 0.01079 0.00558303 0.00252366 0.00098439
+INFO:
+INFO:Uncertainty (excluding nuisance parameters): 0.81%  1.15%  0.93%  1.00%  0.91%  1.03%  0.82%  1.18%  0.86%  1.27%  1.90% 
+INFO:
+INFO:Correlation matrix:
+INFO:1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00
+INFO:Prediction formulas:
+INFO:
+INFO:bin 0:
+INFO:(1.57314681*(1+0.008196526807310502*hist_sm)
++cll1*0.1905645*(1+0.008204886009723742*hist_cll1)
++chq3*0.19029027*(1+0.008202258581061448*hist_chq3)
++clq3*1.72321572*(1+0.009405572275071864*hist_clq3)
++chl3*-0.19073165*(1+-0.00819675182383207*hist_chl3))
+
+INFO:
+INFO:bin 1:
+INFO:(0.59845651*(1+0.01139359316184897*hist_sm)
++cll1*0.07453516*(1+0.011366850222096525*hist_cll1)
++chq3*0.07222425*(1+0.011467893401454498*hist_chq3)
++clq3*1.06369666*(1+0.010765700815493771*hist_clq3)
++chl3*-0.0725716*(1+-0.011393437653296883*hist_chl3))
+
+INFO:
+INFO:bin 2:
+INFO:(0.28368662*(1+0.009316477456709098*hist_sm)
++cll1*0.03434048*(1+0.009307091805356245*hist_cll1)
++chq3*0.03526038*(1+0.009207501450636663*hist_chq3)
++clq3*0.69527369*(1+0.010796870510086466*hist_clq3)
++chl3*-0.03439958*(1+-0.009316102115200243*hist_chl3))
+
+INFO:
+INFO:bin 3:
+INFO:(0.19092354*(1+0.01006182893948017*hist_sm)
++cll1*0.02299494*(1+0.010107006150048664*hist_cll1)
++chq3*0.02302618*(1+0.010054207862528652*hist_chq3)
++clq3*0.68996247*(1+0.009951193432303645*hist_clq3)
++chl3*-0.02315*(1+-0.01006133909287257*hist_chl3))
+
+INFO:
+INFO:bin 4:
+INFO:(0.08426679*(1+0.009147375852337557*hist_sm)
++cll1*0.01034163*(1+0.009099145879324633*hist_cll1)
++chq3*0.01022179*(1+0.009140277779136532*hist_chq3)
++clq3*0.43969982*(1+0.010141941836592063*hist_clq3)
++chl3*-0.01021723*(1+-0.00914729334663113*hist_chl3))
+
+INFO:
+INFO:bin 5:
+INFO:(0.05124044*(1+0.01037852133978553*hist_sm)
++cll1*0.0061272*(1+0.010419114766940853*hist_cll1)
++chq3*0.00623798*(1+0.010346298000314206*hist_chq3)
++clq3*0.36357364*(1+0.010126504220713031*hist_clq3)
++chl3*-0.00621193*(1+-0.010378417013713934*hist_chl3))
+
+INFO:
+INFO:bin 6:
+INFO:(0.02929289*(1+0.008224862756798665*hist_sm)
++cll1*0.00349274*(1+0.008285758458974902*hist_cll1)
++chq3*0.00354455*(1+0.008235177949246025*hist_chq3)
++clq3*0.31285709*(1+0.008736608781984132*hist_clq3)
++chl3*-0.0035518*(1+-0.00822399909904837*hist_chl3))
+
+INFO:
+INFO:bin 7:
+INFO:(0.01076004*(1+0.011799212642332184*hist_sm)
++cll1*0.00127589*(1+0.011874064378590631*hist_cll1)
++chq3*0.00128412*(1+0.011844687412391365*hist_chq3)
++clq3*0.17125486*(1+0.010461951269587327*hist_clq3)
++chl3*-0.00130461*(1+-0.011796628877595602*hist_chl3))
+
+INFO:
+INFO:bin 8:
+INFO:(0.00547148*(1+0.008770935834545681*hist_sm)
++cll1*0.00065917*(1+0.008798944126704795*hist_cll1)
++chq3*0.00066183*(1+0.008778689391535591*hist_chq3)
++clq3*0.12502764*(1+0.009332256451453455*hist_clq3)
++chl3*-0.00066341*(1+-0.00877285539862227*hist_chl3))
+
+INFO:
+INFO:bin 9:
+INFO:(0.00248527*(1+0.012920125378731488*hist_sm)
++cll1*0.0003047*(1+0.012832294059730883*hist_cll1)
++chq3*0.00030822*(1+0.012783077022905718*hist_chq3)
++clq3*0.08827569*(1+0.010930189274079875*hist_clq3)
++chl3*-0.00030128*(1+-0.01291157727031333*hist_chl3))
+
+INFO:
+INFO:bin 10:
+INFO:(0.00097983*(1+0.01913597256666973*hist_sm)
++cll1*0.00011716*(1+0.019289860020484807*hist_cll1)
++chq3*0.00012035*(1+0.019027835479850437*hist_chq3)
++clq3*0.05890434*(1+0.012069399300628782*hist_clq3)
++chl3*-0.0001188*(1+-0.019107744107744105*hist_chl3))
+
+INFO:
+INFO:------------------------------------------------
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519558e-74) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519536e-52
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519536e-52) rescaling measurement and prediction by 10
+INFO:New determinant: 2.614576993751955e-30
+INFO:Tiny covariance matrix determinant (massT_el: 2.614576993751955e-30) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519535e-08
+INFO:doing fit
+INFO:Method took 8.151035070419312 seconds
+WARNING:updating CCDY_1d/massT_el.root
+INFO:--------------------------------------
+INFO:running fit with following parameters:
+INFO:config ./configs/CCDY_1d/Tutorial.cfg
+INFO:outname CCDY_1d/massT_el
+INFO:poi None
+INFO:scanrange 3
+INFO:nsteps 200
+INFO:ntoys -1
+INFO:asimov False
+INFO:linear False
+INFO:quad False
+INFO:deactivate_uncertainties None
+INFO:constant None
+INFO:set_initial None
+INFO:quiet False
+INFO:write_more False
+INFO:override None
+INFO:measurements all
+INFO:repara False
+INFO:groups None
+INFO:robust 1
+INFO:offset False
+INFO:implicitscan None
+INFO:conts1d False
+INFO:conts2d False
+INFO:njobs 1
+INFO:cluster None
+INFO:first -1
+INFO:last -1
+INFO:parallel_job False
+INFO:--------------------------------------
+INFO:creating prediction for massT_el
+INFO:creating measurement for massT_el
+WARNING:neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties
+INFO:adding uncertainties for massT_el
+INFO:Ingredients ------------------------------------------------
+INFO:Measurement: massT_el
+INFO:
+INFO:Measured: 1.59795725 0.59400904 0.28333795 0.19270216 0.08467523 0.05179459 0.02925887 0.01079 0.00558303 0.00252366 0.00098439
+INFO:
+INFO:Uncertainty (excluding nuisance parameters): 0.81%  1.15%  0.93%  1.00%  0.91%  1.03%  0.82%  1.18%  0.86%  1.27%  1.90% 
+INFO:
+INFO:Correlation matrix:
+INFO:1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00
+INFO:Prediction formulas:
+INFO:
+INFO:bin 0:
+INFO:(1.57314681*(1+0.008196526807310502*hist_sm)
++cll1*0.1905645*(1+0.008204886009723742*hist_cll1)
++chq3*0.19029027*(1+0.008202258581061448*hist_chq3)
++clq3*1.72321572*(1+0.009405572275071864*hist_clq3)
++chl3*-0.19073165*(1+-0.00819675182383207*hist_chl3))
+
+INFO:
+INFO:bin 1:
+INFO:(0.59845651*(1+0.01139359316184897*hist_sm)
++cll1*0.07453516*(1+0.011366850222096525*hist_cll1)
++chq3*0.07222425*(1+0.011467893401454498*hist_chq3)
++clq3*1.06369666*(1+0.010765700815493771*hist_clq3)
++chl3*-0.0725716*(1+-0.011393437653296883*hist_chl3))
+
+INFO:
+INFO:bin 2:
+INFO:(0.28368662*(1+0.009316477456709098*hist_sm)
++cll1*0.03434048*(1+0.009307091805356245*hist_cll1)
++chq3*0.03526038*(1+0.009207501450636663*hist_chq3)
++clq3*0.69527369*(1+0.010796870510086466*hist_clq3)
++chl3*-0.03439958*(1+-0.009316102115200243*hist_chl3))
+
+INFO:
+INFO:bin 3:
+INFO:(0.19092354*(1+0.01006182893948017*hist_sm)
++cll1*0.02299494*(1+0.010107006150048664*hist_cll1)
++chq3*0.02302618*(1+0.010054207862528652*hist_chq3)
++clq3*0.68996247*(1+0.009951193432303645*hist_clq3)
++chl3*-0.02315*(1+-0.01006133909287257*hist_chl3))
+
+INFO:
+INFO:bin 4:
+INFO:(0.08426679*(1+0.009147375852337557*hist_sm)
++cll1*0.01034163*(1+0.009099145879324633*hist_cll1)
++chq3*0.01022179*(1+0.009140277779136532*hist_chq3)
++clq3*0.43969982*(1+0.010141941836592063*hist_clq3)
++chl3*-0.01021723*(1+-0.00914729334663113*hist_chl3))
+
+INFO:
+INFO:bin 5:
+INFO:(0.05124044*(1+0.01037852133978553*hist_sm)
++cll1*0.0061272*(1+0.010419114766940853*hist_cll1)
++chq3*0.00623798*(1+0.010346298000314206*hist_chq3)
++clq3*0.36357364*(1+0.010126504220713031*hist_clq3)
++chl3*-0.00621193*(1+-0.010378417013713934*hist_chl3))
+
+INFO:
+INFO:bin 6:
+INFO:(0.02929289*(1+0.008224862756798665*hist_sm)
++cll1*0.00349274*(1+0.008285758458974902*hist_cll1)
++chq3*0.00354455*(1+0.008235177949246025*hist_chq3)
++clq3*0.31285709*(1+0.008736608781984132*hist_clq3)
++chl3*-0.0035518*(1+-0.00822399909904837*hist_chl3))
+
+INFO:
+INFO:bin 7:
+INFO:(0.01076004*(1+0.011799212642332184*hist_sm)
++cll1*0.00127589*(1+0.011874064378590631*hist_cll1)
++chq3*0.00128412*(1+0.011844687412391365*hist_chq3)
++clq3*0.17125486*(1+0.010461951269587327*hist_clq3)
++chl3*-0.00130461*(1+-0.011796628877595602*hist_chl3))
+
+INFO:
+INFO:bin 8:
+INFO:(0.00547148*(1+0.008770935834545681*hist_sm)
++cll1*0.00065917*(1+0.008798944126704795*hist_cll1)
++chq3*0.00066183*(1+0.008778689391535591*hist_chq3)
++clq3*0.12502764*(1+0.009332256451453455*hist_clq3)
++chl3*-0.00066341*(1+-0.00877285539862227*hist_chl3))
+
+INFO:
+INFO:bin 9:
+INFO:(0.00248527*(1+0.012920125378731488*hist_sm)
++cll1*0.0003047*(1+0.012832294059730883*hist_cll1)
++chq3*0.00030822*(1+0.012783077022905718*hist_chq3)
++clq3*0.08827569*(1+0.010930189274079875*hist_clq3)
++chl3*-0.00030128*(1+-0.01291157727031333*hist_chl3))
+
+INFO:
+INFO:bin 10:
+INFO:(0.00097983*(1+0.01913597256666973*hist_sm)
++cll1*0.00011716*(1+0.019289860020484807*hist_cll1)
++chq3*0.00012035*(1+0.019027835479850437*hist_chq3)
++clq3*0.05890434*(1+0.012069399300628782*hist_clq3)
++chl3*-0.0001188*(1+-0.019107744107744105*hist_chl3))
+
+INFO:
+INFO:------------------------------------------------
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519558e-74) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519536e-52
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519536e-52) rescaling measurement and prediction by 10
+INFO:New determinant: 2.614576993751955e-30
+INFO:Tiny covariance matrix determinant (massT_el: 2.614576993751955e-30) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519535e-08
+INFO:Minimizing for pulls
+INFO:Minimizing for pulls, with all POIs but chq3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but chl3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but cll1 fixed at zero
+INFO:Minimizing for pulls, with all POIs but clq3 fixed at zero
+INFO:Results when floating all (MINOS errors)
+INFO:hist_sm = -0.482_{ -0.897 }^{ 0.917 }
+INFO:hist_sm = -0.482_{ -0.897 }^{ 0.917 }
+INFO:hist_sm = -0.482_{ -0.897 }^{ 0.917 }
+INFO:hist_sm = -0.482_{ -0.897 }^{ 0.917 }
+INFO:hist_sm = -0.482_{ -0.897 }^{ 0.917 }
+INFO:hist_sm = -0.482_{ -0.897 }^{ 0.917 }
+INFO:hist_sm = -0.482_{ -0.897 }^{ 0.917 }
+INFO:hist_sm = -0.482_{ -0.897 }^{ 0.917 }
+INFO:hist_sm = -0.482_{ -0.897 }^{ 0.917 }
+INFO:Results when setting all but one poi to zero (MINOS errors)
+INFO:clq3 = 0.000243_{ -0.000267 }^{ 0.000268 }
+INFO:clq3 = 0.000243_{ -0.000267 }^{ 0.000268 }
+INFO:clq3 = 0.000243_{ -0.000267 }^{ 0.000268 }
+INFO:clq3 = 0.000243_{ -0.000267 }^{ 0.000268 }
+INFO:Method took 3.122709274291992 seconds
+WARNING:updating CCDY_1d/massT_el.root
+INFO:--------------------------------------
+INFO:running fit with following parameters:
+INFO:config ./configs/CCDY_1d/Tutorial.cfg
+INFO:outname CCDY_1d/massT_el
+INFO:poi None
+INFO:scanrange 3
+INFO:nsteps 200
+INFO:ntoys -1
+INFO:asimov False
+INFO:linear False
+INFO:quad False
+INFO:deactivate_uncertainties None
+INFO:constant None
+INFO:set_initial None
+INFO:quiet False
+INFO:write_more False
+INFO:override None
+INFO:measurements all
+INFO:repara False
+INFO:groups None
+INFO:robust 1
+INFO:offset False
+INFO:implicitscan None
+INFO:conts1d False
+INFO:conts2d False
+INFO:njobs 1
+INFO:cluster None
+INFO:first -1
+INFO:last -1
+INFO:parallel_job False
+INFO:--------------------------------------
+INFO:creating prediction for massT_mu
+INFO:creating measurement for massT_mu
+WARNING:neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties
+INFO:adding uncertainties for massT_mu
+INFO:Ingredients ------------------------------------------------
+INFO:Measurement: massT_mu
+INFO:
+INFO:Measured: 1.57137477 0.61830306 0.28414083 0.191451 0.08414208 0.04951656 0.02919381 0.01077807 0.00537632 0.00253843 0.00097389
+INFO:
+INFO:Uncertainty (excluding nuisance parameters): 0.82%  1.13%  0.93%  1.00%  0.92%  1.07%  0.82%  1.17%  0.89%  1.28%  1.94% 
+INFO:
+INFO:Correlation matrix:
+INFO:1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00
+INFO:Prediction formulas:
+INFO:
+INFO:bin 0:
+INFO:(1.56260226*(1+0.008210054681477294*hist_sm)
++cll1*0.18959544*(1+0.008212117337843146*hist_cll1)
++chq3*0.18834619*(1+0.008244658413318581*hist_chq3)
++clq3*1.7529557*(1+0.00931245438775207*hist_clq3)
++chl3*-0.18945888*(1+-0.00821006647986096*hist_chl3))
+
+INFO:
+INFO:bin 1:
+INFO:(0.61456829*(1+0.011366531781195545*hist_sm)
++cll1*0.07352452*(1+0.011386269505737678*hist_cll1)
++chq3*0.07421227*(1+0.011366853486626943*hist_chq3)
++clq3*1.08794942*(1+0.010693750817937843*hist_clq3)
++chl3*-0.07451768*(1+-0.011366027498440637*hist_chl3))
+
+INFO:
+INFO:bin 2:
+INFO:(0.28402829*(1+0.009305692753352138*hist_sm)
++cll1*0.03406756*(1+0.009354647060135802*hist_cll1)
++chq3*0.03404522*(1+0.009361372903450176*hist_chq3)
++clq3*0.70615806*(1+0.010728405479079287*hist_clq3)
++chl3*-0.03443771*(1+-0.009305787173421228*hist_chl3))
+
+INFO:
+INFO:bin 3:
+INFO:(0.19090896*(1+0.010068778332876572*hist_sm)
++cll1*0.02298276*(1+0.01007755378379272*hist_cll1)
++chq3*0.02328476*(1+0.010025441533432166*hist_chq3)
++clq3*0.69685384*(1+0.009915924406759386*hist_clq3)
++chl3*-0.02314304*(1+-0.010069550067752552*hist_chl3))
+
+INFO:
+INFO:bin 4:
+INFO:(0.08414349*(1+0.009160066928528873*hist_sm)
++cll1*0.01015361*(1+0.009188850074013086*hist_cll1)
++chq3*0.01019322*(1+0.009149218794453568*hist_chq3)
++clq3*0.43549905*(1+0.01018854116903355*hist_clq3)
++chl3*-0.0102028*(1+-0.009159250401850472*hist_chl3))
+
+INFO:
+INFO:bin 5:
+INFO:(0.05043895*(1+0.010471867475433171*hist_sm)
++cll1*0.00609941*(1+0.010435435558521234*hist_cll1)
++chq3*0.00615273*(1+0.01040513723176541*hist_chq3)
++clq3*0.3667019*(1+0.01011170108472304*hist_clq3)
++chl3*-0.00611569*(1+-0.010471426772776253*hist_chl3))
+
+INFO:
+INFO:bin 6:
+INFO:(0.0290811*(1+0.008251407271389321*hist_sm)
++cll1*0.00351405*(1+0.008269660363398358*hist_cll1)
++chq3*0.00350742*(1+0.008279590126075577*hist_chq3)
++clq3*0.3131819*(1+0.00872272631336613*hist_clq3)
++chl3*-0.00352664*(1+-0.008251480162420888*hist_chl3))
+
+INFO:
+INFO:bin 7:
+INFO:(0.0107274*(1+0.011796893935156703*hist_sm)
++cll1*0.00130171*(1+0.011730723433022717*hist_cll1)
++chq3*0.00128921*(1+0.01185221957632969*hist_chq3)
++clq3*0.17185446*(1+0.010475200934558232*hist_clq3)
++chl3*-0.0013007*(1+-0.011793649573306681*hist_chl3))
+
+INFO:
+INFO:bin 8:
+INFO:(0.00540558*(1+0.008824214977856215*hist_sm)
++cll1*0.00065708*(1+0.008811712424666707*hist_cll1)
++chq3*0.00065371*(1+0.008841841183399366*hist_chq3)
++clq3*0.12252709*(1+0.009425425838481922*hist_clq3)
++chl3*-0.00065542*(1+-0.008818772695370907*hist_chl3))
+
+INFO:
+INFO:bin 9:
+INFO:(0.00252687*(1+0.012814272202368937*hist_sm)
++cll1*0.00030403*(1+0.01286057296977272*hist_cll1)
++chq3*0.00030278*(1+0.012880639408151132*hist_chq3)
++clq3*0.08952332*(1+0.010856277448155408*hist_clq3)
++chl3*-0.00030638*(1+-0.012827208042300411*hist_chl3))
+
+INFO:
+INFO:bin 10:
+INFO:(0.000986*(1+0.01911764705882353*hist_sm)
++cll1*0.00011607*(1+0.019298699060911518*hist_cll1)
++chq3*0.0001164*(1+0.019329896907216496*hist_chq3)
++clq3*0.05806203*(1+0.012168882142081495*hist_clq3)
++chl3*-0.00011955*(1+-0.019155165202843997*hist_chl3))
+
+INFO:
+INFO:------------------------------------------------
+INFO:Tiny covariance matrix determinant (massT_mu: 2.685288720964644e-74) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6852887209646437e-52
+INFO:Tiny covariance matrix determinant (massT_mu: 2.6852887209646437e-52) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6852887209646445e-30
+INFO:Tiny covariance matrix determinant (massT_mu: 2.6852887209646445e-30) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6852887209646437e-08
+INFO:Minimizing for pulls
+INFO:Minimizing for pulls, with all POIs but chq3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but chl3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but cll1 fixed at zero
+INFO:Minimizing for pulls, with all POIs but clq3 fixed at zero
+INFO:Results when floating all (MINOS errors)
+INFO:hist_sm = -0.0695_{ -0.806 }^{ 0.934 }
+INFO:hist_sm = -0.0695_{ -0.806 }^{ 0.934 }
+INFO:hist_sm = -0.0695_{ -0.806 }^{ 0.934 }
+INFO:hist_sm = -0.0695_{ -0.806 }^{ 0.934 }
+INFO:hist_sm = -0.0695_{ -0.806 }^{ 0.934 }
+INFO:hist_sm = -0.0695_{ -0.806 }^{ 0.934 }
+INFO:hist_sm = -0.0695_{ -0.806 }^{ 0.934 }
+INFO:hist_sm = -0.0695_{ -0.806 }^{ 0.934 }
+INFO:hist_sm = -0.0695_{ -0.806 }^{ 0.934 }
+INFO:Results when setting all but one poi to zero (MINOS errors)
+INFO:clq3 = -0.000153_{ -0.00027 }^{ 0.000271 }
+INFO:clq3 = -0.000153_{ -0.00027 }^{ 0.000271 }
+INFO:clq3 = -0.000153_{ -0.00027 }^{ 0.000271 }
+INFO:clq3 = -0.000153_{ -0.00027 }^{ 0.000271 }
+INFO:Method took 1.7550036907196045 seconds
+WARNING:updating CCDY_1d/massT_el.root
+INFO:--------------------------------------
+INFO:running fit with following parameters:
+INFO:config ./configs/CCDY_1d/Tutorial.cfg
+INFO:outname CCDY_1d/massT_el
+INFO:poi None
+INFO:scanrange 3
+INFO:nsteps 200
+INFO:ntoys -1
+INFO:asimov False
+INFO:linear False
+INFO:quad False
+INFO:deactivate_uncertainties None
+INFO:constant None
+INFO:set_initial None
+INFO:quiet False
+INFO:write_more False
+INFO:override None
+INFO:measurements all
+INFO:repara False
+INFO:groups None
+INFO:robust 1
+INFO:offset False
+INFO:implicitscan None
+INFO:conts1d False
+INFO:conts2d False
+INFO:njobs 1
+INFO:cluster None
+INFO:first -1
+INFO:last -1
+INFO:parallel_job False
+INFO:--------------------------------------
+INFO:creating prediction for massT_el
+INFO:creating measurement for massT_el
+WARNING:neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties
+INFO:adding uncertainties for massT_el
+INFO:Ingredients ------------------------------------------------
+INFO:Measurement: massT_el
+INFO:
+INFO:Measured: 1.58876944 0.60117704 0.2843655 0.19012174 0.08478539 0.05190619 0.02933392 0.01062846 0.00544633 0.0025202 0.0009671
+INFO:
+INFO:Uncertainty (excluding nuisance parameters): 0.81%  1.13%  0.93%  1.01%  0.91%  1.02%  0.82%  1.19%  0.88%  1.27%  1.94% 
+INFO:
+INFO:Correlation matrix:
+INFO:1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00
+INFO:Prediction formulas:
+INFO:
+INFO:bin 0:
+INFO:(1.57314681*(1+0.008196526807310502*hist_sm)
++cll1*0.1905645*(1+0.008204886009723742*hist_cll1)
++chq3*0.19029027*(1+0.008202258581061448*hist_chq3)
++clq3*1.72321572*(1+0.009405572275071864*hist_clq3)
++chl3*-0.19073165*(1+-0.00819675182383207*hist_chl3))
+
+INFO:
+INFO:bin 1:
+INFO:(0.59845651*(1+0.01139359316184897*hist_sm)
++cll1*0.07453516*(1+0.011366850222096525*hist_cll1)
++chq3*0.07222425*(1+0.011467893401454498*hist_chq3)
++clq3*1.06369666*(1+0.010765700815493771*hist_clq3)
++chl3*-0.0725716*(1+-0.011393437653296883*hist_chl3))
+
+INFO:
+INFO:bin 2:
+INFO:(0.28368662*(1+0.009316477456709098*hist_sm)
++cll1*0.03434048*(1+0.009307091805356245*hist_cll1)
++chq3*0.03526038*(1+0.009207501450636663*hist_chq3)
++clq3*0.69527369*(1+0.010796870510086466*hist_clq3)
++chl3*-0.03439958*(1+-0.009316102115200243*hist_chl3))
+
+INFO:
+INFO:bin 3:
+INFO:(0.19092354*(1+0.01006182893948017*hist_sm)
++cll1*0.02299494*(1+0.010107006150048664*hist_cll1)
++chq3*0.02302618*(1+0.010054207862528652*hist_chq3)
++clq3*0.68996247*(1+0.009951193432303645*hist_clq3)
++chl3*-0.02315*(1+-0.01006133909287257*hist_chl3))
+
+INFO:
+INFO:bin 4:
+INFO:(0.08426679*(1+0.009147375852337557*hist_sm)
++cll1*0.01034163*(1+0.009099145879324633*hist_cll1)
++chq3*0.01022179*(1+0.009140277779136532*hist_chq3)
++clq3*0.43969982*(1+0.010141941836592063*hist_clq3)
++chl3*-0.01021723*(1+-0.00914729334663113*hist_chl3))
+
+INFO:
+INFO:bin 5:
+INFO:(0.05124044*(1+0.01037852133978553*hist_sm)
++cll1*0.0061272*(1+0.010419114766940853*hist_cll1)
++chq3*0.00623798*(1+0.010346298000314206*hist_chq3)
++clq3*0.36357364*(1+0.010126504220713031*hist_clq3)
++chl3*-0.00621193*(1+-0.010378417013713934*hist_chl3))
+
+INFO:
+INFO:bin 6:
+INFO:(0.02929289*(1+0.008224862756798665*hist_sm)
++cll1*0.00349274*(1+0.008285758458974902*hist_cll1)
++chq3*0.00354455*(1+0.008235177949246025*hist_chq3)
++clq3*0.31285709*(1+0.008736608781984132*hist_clq3)
++chl3*-0.0035518*(1+-0.00822399909904837*hist_chl3))
+
+INFO:
+INFO:bin 7:
+INFO:(0.01076004*(1+0.011799212642332184*hist_sm)
++cll1*0.00127589*(1+0.011874064378590631*hist_cll1)
++chq3*0.00128412*(1+0.011844687412391365*hist_chq3)
++clq3*0.17125486*(1+0.010461951269587327*hist_clq3)
++chl3*-0.00130461*(1+-0.011796628877595602*hist_chl3))
+
+INFO:
+INFO:bin 8:
+INFO:(0.00547148*(1+0.008770935834545681*hist_sm)
++cll1*0.00065917*(1+0.008798944126704795*hist_cll1)
++chq3*0.00066183*(1+0.008778689391535591*hist_chq3)
++clq3*0.12502764*(1+0.009332256451453455*hist_clq3)
++chl3*-0.00066341*(1+-0.00877285539862227*hist_chl3))
+
+INFO:
+INFO:bin 9:
+INFO:(0.00248527*(1+0.012920125378731488*hist_sm)
++cll1*0.0003047*(1+0.012832294059730883*hist_cll1)
++chq3*0.00030822*(1+0.012783077022905718*hist_chq3)
++clq3*0.08827569*(1+0.010930189274079875*hist_clq3)
++chl3*-0.00030128*(1+-0.01291157727031333*hist_chl3))
+
+INFO:
+INFO:bin 10:
+INFO:(0.00097983*(1+0.01913597256666973*hist_sm)
++cll1*0.00011716*(1+0.019289860020484807*hist_cll1)
++chq3*0.00012035*(1+0.019027835479850437*hist_chq3)
++clq3*0.05890434*(1+0.012069399300628782*hist_clq3)
++chl3*-0.0001188*(1+-0.019107744107744105*hist_chl3))
+
+INFO:
+INFO:------------------------------------------------
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519566e-74) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519603e-52
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519603e-52) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519594e-30
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519594e-30) rescaling measurement and prediction by 10
+INFO:New determinant: 2.6145769937519588e-08
+INFO:Minimizing for pulls
+INFO:Minimizing for pulls, with all POIs but chq3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but chl3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but cll1 fixed at zero
+INFO:Minimizing for pulls, with all POIs but clq3 fixed at zero
+INFO:Results when floating all (MINOS errors)
+INFO:hist_sm = -0.0824_{ -0.902 }^{ 0.902 }
+INFO:hist_sm = -0.0824_{ -0.902 }^{ 0.902 }
+INFO:hist_sm = -0.0824_{ -0.902 }^{ 0.902 }
+INFO:hist_sm = -0.0824_{ -0.902 }^{ 0.902 }
+INFO:hist_sm = -0.0824_{ -0.902 }^{ 0.902 }
+INFO:hist_sm = -0.0824_{ -0.902 }^{ 0.902 }
+INFO:hist_sm = -0.0824_{ -0.902 }^{ 0.902 }
+INFO:hist_sm = -0.0824_{ -0.902 }^{ 0.902 }
+INFO:hist_sm = -0.0824_{ -0.902 }^{ 0.902 }
+INFO:Results when setting all but one poi to zero (MINOS errors)
+INFO:clq3 = -0.000211_{ -0.000267 }^{ 0.000267 }
+INFO:clq3 = -0.000211_{ -0.000267 }^{ 0.000267 }
+INFO:clq3 = -0.000211_{ -0.000267 }^{ 0.000267 }
+INFO:clq3 = -0.000211_{ -0.000267 }^{ 0.000267 }
+INFO:Method took 2.1257271766662598 seconds
+WARNING:updating CCDY_1d/massT_el.root
+INFO:--------------------------------------
+INFO:running fit with following parameters:
+INFO:config ./configs/CCDY_1d/Tutorial.cfg
+INFO:outname CCDY_1d/massT_el
+INFO:poi None
+INFO:scanrange 3
+INFO:nsteps 200
+INFO:ntoys -1
+INFO:asimov False
+INFO:linear False
+INFO:quad False
+INFO:deactivate_uncertainties None
+INFO:constant None
+INFO:set_initial None
+INFO:quiet False
+INFO:write_more False
+INFO:override None
+INFO:measurements all
+INFO:repara False
+INFO:groups None
+INFO:robust 1
+INFO:offset False
+INFO:implicitscan None
+INFO:conts1d False
+INFO:conts2d False
+INFO:njobs 1
+INFO:cluster None
+INFO:first -1
+INFO:last -1
+INFO:parallel_job False
+INFO:--------------------------------------
+INFO:creating prediction for massT_el
+INFO:creating measurement for massT_el
+WARNING:neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties
+INFO:adding uncertainties for massT_el
+INFO:Ingredients ------------------------------------------------
+INFO:Measurement: massT_el
+INFO:
+INFO:Measured: 1.56548893 0.59941566 0.28900394 0.18935624 0.08414443 0.05130593 0.02932929 0.01102169 0.00554458 0.00251519 0.00097963
+INFO:
+INFO:Uncertainty (excluding nuisance parameters): 0.82%  1.14%  0.91%  1.01%  0.92%  1.04%  0.82%  1.15%  0.87%  1.28%  1.91% 
+INFO:
+INFO:Correlation matrix:
+INFO:1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00
+INFO:Prediction formulas:
+INFO:
+INFO:bin 0:
+INFO:(1.57314681*(1+0.008196526807310502*hist_sm)
++cll1*0.1905645*(1+0.008204886009723742*hist_cll1)
++chq3*0.19029027*(1+0.008202258581061448*hist_chq3)
++clq3*1.72321572*(1+0.009405572275071864*hist_clq3)
++chl3*-0.19073165*(1+-0.00819675182383207*hist_chl3))
+
+INFO:
+INFO:bin 1:
+INFO:(0.59845651*(1+0.01139359316184897*hist_sm)
++cll1*0.07453516*(1+0.011366850222096525*hist_cll1)
++chq3*0.07222425*(1+0.011467893401454498*hist_chq3)
++clq3*1.06369666*(1+0.010765700815493771*hist_clq3)
++chl3*-0.0725716*(1+-0.011393437653296883*hist_chl3))
+
+INFO:
+INFO:bin 2:
+INFO:(0.28368662*(1+0.009316477456709098*hist_sm)
++cll1*0.03434048*(1+0.009307091805356245*hist_cll1)
++chq3*0.03526038*(1+0.009207501450636663*hist_chq3)
++clq3*0.69527369*(1+0.010796870510086466*hist_clq3)
++chl3*-0.03439958*(1+-0.009316102115200243*hist_chl3))
+
+INFO:
+INFO:bin 3:
+INFO:(0.19092354*(1+0.01006182893948017*hist_sm)
++cll1*0.02299494*(1+0.010107006150048664*hist_cll1)
++chq3*0.02302618*(1+0.010054207862528652*hist_chq3)
++clq3*0.68996247*(1+0.009951193432303645*hist_clq3)
++chl3*-0.02315*(1+-0.01006133909287257*hist_chl3))
+
+INFO:
+INFO:bin 4:
+INFO:(0.08426679*(1+0.009147375852337557*hist_sm)
++cll1*0.01034163*(1+0.009099145879324633*hist_cll1)
++chq3*0.01022179*(1+0.009140277779136532*hist_chq3)
++clq3*0.43969982*(1+0.010141941836592063*hist_clq3)
++chl3*-0.01021723*(1+-0.00914729334663113*hist_chl3))
+
+INFO:
+INFO:bin 5:
+INFO:(0.05124044*(1+0.01037852133978553*hist_sm)
++cll1*0.0061272*(1+0.010419114766940853*hist_cll1)
++chq3*0.00623798*(1+0.010346298000314206*hist_chq3)
++clq3*0.36357364*(1+0.010126504220713031*hist_clq3)
++chl3*-0.00621193*(1+-0.010378417013713934*hist_chl3))
+
+INFO:
+INFO:bin 6:
+INFO:(0.02929289*(1+0.008224862756798665*hist_sm)
++cll1*0.00349274*(1+0.008285758458974902*hist_cll1)
++chq3*0.00354455*(1+0.008235177949246025*hist_chq3)
++clq3*0.31285709*(1+0.008736608781984132*hist_clq3)
++chl3*-0.0035518*(1+-0.00822399909904837*hist_chl3))
+
+INFO:
+INFO:bin 7:
+INFO:(0.01076004*(1+0.011799212642332184*hist_sm)
++cll1*0.00127589*(1+0.011874064378590631*hist_cll1)
++chq3*0.00128412*(1+0.011844687412391365*hist_chq3)
++clq3*0.17125486*(1+0.010461951269587327*hist_clq3)
++chl3*-0.00130461*(1+-0.011796628877595602*hist_chl3))
+
+INFO:
+INFO:bin 8:
+INFO:(0.00547148*(1+0.008770935834545681*hist_sm)
++cll1*0.00065917*(1+0.008798944126704795*hist_cll1)
++chq3*0.00066183*(1+0.008778689391535591*hist_chq3)
++clq3*0.12502764*(1+0.009332256451453455*hist_clq3)
++chl3*-0.00066341*(1+-0.00877285539862227*hist_chl3))
+
+INFO:
+INFO:bin 9:
+INFO:(0.00248527*(1+0.012920125378731488*hist_sm)
++cll1*0.0003047*(1+0.012832294059730883*hist_cll1)
++chq3*0.00030822*(1+0.012783077022905718*hist_chq3)
++clq3*0.08827569*(1+0.010930189274079875*hist_clq3)
++chl3*-0.00030128*(1+-0.01291157727031333*hist_chl3))
+
+INFO:
+INFO:bin 10:
+INFO:(0.00097983*(1+0.01913597256666973*hist_sm)
++cll1*0.00011716*(1+0.019289860020484807*hist_cll1)
++chq3*0.00012035*(1+0.019027835479850437*hist_chq3)
++clq3*0.05890434*(1+0.012069399300628782*hist_clq3)
++chl3*-0.0001188*(1+-0.019107744107744105*hist_chl3))
+
+INFO:
+INFO:------------------------------------------------
+INFO:Tiny covariance matrix determinant (massT_el: 2.6145769937519558e-74) rescaling measurement and prediction by 10
+INFO:New determinant: 2.614576993751956e-52
+INFO:Tiny covariance matrix determinant (massT_el: 2.614576993751956e-52) rescaling measurement and prediction by 10
+INFO:New determinant: 2.614576993751956e-30
+INFO:Tiny covariance matrix determinant (massT_el: 2.614576993751956e-30) rescaling measurement and prediction by 10
+INFO:New determinant: 2.614576993751957e-08
+INFO:Minimizing for pulls
+INFO:Minimizing for pulls, with all POIs but chq3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but chl3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but cll1 fixed at zero
+INFO:Minimizing for pulls, with all POIs but clq3 fixed at zero
+INFO:Results when floating all (MINOS errors)
+INFO:hist_sm = -0.0401_{ -0.9 }^{ 0.898 }
+INFO:hist_sm = -0.0401_{ -0.9 }^{ 0.898 }
+INFO:hist_sm = -0.0401_{ -0.9 }^{ 0.898 }
+INFO:hist_sm = -0.0401_{ -0.9 }^{ 0.898 }
+INFO:hist_sm = -0.0401_{ -0.9 }^{ 0.898 }
+INFO:hist_sm = -0.0401_{ -0.9 }^{ 0.898 }
+INFO:hist_sm = -0.0401_{ -0.9 }^{ 0.898 }
+INFO:hist_sm = -0.0401_{ -0.9 }^{ 0.898 }
+INFO:hist_sm = -0.0401_{ -0.9 }^{ 0.898 }
+INFO:Results when setting all but one poi to zero (MINOS errors)
+INFO:clq3 = 0.000264_{ -0.000267 }^{ 0.000268 }
+INFO:clq3 = 0.000264_{ -0.000267 }^{ 0.000268 }
+INFO:clq3 = 0.000264_{ -0.000267 }^{ 0.000268 }
+INFO:clq3 = 0.000264_{ -0.000267 }^{ 0.000268 }
+INFO:Method took 2.2860331535339355 seconds
+WARNING:updating CCDY_1d/massT_el.root
+INFO:--------------------------------------
+INFO:running fit with following parameters:
+INFO:config ./configs/CCDY_1d/Tutorial.cfg
+INFO:outname CCDY_1d/massT_el
+INFO:poi None
+INFO:scanrange 3
+INFO:nsteps 200
+INFO:ntoys -1
+INFO:asimov False
+INFO:linear False
+INFO:quad False
+INFO:deactivate_uncertainties None
+INFO:constant None
+INFO:set_initial None
+INFO:quiet False
+INFO:write_more False
+INFO:override None
+INFO:measurements all
+INFO:repara False
+INFO:groups None
+INFO:robust 1
+INFO:offset False
+INFO:implicitscan None
+INFO:conts1d False
+INFO:conts2d False
+INFO:njobs 1
+INFO:cluster None
+INFO:first -1
+INFO:last -1
+INFO:parallel_job False
+INFO:--------------------------------------
+INFO:creating prediction for massT_el
+INFO:creating measurement for massT_el
+WARNING:neither covariance nor correlation+uncertainty in config, covariance will be built from sources only, will likely mean uncorrelated statistical uncertainties
+INFO:adding uncertainties for massT_el
+INFO:Ingredients ------------------------------------------------
+INFO:Measurement: massT_el
+INFO:
+INFO:Measured: 1.56548893 0.59941566 0.28900394 0.18935624 0.08414443 0.05130593 0.02932929 0.01102169 0.00554458 0.00251519 0.00097963 0.00015836
+INFO:
+INFO:Uncertainty (excluding nuisance parameters): 0.82%  1.14%  0.91%  1.01%  0.92%  1.04%  0.82%  1.15%  0.87%  1.28%  1.91%  0.76% 
+INFO:
+INFO:Correlation matrix:
+INFO:1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00 0.00
+INFO:0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00 1.00
+INFO:Prediction formulas:
+INFO:
+INFO:bin 0:
+INFO:(1.57314681*(1+0.008196526807310502*hist_sm)
++cll1*0.1905645*(1+0.008204886009723742*hist_cll1)
++chq3*0.19029027*(1+0.008202258581061448*hist_chq3)
++clq3*1.72321572*(1+0.009405572275071864*hist_clq3)
++chl3*-0.19073165*(1+-0.00819675182383207*hist_chl3))
+
+INFO:
+INFO:bin 1:
+INFO:(0.59845651*(1+0.01139359316184897*hist_sm)
++cll1*0.07453516*(1+0.011366850222096525*hist_cll1)
++chq3*0.07222425*(1+0.011467893401454498*hist_chq3)
++clq3*1.06369666*(1+0.010765700815493771*hist_clq3)
++chl3*-0.0725716*(1+-0.011393437653296883*hist_chl3))
+
+INFO:
+INFO:bin 2:
+INFO:(0.28368662*(1+0.009316477456709098*hist_sm)
++cll1*0.03434048*(1+0.009307091805356245*hist_cll1)
++chq3*0.03526038*(1+0.009207501450636663*hist_chq3)
++clq3*0.69527369*(1+0.010796870510086466*hist_clq3)
++chl3*-0.03439958*(1+-0.009316102115200243*hist_chl3))
+
+INFO:
+INFO:bin 3:
+INFO:(0.19092354*(1+0.01006182893948017*hist_sm)
++cll1*0.02299494*(1+0.010107006150048664*hist_cll1)
++chq3*0.02302618*(1+0.010054207862528652*hist_chq3)
++clq3*0.68996247*(1+0.009951193432303645*hist_clq3)
++chl3*-0.02315*(1+-0.01006133909287257*hist_chl3))
+
+INFO:
+INFO:bin 4:
+INFO:(0.08426679*(1+0.009147375852337557*hist_sm)
++cll1*0.01034163*(1+0.009099145879324633*hist_cll1)
++chq3*0.01022179*(1+0.009140277779136532*hist_chq3)
++clq3*0.43969982*(1+0.010141941836592063*hist_clq3)
++chl3*-0.01021723*(1+-0.00914729334663113*hist_chl3))
+
+INFO:
+INFO:bin 5:
+INFO:(0.05124044*(1+0.01037852133978553*hist_sm)
++cll1*0.0061272*(1+0.010419114766940853*hist_cll1)
++chq3*0.00623798*(1+0.010346298000314206*hist_chq3)
++clq3*0.36357364*(1+0.010126504220713031*hist_clq3)
++chl3*-0.00621193*(1+-0.010378417013713934*hist_chl3))
+
+INFO:
+INFO:bin 6:
+INFO:(0.02929289*(1+0.008224862756798665*hist_sm)
++cll1*0.00349274*(1+0.008285758458974902*hist_cll1)
++chq3*0.00354455*(1+0.008235177949246025*hist_chq3)
++clq3*0.31285709*(1+0.008736608781984132*hist_clq3)
++chl3*-0.0035518*(1+-0.00822399909904837*hist_chl3))
+
+INFO:
+INFO:bin 7:
+INFO:(0.01076004*(1+0.011799212642332184*hist_sm)
++cll1*0.00127589*(1+0.011874064378590631*hist_cll1)
++chq3*0.00128412*(1+0.011844687412391365*hist_chq3)
++clq3*0.17125486*(1+0.010461951269587327*hist_clq3)
++chl3*-0.00130461*(1+-0.011796628877595602*hist_chl3))
+
+INFO:
+INFO:bin 8:
+INFO:(0.00547148*(1+0.008770935834545681*hist_sm)
++cll1*0.00065917*(1+0.008798944126704795*hist_cll1)
++chq3*0.00066183*(1+0.008778689391535591*hist_chq3)
++clq3*0.12502764*(1+0.009332256451453455*hist_clq3)
++chl3*-0.00066341*(1+-0.00877285539862227*hist_chl3))
+
+INFO:
+INFO:bin 9:
+INFO:(0.00248527*(1+0.012920125378731488*hist_sm)
++cll1*0.0003047*(1+0.012832294059730883*hist_cll1)
++chq3*0.00030822*(1+0.012783077022905718*hist_chq3)
++clq3*0.08827569*(1+0.010930189274079875*hist_clq3)
++chl3*-0.00030128*(1+-0.01291157727031333*hist_chl3))
+
+INFO:
+INFO:bin 10:
+INFO:(0.00097983*(1+0.01913597256666973*hist_sm)
++cll1*0.00011716*(1+0.019289860020484807*hist_cll1)
++chq3*0.00012035*(1+0.019027835479850437*hist_chq3)
++clq3*0.05890434*(1+0.012069399300628782*hist_clq3)
++chl3*-0.0001188*(1+-0.019107744107744105*hist_chl3))
+
+INFO:
+INFO:bin 11:
+INFO:(0.00016051*(1+0.007476169709052395*hist_sm)
++cll1*1.943e-05*(1+0.007205352547606795*hist_cll1)
++chq3*1.94e-05*(1+0.007216494845360825*hist_chq3)
++clq3*0.02032701*(1+0.006890339503940817*hist_clq3)
++chl3*-1.946e-05*(1+-0.007194244604316547*hist_chl3))
+
+INFO:
+INFO:------------------------------------------------
+INFO:Tiny covariance matrix determinant (massT_el: 3.764990871002816e-86) rescaling measurement and prediction by 10
+INFO:New determinant: 3.764990871002816e-62
+INFO:Tiny covariance matrix determinant (massT_el: 3.764990871002816e-62) rescaling measurement and prediction by 10
+INFO:New determinant: 3.764990871002816e-38
+INFO:Tiny covariance matrix determinant (massT_el: 3.764990871002816e-38) rescaling measurement and prediction by 10
+INFO:New determinant: 3.7649908710028173e-14
+INFO:Minimizing for pulls
+INFO:Minimizing for pulls, with all POIs but chq3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but chl3 fixed at zero
+INFO:Minimizing for pulls, with all POIs but cll1 fixed at zero
+INFO:Minimizing for pulls, with all POIs but clq3 fixed at zero
+INFO:Results when floating all (MINOS errors)
+INFO:hist_sm = 0.44_{ -0.818 }^{ 0.817 }
+INFO:hist_sm = 0.44_{ -0.818 }^{ 0.817 }
+INFO:hist_sm = 0.44_{ -0.818 }^{ 0.817 }
+INFO:hist_sm = 0.44_{ -0.818 }^{ 0.817 }
+INFO:hist_sm = 0.44_{ -0.818 }^{ 0.817 }
+INFO:hist_sm = 0.44_{ -0.818 }^{ 0.817 }
+INFO:hist_sm = 0.44_{ -0.818 }^{ 0.817 }
+INFO:hist_sm = 0.44_{ -0.818 }^{ 0.817 }
+INFO:hist_sm = 0.44_{ -0.818 }^{ 0.817 }
+INFO:Results when setting all but one poi to zero (MINOS errors)
+INFO:clq3 = -0.000118_{ -6.4e-05 }^{ 6.37e-05 }
+INFO:clq3 = -0.000118_{ -6.4e-05 }^{ 6.37e-05 }
+INFO:clq3 = -0.000118_{ -6.4e-05 }^{ 6.37e-05 }
+INFO:clq3 = -0.000118_{ -6.4e-05 }^{ 6.37e-05 }
+INFO:Method took 1.3718862533569336 seconds
