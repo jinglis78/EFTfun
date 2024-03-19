@@ -601,7 +601,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     Plotting.canvasProfile2D('c_prob_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d,toy_result=toy_limit,isNLL=False,ztitle='p value')
     elif method=='fit':
 
-        doBigfit = True
+        doBigfit = False
 
         logging.info('doing fit')
         data_histos_prefit=[]

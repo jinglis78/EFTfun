@@ -520,73 +520,236 @@ def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log
 
 
 def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile,outfolder):
-    c=ROOT.TCanvas(name,name,1024,1024 )
-    c.SetRightMargin(0.02)
-    c.SetTopMargin(0.08)
-    c.SetLeftMargin(0.12)
-    c.SetBottomMargin(0.12)
-    c.SetTicks(1,1)
-    c.cd()
+
+    SetAtlasStyle()
+
+    # Setup Canvas 
+    x1 = 0.04
+    x2 = 0.96
+    y1 = 0.30
+    y2 = 0.96
+    gap = 0.05
+    
+    aScale = (y2-y1)/(y1-gap-x1)
+
+    c = ROOT.TCanvas(name,name,1000,1000)
+    c.SetLogy()
+    c.Draw()
+
+    c_2 = ROOT.TPad("c ratio", "c ratio", x1, x1+gap, x2, y1)
+    c_2.Draw()
+    c_2.SetLogy(0)
+    c_2.SetTopMargin(0.02)
+    c_2.SetBottomMargin(0.4) 
+    c_2.SetFillStyle(0)
+
+    c_1 = ROOT.TPad("c top", "c top", x1, y1, x2, y2)
+    c_1.Draw()
+    c_1.SetLogy(1)
+    c_1.SetTopMargin(0.1)
+    c_1.SetBottomMargin(0.02)
+    c_1.SetFillStyle(0)
+
+
+    print ("Canvas set up")
+
+    c_1.cd()
+
+    sampleText = r"pp \rightarrow l^{\pm} \nu"
+
     ymax=0.
     for h in data_prefit,pred_prefit,pred_postfit:
         for i in range(h.GetNbinsX()):
             ymax=max(ymax,h.GetBinContent(i+1)+h.GetBinError(i+1))
-    data_prefit=ROOT.TGraphErrors(data_prefit)
+    data_prefit_graph=ROOT.TGraphErrors(data_prefit)
     if data_postfit!=None:
-        data_postfit=ROOT.TGraphErrors(data_postfit)
-    pred_prefit=ROOT.TGraphErrors(pred_prefit)
-    pred_postfit=ROOT.TGraphErrors(pred_postfit)
-    pred_prefit.SetFillColor(ROOT.kBlue)
-    pred_prefit.SetLineColor(ROOT.kWhite)
-    pred_prefit.SetMarkerColor(ROOT.kBlue+1)
-    pred_prefit.SetFillStyle(3354)
-    pred_prefit.SetTitle('')
-    pred_prefit.GetXaxis().SetTitle('')
-    pred_prefit.SetMarkerStyle(21)
-    pred_prefit.SetMarkerSize(1.3)
-    pred_prefit.Draw('PA2')
-    pred_prefit.GetYaxis().SetRangeUser(0,ymax*1.1)
-    pred_prefit.GetXaxis().SetTitle("Bins of "+name.replace("c_postfit_",""))
-    pred_postfit.SetFillColor(ROOT.kRed)
-    pred_postfit.SetMarkerColor(ROOT.kRed+1)
-    pred_postfit.SetLineColor(ROOT.kWhite)
-    pred_postfit.SetFillStyle(3345)
-    pred_postfit.SetMarkerStyle(22)
-    pred_postfit.SetMarkerSize(1.6)
-    pred_postfit.Draw('P2')
-    if data_postfit!=None:
-        data_prefit.SetLineColor(ROOT.kGray+2)
-        data_prefit.SetMarkerColor(ROOT.kGray+2)
-        data_postfit.SetLineColor(ROOT.kBlack)
-        data_postfit.SetMarkerColor(ROOT.kBlack)
-        data_postfit.SetMarkerStyle(20)
-        data_postfit.SetLineWidth(2)
-        data_prefit.SetLineStyle(2)
+        data_postfit_graph=ROOT.TGraphErrors(data_postfit)
+    pred_prefit_graph=ROOT.TGraphErrors(pred_prefit)
+    pred_postfit_graph=ROOT.TGraphErrors(pred_postfit)
+    pred_prefit_graph.SetFillColor(ROOT.kBlue)
+    pred_prefit_graph.SetLineColor(ROOT.kWhite)
+    pred_prefit_graph.SetMarkerColor(ROOT.kBlue+1)
+    pred_prefit_graph.SetFillStyle(3354)
+    pred_prefit_graph.SetTitle('')
+    pred_prefit_graph.GetXaxis().SetTitle('')
+    
+
+    y_title = ""
+    x_title = ""
+    labels = []
+
+    num_bins = pred_prefit_graph.GetN()
+
+    if num_bins < 15:
+        y_title = r'd\sigma/dM [pb/GeV]'
+        x_title = r"M_{T} [GeV]"
+        if num_bins == 11:
+            labels = ["200-250", "250-300", "300-350", "350-425", "425-500", "500-600", "600-750", "750-900", "900-1100", "1100-1400", "1400-2000"]
+        elif num_bins == 12:
+            labels = ["200-250", "250-300", "300-350", "350-425", "425-500", "500-600", "600-750", "750-900", "900-1100", "1100-1400", "1400-2000", "2000-5000"]
+
+            
     else:
-        data_prefit.SetLineColor(ROOT.kBlack)
-        data_prefit.SetMarkerColor(ROOT.kBlack)
+        y_title = r'd^{2}\sigma/dMd|/eta [pb/GeV]'
+        x_title = r"|\eta^{lepton}| \otimes M_{T} [GeV]"
 
-    data_prefit.SetMarkerStyle(20)
-    data_prefit.SetLineWidth(2)
-    data_prefit.Draw('P')
+        if num_bins == 40:
+            labels = ["200-250", "300-425", "425-600", "600-900", "900-2000"]
+        elif num_bins == 44:
+            labels = ["200-300", "300-425", "425-600", "600-900", "900-2000","2000-5000"]
+
+
+    pred_prefit_graph.GetYaxis().SetTitle(y_title)
+
+    pred_prefit_graph.GetXaxis().SetTitleSize(0.1)
+    pred_prefit_graph.GetXaxis().SetTickLength(0.1)
+    pred_prefit_graph.GetXaxis().SetTitleOffset(0)
+    pred_prefit_graph.GetXaxis().SetLabelSize(0)
+    #pred_prefit_graph.GetYaxis().SetTitleOffset(1.6)
+    pred_prefit_graph.GetYaxis().SetTitleSize(0.05)
+    pred_prefit_graph.GetYaxis().SetLabelSize(0.05)
+
+    pred_prefit_graph.Draw('PA2')
+    pred_prefit_graph.GetYaxis().SetRangeUser(0,ymax*1.1)
+    pred_postfit_graph.SetFillColor(ROOT.kRed)
+    pred_postfit_graph.SetMarkerColor(ROOT.kRed+1)
+    pred_postfit_graph.SetLineColor(ROOT.kWhite)
+    pred_postfit_graph.SetFillStyle(3345)
+    pred_postfit_graph.SetMarkerStyle(22)
+    pred_postfit_graph.SetMarkerSize(1.6)
+    pred_postfit_graph.Draw('P2')
     if data_postfit!=None:
-        data_postfit.Draw('P')
+        data_prefit_graph.SetLineColor(ROOT.kGray+2)
+        data_prefit_graph.SetMarkerColor(ROOT.kGray+2)
+        data_postfit_graph.SetLineColor(ROOT.kBlack)
+        data_postfit_graph.SetMarkerColor(ROOT.kBlack)
+        data_postfit_graph.SetMarkerStyle(20)
+        data_postfit_graph.SetLineWidth(2)
+        data_prefit_graph.SetLineStyle(2)
+    else:
+        data_prefit_graph.SetLineColor(ROOT.kBlack)
+        data_prefit_graph.SetMarkerColor(ROOT.kBlack)
 
-    legend=ROOT.TLegend(0.6,0.65,0.9,0.9)
-    legend.SetBorderSize(0)
-    legend.SetLineStyle(0)
-    legend.SetTextFont(42)
-    legend.SetTextSize(0.04)
-    legend.SetFillStyle(0)
-    legend.AddEntry(pred_prefit,'prefit','PF')
-    legend.AddEntry(pred_postfit,'postfit','PF')
-    legend.AddEntry(data_prefit,'measurement','PE')
+    data_prefit_graph.SetMarkerStyle(20)
+    data_prefit_graph.SetLineWidth(2)
+    data_prefit_graph.Draw('P')
     if data_postfit!=None:
-        legend.AddEntry(data_postfit,'postfit measurement','PE')
-    legend.Draw()
+        data_postfit_graph.Draw('P')
 
-    printAndSave(c,outfile,outfolder,alsoLog=True)
+    leg = ROOT.TLegend(0.68,0.55,0.90,0.75)
+    leg.SetTextSize(0.035)
+    leg.SetFillStyle(0)
+    leg.SetBorderSize(0)
+
+    leg.AddEntry(pred_prefit_graph,'Prefit pred.','PF')
+    leg.AddEntry(pred_postfit_graph,'Postfit pred.','PF')
+    leg.AddEntry(data_prefit_graph,'Measurement','PE')
+    if data_postfit!=None:
+        leg.AddEntry(data_postfit,'postfit measurement','PE')
+    leg.Draw()
+
+    ATLASLabel(0.50, 0.77, "Work in Progress")
+    myText(0.5, 0.71, 1, 0.042, sampleText )
+
+    c_2.cd()
+
+    prefit_ratio = pred_prefit.Clone()
+    prefit_ratio.Divide(data_prefit)
+    prefit_ratio.GetYaxis().SetNdivisions(505)
+    prefit_ratio.GetYaxis().CenterTitle()
+    #prefit_ratio = ROOT.TGraphErrors(prefit_ratio)
+    prefit_ratio.SetFillColor(ROOT.kBlue)
+    prefit_ratio.SetLineColor(ROOT.kWhite)
+    prefit_ratio.SetMarkerColor(ROOT.kBlue+1)
+    prefit_ratio.SetFillStyle(3345)
+    prefit_ratio.SetTitle('')
+
+
+    num_points = prefit_ratio.GetNbinsX()
+
+
+    
+    # Update the graph to reflect the changes
+
+    print(aScale*pred_prefit.GetXaxis().GetTitleSize())
+
+
+    prefit_ratio.SetMarkerStyle(21)
+    prefit_ratio.SetMarkerSize(1.3)
+    prefit_ratio.GetYaxis().SetTitleSize(0.10)
+    prefit_ratio.GetYaxis().CenterTitle()
+    prefit_ratio.GetYaxis().SetTitleOffset(0.5)
+    prefit_ratio.GetYaxis().SetLabelSize(0.08)
+    prefit_ratio.GetXaxis().SetLabelSize(0)
+    prefit_ratio.SetLineWidth(5)
+    if data_postfit!=None:
+        postfit_ratio = pred_postfit.Clone("postfit_ratio")
+        postfit_ratio.Divide(data_postfit) 
+        postfit_ratio = ROOT.TGraphErrors(postfit_ratio)
+        postfit_ratio.SetFillColor(ROOT.kRed)
+        postfit_ratio.SetLineColor(ROOT.kWhite)
+        postfit_ratio.SetMarkerColor(ROOT.kRed+1)
+        postfit_ratio.SetFillStyle(3354)
+        postfit_ratio.SetTitle('')
+        postfit_ratio.SetMarkerStyle(21)
+        postfit_ratio.SetMarkerSize(1.3)
+    else:
+        postfit_ratio = pred_postfit.Clone("postfit_ratio")
+        postfit_ratio.Divide(data_prefit)
+        postfit_ratio = ROOT.TGraphErrors(postfit_ratio)
+        postfit_ratio.SetFillColor(ROOT.kRed)
+        postfit_ratio.SetLineColor(ROOT.kWhite)
+        postfit_ratio.SetMarkerColor(ROOT.kRed+1)
+        postfit_ratio.SetFillStyle(3354)
+        postfit_ratio.SetTitle('')
+        postfit_ratio.SetMarkerStyle(21)
+        postfit_ratio.SetMarkerSize(1.3)
+        postfit_ratio.SetLineWidth(5)
+
+    line = ROOT.TLine(prefit_ratio.GetXaxis().GetXmin(), 1.0, prefit_ratio.GetXaxis().GetXmax(), 1.0)
+    line.SetLineWidth(2)
+    line.SetLineStyle(2)
+    line.SetLineColor(ROOT.kBlack)
+
+    ratio = pred_prefit.Clone()
+    ratio.Divide(pred_prefit)
+    ratio.GetYaxis().SetNdivisions(505)
+    ratio.GetYaxis().CenterTitle()
+    ratio.GetYaxis().SetTickLength(0.02)
+    ratio.GetYaxis().SetTitleSize(0.1)
+    ratio.SetMinimum(0.9)
+    ratio.SetMaximum(1.1)
+    ratio.SetTitle("")
+    ratio.SetMarkerSize(0)
+    ratio.SetLineWidth(0)
+    ratio.GetYaxis().SetTitle("Pred./Meas.")
+    #ratio.GetXaxis().SetTitle(x_title)
+    ratio.GetXaxis().SetTitleOffset(5)  
+    ratio.GetXaxis().SetTitleSize(0.1)
+    ratio.GetXaxis().SetTickLength(0.1)
+    ratio.GetXaxis().SetTitleOffset(0)
+    ratio.GetXaxis().SetLabelSize(0.1)
+    ratio.GetXaxis().SetLabelOffset(0.04)
+    ratio.GetYaxis().SetTitleSize(0.1)
+    ratio.GetYaxis().SetLabelSize(0.1)
+    for i, label in enumerate(labels):
+        ratio.GetXaxis().SetBinLabel(i+1, label)
+
+
+    ratio.DrawCopy("e")
+
+    prefit_ratio.Draw("same PA2")
+    postfit_ratio.Draw("same PE2")
+    line.Draw("same")
+    myText(0.85, 0.02, 1, 0.15, x_title)
+
+    c_1.Update()
+    c_2.Update()
+    c.Update()
+
+    printAndSavePads(c, c_1, c_2, outfile,outfolder,alsoLog=True)
     return c
+
 
 def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     pars=[t for t in pars if t in pulls]
@@ -783,3 +946,176 @@ def printAndSave(c,outfile,outfolder,alsoLog=False):
         c.SetLogy()
         c.SaveAs(outfolder+'/'+c.GetName()+'_log.pdf')
         c.SaveAs(outfolder+'/'+c.GetName()+'_log.png')
+
+def printAndSavePads(c,pad1,pad2,outfile,outfolder,alsoLog=False):
+    outfile.cd()
+    c.Write()
+    c.SaveAs(outfolder+'/'+c.GetName()+'.pdf')
+    c.SaveAs(outfolder+'/'+c.GetName()+'.png')
+    if alsoLog:
+        pad1.SetLogy()
+        c.SaveAs(outfolder+'/'+c.GetName()+'_log.pdf')
+        c.SaveAs(outfolder+'/'+c.GetName()+'_log.png')
+
+
+def ATLASLabel(x, y, text=None, color=1):
+    l = ROOT.TLatex()
+    l.SetNDC()
+    l.SetTextFont(72)
+    l.SetTextColor(color)
+
+    delx = 0.115 * 696 * ROOT.gPad.GetWh() / (472 * ROOT.gPad.GetWw())
+
+    l.DrawLatex(x, y, "ATLAS")
+    if text:
+        p = ROOT.TLatex()
+        p.SetNDC()
+        p.SetTextFont(42)
+        p.SetTextColor(color)
+        p.DrawLatex(x + delx, y, text)
+
+def ATLASLabelOld(x, y, Preliminary=False, color=1):
+    l = ROOT.TLatex()
+    l.SetNDC()
+    l.SetTextFont(72)
+    l.SetTextColor(color)
+    l.DrawLatex(x, y, "ATLAS")
+    if Preliminary:
+        p = ROOT.TLatex()
+        p.SetNDC()
+        p.SetTextFont(42)
+        p.SetTextColor(color)
+        p.DrawLatex(x + 0.115, y, "Preliminary")
+
+def ATLASVersion(version=None, x=0.88, y=0.975, color=1):
+    if version:
+        versionString = "Version {}".format(version)
+        l = ROOT.TLatex()
+        l.SetTextAlign(22)
+        l.SetTextSize(0.04)
+        l.SetNDC()
+        l.SetTextFont(72)
+        l.SetTextColor(color)
+        l.DrawLatex(x, y, versionString)
+
+def SetAtlasStyle():
+    atlasStyle = AtlasStyle()
+    ROOT.gROOT.SetStyle("ATLAS")
+    ROOT.gROOT.ForceStyle()
+    print("\nApplying ATLAS style settings...\n")
+
+def myText(x,y,color,size, text):
+
+    #Double_t tsize=0.05
+    l = ROOT.TLatex()
+    
+    l.SetTextSize(size)
+    l.SetNDC()
+    l.SetTextColor(color)
+    l.DrawLatex(x,y,text)
+
+
+
+def AtlasStyle():
+    atlasStyle = ROOT.TStyle("ATLAS", "Atlas style")
+
+    # Use plain black on white colors
+    icol = 0  # WHITE
+    atlasStyle.SetFrameBorderMode(icol)
+    atlasStyle.SetFrameFillColor(icol)
+    atlasStyle.SetCanvasBorderMode(icol)
+    atlasStyle.SetCanvasColor(icol)
+    atlasStyle.SetPadBorderMode(icol)
+    atlasStyle.SetPadColor(icol)
+    atlasStyle.SetStatColor(icol)
+
+    # Set the paper & margin sizes
+    atlasStyle.SetPaperSize(20, 26)
+
+    # Set margin sizes
+    atlasStyle.SetPadTopMargin(0.05)
+    atlasStyle.SetPadRightMargin(0.05)
+    atlasStyle.SetPadBottomMargin(0.16)
+    atlasStyle.SetPadLeftMargin(0.16)
+
+    # Set title offsets (for axis label)
+    atlasStyle.SetTitleXOffset(1.4)
+    atlasStyle.SetTitleYOffset(1.4)
+
+    # Use large fonts
+    font = 42  # Helvetica
+    tsize = 0.05
+    atlasStyle.SetTextFont(font)
+    atlasStyle.SetTextSize(tsize)
+    atlasStyle.SetLabelFont(font, "x")
+    atlasStyle.SetTitleFont(font, "x")
+    atlasStyle.SetLabelFont(font, "y")
+    atlasStyle.SetTitleFont(font, "y")
+    atlasStyle.SetLabelFont(font, "z")
+    atlasStyle.SetTitleFont(font, "z")
+    atlasStyle.SetLabelSize(tsize, "x")
+    atlasStyle.SetTitleSize(tsize, "x")
+    atlasStyle.SetLabelSize(tsize, "y")
+    atlasStyle.SetTitleSize(tsize, "y")
+    atlasStyle.SetLabelSize(tsize, "z")
+    atlasStyle.SetTitleSize(tsize, "z")
+
+    # Use bold lines and markers
+    atlasStyle.SetMarkerStyle(20)
+    atlasStyle.SetMarkerSize(1.2)
+    atlasStyle.SetHistLineWidth(2)
+    atlasStyle.SetLineStyleString(2, "[12 12]")  # postscript dashes
+
+    # Get rid of X error bars (as recommended in ATLAS figure guidelines)
+    atlasStyle.SetErrorX(0.0001)
+    # Get rid of error bar caps
+    atlasStyle.SetEndErrorSize(0.)
+
+    # Do not display any of the standard histogram decorations
+    atlasStyle.SetOptTitle(0)
+    atlasStyle.SetOptStat(0)
+    atlasStyle.SetOptFit(0)
+
+    # Put tick marks on top and RHS of plots
+    atlasStyle.SetPadTickX(1)
+    atlasStyle.SetPadTickY(1)
+
+    return atlasStyle
+
+def ATLAS_LABEL(x, y, color=1):
+    l = ROOT.TLatex()
+    l.SetNDC()
+    l.SetTextFont(72)
+    l.SetTextColor(color)
+    l.DrawLatex(x, y, "ATLAS")
+
+def myTGraphErrorsDivide(g1, g2):
+    n1 = g1.GetN()
+    n2 = g2.GetN()
+
+    if n1 != n2:
+        print("Vectors do not have the same number of entries!")
+        return None
+
+    g3 = ROOT.TGraphErrors()
+
+    for i in range(n1):
+        x1, y1 = ROOT.Double(0), ROOT.Double(0)
+        g1.GetPoint(i, x1, y1)
+
+        x2, y2 = ROOT.Double(0), ROOT.Double(0)
+        g2.GetPoint(i, x2, y2)
+
+        if x1 != x2:
+            print("x1 and x2 do not match!")
+            continue
+
+        dx1 = g1.GetErrorX(i)
+        dy1 = g1.GetErrorY(i) / y1 if y1 != 0 else 0
+        dy2 = g2.GetErrorY(i) / y2 if y2 != 0 else 0
+
+        g3.SetPoint(i, x1, y1 / y2 if y2 != 0 else 0)
+        g3.SetPointError(i, dx1, math.sqrt(dy1 ** 2 + dy2 ** 2) * (y1 / y2) if y2 != 0 else 0)
+
+    return g3
+
