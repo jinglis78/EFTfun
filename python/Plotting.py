@@ -545,7 +545,7 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
 
     c_1 = ROOT.TPad("c top", "c top", x1, y1, x2, y2)
     c_1.Draw()
-    c_1.SetLogy(1)
+    c_1.SetLogy(0)
     c_1.SetTopMargin(0.1)
     c_1.SetBottomMargin(0.02)
     c_1.SetFillStyle(0)
@@ -559,26 +559,35 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
 
     ymax=0.
     for h in data_prefit,pred_prefit,pred_postfit:
+        print (h.GetNbinsX())
         for i in range(h.GetNbinsX()):
             ymax=max(ymax,h.GetBinContent(i+1)+h.GetBinError(i+1))
+        
+    '''
+
     data_prefit_graph=ROOT.TGraphErrors(data_prefit)
     if data_postfit!=None:
         data_postfit_graph=ROOT.TGraphErrors(data_postfit)
-    pred_prefit_graph=ROOT.TGraphErrors(pred_prefit)
     pred_postfit_graph=ROOT.TGraphErrors(pred_postfit)
-    pred_prefit_graph.SetFillColor(ROOT.kBlue)
-    pred_prefit_graph.SetLineColor(ROOT.kWhite)
-    pred_prefit_graph.SetMarkerColor(ROOT.kBlue+1)
-    pred_prefit_graph.SetFillStyle(3354)
-    pred_prefit_graph.SetTitle('')
-    pred_prefit_graph.GetXaxis().SetTitle('')
+
+    '''
+
+    pred_prefit.SetFillColor(ROOT.kBlue)
+    pred_prefit.SetLineColor(ROOT.kWhite)
+    pred_prefit.SetMarkerColor(ROOT.kBlue+1)
+    pred_prefit.SetLineWidth(2)
+    pred_prefit.SetMarkerSize(1.6)
+    pred_prefit.SetMarkerStyle(22)
+    #pred_prefit.SetFillStyle(3354)
+    pred_prefit.SetTitle('')
+    pred_prefit.GetXaxis().SetTitle('')
     
 
     y_title = ""
     x_title = ""
     labels = []
 
-    num_bins = pred_prefit_graph.GetN()
+    num_bins = pred_prefit.GetNbinsX()
 
     if num_bins < 15:
         y_title = r'd\sigma/dM [pb/GeV]'
@@ -590,7 +599,7 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
 
             
     else:
-        y_title = r'd^{2}\sigma/dMd|/eta [pb/GeV]'
+        y_title = r'd^{2}\sigma / dMd d\eta [pb/GeV]'
         x_title = r"|\eta^{lepton}| \otimes M_{T} [GeV]"
 
         if num_bins == 40:
@@ -599,57 +608,79 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
             labels = ["200-300", "300-425", "425-600", "600-900", "900-2000","2000-5000"]
 
 
-    pred_prefit_graph.GetYaxis().SetTitle(y_title)
+    pred_prefit.GetYaxis().SetTitle(y_title)
 
-    pred_prefit_graph.GetXaxis().SetTitleSize(0.1)
-    pred_prefit_graph.GetXaxis().SetTickLength(0.1)
-    pred_prefit_graph.GetXaxis().SetTitleOffset(0)
-    pred_prefit_graph.GetXaxis().SetLabelSize(0)
-    #pred_prefit_graph.GetYaxis().SetTitleOffset(1.6)
-    pred_prefit_graph.GetYaxis().SetTitleSize(0.05)
-    pred_prefit_graph.GetYaxis().SetLabelSize(0.05)
+    pred_prefit.GetXaxis().SetTitleSize(0.1)
+    pred_prefit.GetXaxis().SetTitleOffset(0)
+    pred_prefit.GetXaxis().SetLabelSize(0)
+    pred_prefit.GetYaxis().SetTitleOffset(1.6)
+    pred_prefit.GetYaxis().SetTitleSize(0.05)
+    pred_prefit.GetYaxis().SetLabelSize(0.05)
+    pred_prefit.SetMaximum(ymax*1.1)
 
-    pred_prefit_graph.Draw('PA2')
-    pred_prefit_graph.GetYaxis().SetRangeUser(0,ymax*1.1)
-    pred_postfit_graph.SetFillColor(ROOT.kRed)
-    pred_postfit_graph.SetMarkerColor(ROOT.kRed+1)
-    pred_postfit_graph.SetLineColor(ROOT.kWhite)
-    pred_postfit_graph.SetFillStyle(3345)
-    pred_postfit_graph.SetMarkerStyle(22)
-    pred_postfit_graph.SetMarkerSize(1.6)
-    pred_postfit_graph.Draw('P2')
+    pred_prefit.DrawCopy("e")
+
+    print (num_bins)
+
+    #pred_prefit=ROOT.TGraphErrors(pred_prefit)
+
+    pred_prefit.Draw('E2 same')
+    pred_postfit.SetFillColor(ROOT.kRed)
+    pred_postfit.SetMarkerColor(ROOT.kRed+1)
+    pred_postfit.SetLineColor(ROOT.kWhite)
+    #pred_postfit.SetFillStyle(3345)
+    pred_postfit.SetMarkerStyle(22)
+    pred_postfit.SetMarkerSize(1.6)
+    pred_postfit.Draw('E2 same')
     if data_postfit!=None:
-        data_prefit_graph.SetLineColor(ROOT.kGray+2)
-        data_prefit_graph.SetMarkerColor(ROOT.kGray+2)
-        data_postfit_graph.SetLineColor(ROOT.kBlack)
-        data_postfit_graph.SetMarkerColor(ROOT.kBlack)
-        data_postfit_graph.SetMarkerStyle(20)
-        data_postfit_graph.SetLineWidth(2)
-        data_prefit_graph.SetLineStyle(2)
+        data_prefit.SetLineColor(ROOT.kGray+2)
+        data_prefit.SetMarkerColor(ROOT.kGray+2)
+        data_postfit.SetLineColor(ROOT.kBlack)
+        data_postfit.SetMarkerColor(ROOT.kBlack)
+        data_postfit.SetMarkerStyle(20)
+        data_postfit.SetLineWidth(2)
+        data_prefit.SetLineStyle(2)
     else:
-        data_prefit_graph.SetLineColor(ROOT.kBlack)
-        data_prefit_graph.SetMarkerColor(ROOT.kBlack)
+        data_prefit.SetLineColor(ROOT.kBlack)
+        data_prefit.SetMarkerColor(ROOT.kBlack)
 
-    data_prefit_graph.SetMarkerStyle(20)
-    data_prefit_graph.SetLineWidth(2)
-    data_prefit_graph.Draw('P')
+    data_prefit.SetMarkerStyle(20)
+    data_prefit.SetLineWidth(2)
+    data_prefit.Draw('PE same')
     if data_postfit!=None:
-        data_postfit_graph.Draw('P')
+        data_postfit.Draw('PE same')
 
-    leg = ROOT.TLegend(0.68,0.55,0.90,0.75)
+    leg = ROOT.TLegend(0.68,0.58,0.90,0.79)
     leg.SetTextSize(0.035)
     leg.SetFillStyle(0)
     leg.SetBorderSize(0)
 
-    leg.AddEntry(pred_prefit_graph,'Prefit pred.','PF')
-    leg.AddEntry(pred_postfit_graph,'Postfit pred.','PF')
-    leg.AddEntry(data_prefit_graph,'Measurement','PE')
+    if  num_bins > 15:
+        print("Plotting lines")
+        line1 = ROOT.TLine(0.3, 0, 0.3, 0.15)
+        line2 = ROOT.TLine(0.6, 0, 0.6, 0.15)
+        line3 = ROOT.TLine(0.75, 0, 0.75, 0.15)
+        line4 = ROOT.TLine(0.9, 0, 0.9, 0.15)
+
+        line1.SetLineWidth(2)  # Set line thickness to 2 pixels
+        line2.SetLineWidth(2)
+        line3.SetLineWidth(2)
+        line4.SetLineWidth(2)
+
+        line1.Draw("same")
+        line2.Draw("e")
+        line3.Draw("p")
+        line4.Draw("p")
+
+    leg.AddEntry(pred_prefit,'Prefit pred.','pe')
+    leg.AddEntry(pred_postfit,'Postfit pred.','pe')
+    leg.AddEntry(data_prefit,'Measurement','pe')
     if data_postfit!=None:
         leg.AddEntry(data_postfit,'postfit measurement','PE')
-    leg.Draw()
+    leg.Draw("same")
 
-    ATLASLabel(0.50, 0.77, "Work in Progress")
-    myText(0.5, 0.71, 1, 0.042, sampleText )
+    ATLASLabel(0.50, 0.83, "Work in Progress")
+    myText(0.5, 0.75, 1, 0.042, sampleText )
 
     c_2.cd()
 
@@ -661,7 +692,7 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     prefit_ratio.SetFillColor(ROOT.kBlue)
     prefit_ratio.SetLineColor(ROOT.kWhite)
     prefit_ratio.SetMarkerColor(ROOT.kBlue+1)
-    prefit_ratio.SetFillStyle(3345)
+    #prefit_ratio.SetFillStyle(3345)
     prefit_ratio.SetTitle('')
 
 
@@ -670,7 +701,6 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
 
     
     # Update the graph to reflect the changes
-
     print(aScale*pred_prefit.GetXaxis().GetTitleSize())
 
 
@@ -689,7 +719,7 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
         postfit_ratio.SetFillColor(ROOT.kRed)
         postfit_ratio.SetLineColor(ROOT.kWhite)
         postfit_ratio.SetMarkerColor(ROOT.kRed+1)
-        postfit_ratio.SetFillStyle(3354)
+        #postfit_ratio.SetFillStyle(3354)
         postfit_ratio.SetTitle('')
         postfit_ratio.SetMarkerStyle(21)
         postfit_ratio.SetMarkerSize(1.3)
@@ -700,7 +730,7 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
         postfit_ratio.SetFillColor(ROOT.kRed)
         postfit_ratio.SetLineColor(ROOT.kWhite)
         postfit_ratio.SetMarkerColor(ROOT.kRed+1)
-        postfit_ratio.SetFillStyle(3354)
+        #postfit_ratio.SetFillStyle(3354)
         postfit_ratio.SetTitle('')
         postfit_ratio.SetMarkerStyle(21)
         postfit_ratio.SetMarkerSize(1.3)
@@ -717,8 +747,8 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     ratio.GetYaxis().CenterTitle()
     ratio.GetYaxis().SetTickLength(0.02)
     ratio.GetYaxis().SetTitleSize(0.1)
-    ratio.SetMinimum(0.9)
-    ratio.SetMaximum(1.1)
+    ratio.SetMinimum(0.5)
+    ratio.SetMaximum(1.5)
     ratio.SetTitle("")
     ratio.SetMarkerSize(0)
     ratio.SetLineWidth(0)
@@ -732,16 +762,34 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     ratio.GetXaxis().SetLabelOffset(0.04)
     ratio.GetYaxis().SetTitleSize(0.1)
     ratio.GetYaxis().SetLabelSize(0.1)
-    for i, label in enumerate(labels):
-        ratio.GetXaxis().SetBinLabel(i+1, label)
+
+    if num_bins < 15:
+        for i, label in enumerate(labels):
+            ratio.GetXaxis().SetBinLabel(i+1, label)
+    else:
+        ratio.GetXaxis().SetLabelSize(0)
 
 
     ratio.DrawCopy("e")
 
-    prefit_ratio.Draw("same PA2")
+    prefit_ratio.Draw("same PE2")
     postfit_ratio.Draw("same PE2")
     line.Draw("same")
-    myText(0.85, 0.02, 1, 0.15, x_title)
+    if num_bins < 15:
+        myText(0.85, 0.02, 1, 0.15, x_title)
+    else:   
+        myText(0.7, 0.02, 1, 0.15, x_title)
+
+        # Define the axis labels and the corresponding bin ranges
+        labels = ["200-300", "300-425", "425-600", "600-900", "900-2000"]
+
+        bin_ranges = [0.22, 0.46, 0.65, 0.78, 0.88]  # Bin ranges where labels change
+
+        for i in range(len(labels)):
+            xoffset =  bin_ranges[i]
+            text = labels[i]
+            myText(xoffset, 0.2, 1, 0.1, text)
+
 
     c_1.Update()
     c_2.Update()

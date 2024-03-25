@@ -27,8 +27,6 @@ class Combination:
             if m.reco_level or m.getCov()==None:
                 continue
             det=m.getCov().Determinant()
-            if det<=1e-200:
-                raise Exception("Covariance degenerate")
             while det>10e20 or det==float('+inf'):
                 logging.info('Huge covariance matrix determinant ({}: {}) rescaling measurement and prediction by 0.1')
                 p.scale(0.1)
@@ -41,6 +39,8 @@ class Combination:
                 m.scale(10)
                 det=m.getCov(redo=True).Determinant()
                 logging.info('New determinant: '+str(det))
+            if det<=1e-200:
+                raise Exception("Covariance degenerate")
 
 
         self.mvgaussians=[]
