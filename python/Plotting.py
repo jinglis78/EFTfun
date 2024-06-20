@@ -39,14 +39,16 @@ def make_line(formula, op, nu_val):
 
     return variables
 
-def canvasPredFormula(name, formula, data, uncertainties, outfile, outfolder):
+def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfolder):
 
-
-    operators = {'cll1', 'chq3', 'clq3', 'chl3'}
+    operators = {'cll1', 'chq3', 'clq3', 'chl3'} 
 
     # Dictionary of multigraphs
 
     multigraphs = {}
+
+    min_result = {}
+    max_result = {}
 
     for itr,op in enumerate(operators):
         print(op)
@@ -55,6 +57,9 @@ def canvasPredFormula(name, formula, data, uncertainties, outfile, outfolder):
         mg = ROOT.TMultiGraph()
         
         mg.SetTitle("{};{}; Cross section [nb]".format(op, op))
+
+        min_result[op] = 0
+        max_result[op] = 1
 
 
         for nu_val in [-1, 0, 1]:
@@ -74,38 +79,43 @@ def canvasPredFormula(name, formula, data, uncertainties, outfile, outfolder):
             graph.SetLineColor(line_color)
             graph.SetLineStyle(line_style)
 
-            min_result = 0
-            max_result = 1
-
             # Loop over x in the range -1 to 1 with 100 steps
             for x in range(-20, 21):
                 variables_copy = variables.copy()
                 variables_copy[op] = x / 20.0  # Scale x to be in the range -1 to 1
+                if op != "clq3": 
+                    variables_copy[op] = x / 2.  # Scale x to be in the range -1000 to 1000
 
                 result = eval(formula, variables_copy)
-                if x == 20:
-                    print ("x= ", x)
-                    print(formula)
-                    print("x/20 = ", x / 20.0)
+                #if x == 20:
+                    #print ("x= ", x)
+                    #print(formula)
+                    #print("x/20 = ", x / 20.0)
                     #print("printing variables")
                     # print (variables_copy)
-                    print(result)
+                    #print(result)
                 results.append(result)
-                if result < min_result:
-                    min_result = result
-                if result > max_result:
-                    max_result = result
+                if result < min_result[op]:
+                    min_result[op] = result
+                if result > max_result[op]:
+                    max_result[op] = result
 
-            print ("min and max results: ", min_result, " and ", max_result)
+            #print ("min and max results: ", min_result, " and ", max_result)
             
-            if min_result < 0:
-                graph.GetYaxis().SetRangeUser(min_result*4, max_result*4)
+            if min_result[op] < 0:
+                graph.GetYaxis().SetRangeUser(min_result[op]*4, max_result[op]*4)
             else:
-                graph.GetYaxis().SetRangeUser(min_result/4, max_result*4)
+                graph.GetYaxis().SetRangeUser(min_result[op]/4, max_result[op]*4)
+
             graph.SetTitle("{};X title;Y title");
 
             for i, result in enumerate(results):
-                graph.SetPoint(i, (i - 20) / 20.0, result)
+                print (i, result)
+                if op != "clq3": 
+                    print ("(i - 20) / 2. = ", (i - 20) / 2.)
+                    graph.SetPoint(i, (i - 20) / 2., result)
+                else: 
+                    graph.SetPoint(i, (i - 20) / 20.0, result)
 
             mg.Add(graph,"lp")
 
@@ -114,6 +124,10 @@ def canvasPredFormula(name, formula, data, uncertainties, outfile, outfolder):
     
     for op, mg in multigraphs.items():
         print (op)
+
+        ci = pulls[op][0]
+        ci_errors = (pulls[op][1], pulls[op][2])    
+
         # Create a new canvas for each multigraph
         c = ROOT.TCanvas(name+"_"+op, name+"_"+op, 1024, 1024)
         c.SetRightMargin(0.1)
@@ -126,32 +140,43 @@ def canvasPredFormula(name, formula, data, uncertainties, outfile, outfolder):
         data_points = ROOT.TGraphErrors()
         data_points.SetPoint(0, 0, data["meas"])  # sm meas
 
+        postfit_points = ROOT.TGraphErrors()
+        postfit_points.SetPoint(0, ci, data["postfit"])  # postfit
+
         pred_points = ROOT.TGraphErrors()
         pred_points.SetPoint(0, 0, data["sm"])  # sm pred
+
         pred_points.SetPoint(1, 1, data["sm"] + data[op])  # smeft pred
 
+        print ("ci: ", ci)
         print ("data[op]: ", data[op], " +- ",uncertainties[op][1])
         print ("data['sm']: ", data['sm'], " +- ",uncertainties['sm'][1])
         print ("data['meas']: ", data['meas'], " +- ",uncertainties['meas'][1])
+        print ("data['postfit']: ", data['postfit'], " +- ",uncertainties['postfit'][1])
 
-        if (data['meas'] - uncertainties['meas'][1]) < (data["sm"] - data[op] - uncertainties[op][1]):
-            if (data['meas'] - uncertainties['meas'][1]) < 0:
-                mg.SetMinimum((data['meas'] - uncertainties['meas'][1])*1.3)
-            if (data['meas'] - uncertainties['meas'][1]) > 0:
-                mg.SetMinimum((data['meas'] - uncertainties['meas'][1]) / 1.3)
+        # Calculate maximum and minimum values
+        max_value = max(data["sm"] + data[op] + uncertainties["postfit"][1] , data["postfit"] + uncertainties["postfit"][1])
+        min_value = min(data["sm"] - data[op] - uncertainties["postfit"][1] ,  data["postfit"] - uncertainties["postfit"][1])
 
-        if (data['meas'] + uncertainties['meas'][1]) > (data["sm"] + data[op] + uncertainties[op][1]):
-            if (data['meas'] + uncertainties['meas'][1]) < 0:
-                mg.SetMaximum((data['meas'] + uncertainties['meas'][1])/1.3)
-            if (data['meas'] + uncertainties['meas'][1]) > 0:
-                mg.SetMaximum((data['meas'] + uncertainties['meas'][1])*1.3)
+        # Set yMax and yMin
+        yMax = 2.5 * max_result[op]
+        if min_result[op] > 0:
+            yMin = 0.1 * min_result[op]
+        else:
+            yMin = 2 * min_result[op]
+        
+        mg.SetMaximum(yMax)
+        mg.SetMinimum(yMin)
 
         mg.Draw("a")
 
         pred_points.SetPointError(0, 0, uncertainties["sm"][1])  # Set errors for point 0
         pred_points.SetPointError(1, 0, uncertainties[op][1] )  # Set errors for point 1
+        
 
         data_points.SetPointError(0, 0,  uncertainties["meas"][1]) # Set errors for point 0
+
+        postfit_points.SetPointError(0,0, uncertainties["postfit"][1])
 
         pred_points.SetFillColor(ROOT.kBlue)
         pred_points.SetMarkerColor(ROOT.kBlue+1)
@@ -159,26 +184,45 @@ def canvasPredFormula(name, formula, data, uncertainties, outfile, outfolder):
         pred_points.SetFillStyle(3345)
         pred_points.SetMarkerStyle(20)
         pred_points.SetMarkerSize(2)
+        pred_points.SetLineWidth(2)
         pred_points.Draw('P')
 
-        data_points.SetFillColor(ROOT.kRed)
-        data_points.SetMarkerColor(ROOT.kRed+1)
-        data_points.SetLineColor(ROOT.kRed+1)
+        data_points.SetFillColor(ROOT.kBlack)
+        data_points.SetMarkerColor(ROOT.kBlack)
+        data_points.SetLineColor(ROOT.kBlack)
         data_points.SetFillStyle(3345)
         data_points.SetMarkerStyle(20)
         data_points.SetMarkerSize(2)
+        data_points.SetLineWidth(2)
         data_points.Draw('P')
+
+        postfit_points.SetFillColor(ROOT.kRed)
+        postfit_points.SetMarkerColor(ROOT.kRed+1)
+        postfit_points.SetLineColor(ROOT.kRed+1)
+        postfit_points.SetFillStyle(3345)
+        postfit_points.SetMarkerStyle(22)
+        postfit_points.SetMarkerSize(2)
+        postfit_points.SetLineWidth(2)
+        postfit_points.Draw('P')
 
         legend = ROOT.TLegend(0.65, 0.7, 0.9, 0.9)
         legend.SetTextSize(0.035)
         legend.SetFillStyle(0)
         legend.SetBorderSize(0)
-        legend.AddEntry(data_points, "Measurement", "p")
-        legend.AddEntry(pred_points, "Predictions", "p")
+        legend.AddEntry(data_points, "Meas.", "p")
+        legend.AddEntry(pred_points, "Pred.", "p")
+        legend.AddEntry(postfit_points, "Postfit", "p")
 
 
         legend.Draw("same")
 
+        # Assuming ci, ci_errors[0], and ci_errors[1] are floating-point numbers
+        sampleText = op + " = " + str(round(ci, 3)) + " [ +" + str(round(ci_errors[1], 3)) +  ", " + str(round(ci_errors[0], 3)) + " ]"
+
+        if op == "clq3":    
+            sampleText = op + " = " + str(round(ci, 6)) + " [ +" + str(round(ci_errors[1], 6)) +  ", " + str(round(ci_errors[0], 6)) + " ]"
+
+        myText(0.2, 0.8, 1, 0.03, sampleText )
 
         c.Update()
         c.WaitPrimitive()
@@ -657,10 +701,10 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
 
     if  num_bins > 15:
         print("Plotting lines")
-        line1 = ROOT.TLine(0.3, 0, 0.3, 0.15)
-        line2 = ROOT.TLine(0.6, 0, 0.6, 0.15)
-        line3 = ROOT.TLine(0.75, 0, 0.75, 0.15)
-        line4 = ROOT.TLine(0.9, 0, 0.9, 0.15)
+        line1 = ROOT.TLine(0.3, 0, 0.3, 0.08)
+        line2 = ROOT.TLine(0.6, 0, 0.6, 0.08)
+        line3 = ROOT.TLine(0.75, 0, 0.75, 0.08)
+        line4 = ROOT.TLine(0.9, 0, 0.9, 0.08)
 
         line1.SetLineWidth(2)  # Set line thickness to 2 pixels
         line2.SetLineWidth(2)
@@ -783,12 +827,310 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
         # Define the axis labels and the corresponding bin ranges
         labels = ["200-300", "300-425", "425-600", "600-900", "900-2000"]
 
+        bin_ranges = [0.24, 0.48, 0.65, 0.77, 0.865]  # Bin ranges where labels change
+
+        for i in range(len(labels)):
+            xoffset =  bin_ranges[i]
+            text = labels[i]
+            myText(xoffset, 0.2, 1, 0.1, text)
+
+
+    c_1.Update()
+    c_2.Update()
+    c.Update()
+
+    printAndSavePads(c, c_1, c_2, outfile,outfolder,alsoLog=True)
+    return c
+
+def canvasRatio(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile,outfolder):
+
+    SetAtlasStyle()
+
+    # Setup Canvas 
+    x1 = 0.04
+    x2 = 0.96
+    y1 = 0.30
+    y2 = 0.96
+    gap = 0.05
+    
+    aScale = (y2-y1)/(y1-gap-x1)
+
+    c = ROOT.TCanvas(name,name,1000,1000)
+    c.SetLogy()
+    c.Draw()
+
+    c_2 = ROOT.TPad("c ratio", "c ratio", x1, x1+gap, x2, y1)
+    c_2.Draw()
+    c_2.SetLogy(0)
+    c_2.SetTopMargin(0.02)
+    c_2.SetBottomMargin(0.4) 
+    c_2.SetFillStyle(0)
+
+    c_1 = ROOT.TPad("c top", "c top", x1, y1, x2, y2)
+    c_1.Draw()
+    c_1.SetLogy(0)
+    c_1.SetTopMargin(0.1)
+    c_1.SetBottomMargin(0.02)
+    c_1.SetFillStyle(0)
+
+
+    print ("Canvas set up")
+
+    c_1.cd()
+
+    sampleText = r"pp \rightarrow l^{\pm} \nu"
+
+    ymax=0.
+    for h in data_prefit,pred_prefit,pred_postfit:
+        print (h.GetNbinsX())
+        for i in range(h.GetNbinsX()):
+            ymax=max(ymax,h.GetBinContent(i+1)+h.GetBinError(i+1))
+        
+
+
+    pred_prefit.SetFillColor(ROOT.kBlue)
+    pred_prefit.SetLineColor(ROOT.kWhite)
+    pred_prefit.SetMarkerColor(ROOT.kBlue+1)
+    pred_prefit.SetLineWidth(2)
+    pred_prefit.SetMarkerSize(1.6)
+    pred_prefit.SetMarkerStyle(22)
+    #pred_prefit.SetFillStyle(3354)
+    pred_prefit.SetTitle('')
+    pred_prefit.GetXaxis().SetTitle('')
+    
+
+    y_title = ""
+    x_title = ""
+    labels = []
+
+    num_bins = pred_prefit.GetNbinsX()
+
+    if num_bins < 15:
+        y_title = r'd\sigma/dM [pb/GeV]'
+        x_title = r"M_{T} [GeV]"
+        if num_bins == 11:
+            labels = ["200-250", "250-300", "300-350", "350-425", "425-500", "500-600", "600-750", "750-900", "900-1100", "1100-1400", "1400-2000"]
+        elif num_bins == 12:
+            labels = ["200-250", "250-300", "300-350", "350-425", "425-500", "500-600", "600-750", "750-900", "900-1100", "1100-1400", "1400-2000", "2000-5000"]
+
+            
+    else:
+        y_title = r'd^{2}\sigma / dMd d\eta [pb/GeV]'
+        x_title = r"|\eta^{lepton}| \otimes M_{T} [GeV]"
+
+        if num_bins == 40:
+            labels = ["200-250", "300-425", "425-600", "600-900", "900-2000"]
+        elif num_bins == 44:
+            labels = ["200-300", "300-425", "425-600", "600-900", "900-2000","2000-5000"]
+
+
+    pred_prefit.GetYaxis().SetTitle(y_title)
+
+    pred_prefit.GetXaxis().SetTitleSize(0.1)
+    pred_prefit.GetXaxis().SetTitleOffset(0)
+    pred_prefit.GetXaxis().SetLabelSize(0)
+    pred_prefit.GetYaxis().SetTitleOffset(1.6)
+    pred_prefit.GetYaxis().SetTitleSize(0.05)
+    pred_prefit.GetYaxis().SetLabelSize(0.05)
+    pred_prefit.SetMaximum(ymax*1.1)
+
+    pred_prefit.DrawCopy("e")
+
+    print (num_bins)
+
+    #pred_prefit=ROOT.TGraphErrors(pred_prefit)
+
+    pred_prefit.Draw('E2 same')
+    pred_postfit.SetFillColor(ROOT.kRed)
+    pred_postfit.SetMarkerColor(ROOT.kRed+1)
+    pred_postfit.SetLineColor(ROOT.kWhite)
+    #pred_postfit.SetFillStyle(3345)
+    pred_postfit.SetMarkerStyle(22)
+    pred_postfit.SetMarkerSize(1.6)
+    pred_postfit.Draw('E2 same')
+    if data_postfit!=None:
+        data_prefit.SetLineColor(ROOT.kGray+2)
+        data_prefit.SetMarkerColor(ROOT.kGray+2)
+        data_postfit.SetLineColor(ROOT.kBlack)
+        data_postfit.SetMarkerColor(ROOT.kBlack)
+        data_postfit.SetMarkerStyle(20)
+        data_postfit.SetLineWidth(2)
+        data_prefit.SetLineStyle(2)
+    else:
+        data_prefit.SetLineColor(ROOT.kBlack)
+        data_prefit.SetMarkerColor(ROOT.kBlack)
+
+    data_prefit.SetMarkerStyle(20)
+    data_prefit.SetLineWidth(2)
+    data_prefit.Draw('PE same')
+    if data_postfit!=None:
+        data_postfit.Draw('PE same')
+
+    leg = ROOT.TLegend(0.68,0.58,0.90,0.79)
+    leg.SetTextSize(0.035)
+    leg.SetFillStyle(0)
+    leg.SetBorderSize(0)
+
+    if  num_bins > 15:
+        print("Plotting lines")
+        line1 = ROOT.TLine(0.3, 0, 0.3, 0.15)
+        line2 = ROOT.TLine(0.6, 0, 0.6, 0.15)
+        line3 = ROOT.TLine(0.75, 0, 0.75, 0.15)
+        line4 = ROOT.TLine(0.9, 0, 0.9, 0.15)
+
+        line1.SetLineWidth(2)  # Set line thickness to 2 pixels
+        line2.SetLineWidth(2)
+        line3.SetLineWidth(2)
+        line4.SetLineWidth(2)
+
+        line1.Draw("same")
+        line2.Draw("e")
+        line3.Draw("p")
+        line4.Draw("p")
+
+    leg.AddEntry(pred_prefit,'Prefit pred.','pe')
+    leg.AddEntry(pred_postfit,'Postfit pred.','pe')
+    leg.AddEntry(data_prefit,'Measurement','pe')
+    if data_postfit!=None:
+        leg.AddEntry(data_postfit,'postfit measurement','PE')
+    leg.Draw("same")
+
+    ATLASLabel(0.50, 0.83, "Work in Progress")
+    myText(0.5, 0.75, 1, 0.042, sampleText )
+
+    c_2.cd()
+
+    prefit_ratio = pred_prefit.Clone()
+    prefit_ratio.Divide(data_prefit)
+    prefit_ratio.GetYaxis().SetNdivisions(505)
+    prefit_ratio.GetYaxis().CenterTitle()
+    #prefit_ratio = ROOT.TGraphErrors(prefit_ratio)
+    prefit_ratio.SetFillColor(ROOT.kBlue)
+    prefit_ratio.SetLineColor(ROOT.kWhite)
+    prefit_ratio.SetMarkerColor(ROOT.kBlue+1)
+    #prefit_ratio.SetFillStyle(3345)
+    prefit_ratio.SetTitle('')
+
+
+    num_points = prefit_ratio.GetNbinsX()
+
+
+    
+    # Update the graph to reflect the changes
+    print(aScale*pred_prefit.GetXaxis().GetTitleSize())
+
+
+    prefit_ratio.SetMarkerStyle(21)
+    prefit_ratio.SetMarkerSize(1.3)
+    prefit_ratio.GetYaxis().SetTitleSize(0.10)
+    prefit_ratio.GetYaxis().CenterTitle()
+    prefit_ratio.GetYaxis().SetTitleOffset(0.5)
+    prefit_ratio.GetYaxis().SetLabelSize(0.08)
+    prefit_ratio.GetXaxis().SetLabelSize(0)
+    prefit_ratio.SetLineWidth(5)
+    if data_postfit!=None:
+        postfit_ratio = pred_postfit.Clone("postfit_ratio")
+        postfit_ratio.Divide(data_postfit) 
+        postfit_ratio = ROOT.TGraphErrors(postfit_ratio)
+        postfit_ratio.SetFillColor(ROOT.kRed)
+        postfit_ratio.SetLineColor(ROOT.kWhite)
+        postfit_ratio.SetMarkerColor(ROOT.kRed+1)
+        #postfit_ratio.SetFillStyle(3354)
+        postfit_ratio.SetTitle('')
+        postfit_ratio.SetMarkerStyle(21)
+        postfit_ratio.SetMarkerSize(1.3)
+    else:
+        postfit_ratio = pred_postfit.Clone("postfit_ratio")
+        postfit_ratio.Divide(data_prefit)
+        postfit_ratio = ROOT.TGraphErrors(postfit_ratio)
+        postfit_ratio.SetFillColor(ROOT.kRed)
+        postfit_ratio.SetLineColor(ROOT.kWhite)
+        postfit_ratio.SetMarkerColor(ROOT.kRed+1)
+        #postfit_ratio.SetFillStyle(3354)
+        postfit_ratio.SetTitle('')
+        postfit_ratio.SetMarkerStyle(21)
+        postfit_ratio.SetMarkerSize(1.3)
+        postfit_ratio.SetLineWidth(5)
+
+    line = ROOT.TLine(prefit_ratio.GetXaxis().GetXmin(), 1.0, prefit_ratio.GetXaxis().GetXmax(), 1.0)
+    line.SetLineWidth(2)
+    line.SetLineStyle(2)
+    line.SetLineColor(ROOT.kBlack)
+
+
+    hnumer = pred_prefit.Clone()
+    hdenom = data_prefit.Clone()
+
+    hnumer.Divide(hnumer, hdenom, 1.0, 1.0, "B" )
+
+    ratio = pred_prefit.Clone()
+    ratio.Divide(pred_prefit)
+    ratio.GetYaxis().SetNdivisions(505)
+    ratio.GetYaxis().CenterTitle()
+    ratio.GetYaxis().SetTickLength(0.02)
+    ratio.GetYaxis().SetTitleSize(0.1)
+    ratio.SetMinimum(0.5)
+    ratio.SetMaximum(1.5)
+    ratio.SetTitle("")
+    ratio.SetMarkerSize(0)
+    ratio.SetLineWidth(0)
+    ratio.GetYaxis().SetTitle("Pred./Meas.")
+    #ratio.GetXaxis().SetTitle(x_title)
+    ratio.GetXaxis().SetTitleOffset(5)  
+    ratio.GetXaxis().SetTitleSize(0.1)
+    ratio.GetXaxis().SetTickLength(0.1)
+    ratio.GetXaxis().SetTitleOffset(0)
+    ratio.GetXaxis().SetLabelSize(0.1)
+    ratio.GetXaxis().SetLabelOffset(0.04)
+    ratio.GetYaxis().SetTitleSize(0.1)
+    ratio.GetYaxis().SetLabelSize(0.1)
+
+    if num_bins < 15:
+        for i, label in enumerate(labels):
+            ratio.GetXaxis().SetBinLabel(i+1, label)
+    else:
+        ratio.GetXaxis().SetLabelSize(0)
+
+    fitline = ROOT.TF1("fitline","[0]", 0, ratio.GetXaxis().GetXmax())
+
+    hnumer.Fit("fitline")
+    fitresult = hnumer.GetFunction("fitline")
+    fitresult.SetLineStyle(1)
+    fitresult.SetLineColor(8)
+    chiSquare = fitresult.GetChisquare()
+    n_dof = fitresult.GetNDF()
+    YChi = fitresult.GetParameter(0)
+    ErrorChi = fitresult.GetParError(0)
+    leg.AddEntry(fitresult,"y = "+"{:.3f}".format(YChi) + " +/- " + "{:.3f}".format(ErrorChi),'e')
+
+
+    ratio.DrawCopy("e")
+
+    prefit_ratio.Draw("same PE2")
+    postfit_ratio.Draw("same PE2")
+    line.Draw("same")
+    fitresult.Draw("same")
+    if num_bins < 15:
+        myText(0.85, 0.02, 1, 0.15, x_title)
+    else:   
+        myText(0.7, 0.02, 1, 0.15, x_title)
+
+        # Define the axis labels and the corresponding bin ranges
+        labels = ["200-300", "300-425", "425-600", "600-900", "900-2000"]
+
         bin_ranges = [0.22, 0.46, 0.65, 0.78, 0.88]  # Bin ranges where labels change
 
         for i in range(len(labels)):
             xoffset =  bin_ranges[i]
             text = labels[i]
             myText(xoffset, 0.2, 1, 0.1, text)
+
+    c_1.cd()
+
+    text = r"y = Fit to Prefit/Meas."
+    myText(0.64, 0.53, 1, 0.044 , text)
+
+    myText(0.66, 0.47, 1, 0.042,  r'\chi^{2}' + ' / dof = '+"{:.1f}".format(chiSquare) + " / " +str(n_dof))
 
 
     c_1.Update()

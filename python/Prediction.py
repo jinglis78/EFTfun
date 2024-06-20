@@ -72,13 +72,18 @@ class Prediction:
                 th=self.stat_unc_threshold
             elif self.theory.stat_unc_threshold!=None:
                 th=self.theory.stat_unc_threshold
+            #print ("th: ", th)
             mcstatname=self.theory.makeMCstatName(self.name,coeff_name,iBin)
+            #print ("mcstatname: ", mcstatname)
+            #print ("self.theory.getThetaNames(): ", self.theory.getThetaNames())
             if th>0 and effect!=0 and abs(error/effect)>th and not mcstatname in self.theory.getThetaNames():
                 u=Uncertainty.Uncertainty(nbins=self.nbins,name=mcstatname,affected=coeff_name,interpol='lin',
                                 releffect=[0.]*iBin+[abs(error/effect)]+[0.]*(self.nbins-iBin-1))
+                print ("u: ",u)
                 self.addUncertainty(u)
             if self.getUnc(mcstatname):
                 ustr=self.getUnc(mcstatname).getStr(iBin)
+                print ("ustr: ",ustr)
                 effect=str(effect)+'*'+ustr                
         if incl_syst:
             for u in self.uncertainties:
@@ -163,6 +168,7 @@ class Prediction:
             for coeff_name in self.coeff_names:
                 if coeff_name in self.linear_effects:
                     if self.getLinearEffect(coeff_name,iBin)!=0:
+                        print (self.getLinearEffect(coeff_name,iBin))
                         formula+="+{}*{}".format(coeff_name,self.getLinearEffect(coeff_name,iBin))
 
             for coeff_name in self.coeff_names:
@@ -334,6 +340,7 @@ class Prediction:
             self.blind=self.nbins*[1]
         assert len(sm)==self.nbins
         assert len(self.blind)==self.nbins
+        print ("len(sm): ", len(sm))
         self.sm=[x*rescale if b==1 else 0 for x,b in zip(sm,self.blind)]
         return True
 
@@ -407,6 +414,9 @@ class Prediction:
                 self.linear_effects[coeff_names[0]]=[(a[0]+b[0],(a[1]**2+b[1]**2)**0.5) for a,b in zip(self.linear_effects[coeff_names[0]],actual_effect)]
             else:
                 self.linear_effects[coeff_names[0]]=actual_effect
+                print ("actual_effect: ", actual_effect)
+                print ("self.linear_effects[coeff_names[0]]: ", self.linear_effects[coeff_names[0]])
+
         elif power==2:
             if coeff_names[0]<coeff_names[1]:
                 c0,c1=coeff_names[0],coeff_names[1]
@@ -430,6 +440,7 @@ class Prediction:
             if out is None:
                 return False
             actual_effect,actual_uncertainty=out
+            print ("actual_effect,actual_uncertainty: ", out)
             self.setEffect(power,coeff_names,actual_effect,actual_uncertainty,rescale,renorm,add=add,corrections=corrections)
             return True
 

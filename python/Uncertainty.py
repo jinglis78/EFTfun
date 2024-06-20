@@ -9,11 +9,12 @@ def createUncertaintyFromCfg(reference,name,data,reco_level,is_bkg_unc=False,per
     print ("data: ", data)
     print ("name: ", name)
 
+
     coeff = "c"
 
     # Using regular expressions to find the string inside curly braces
     if "meas" not in name:
-        coeff = re.findall(r'\{(.*?)\}', name)[0]
+       coeff = re.findall(r'\{(.*?)\}', name)[0]
 
     # Extracted string
     print ("coeff: ", coeff)

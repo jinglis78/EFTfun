@@ -467,8 +467,8 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                 raise Exception('Unused option '+','.join(main_cfg.options(s))+' in section '+s)
 
 
-        if not force and not quiet:
-            input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
+        #if not force and not quiet:
+        #    input('Does the above look right (check before we are getting spammed by RooFit and Minuit)? Press Enter to continue.')
 
     start_time = time.time()
 
@@ -599,9 +599,155 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                 if not toy_limit is None:
                     Plotting.graphToys2D('g_toyProb_'+'_'.join(pois),toy_limit,f)
                     Plotting.canvasProfile2D('c_prob_'+'_'.join(pois),prof,f,pois[0],pois[1],outfolder=outname,conts1d=conts1d,toy_result=toy_limit,isNLL=False,ztitle='p value')
+
+    elif method=='fitpulls':
+
+        doBigfit = False
+        logging.info('doing fit and pulls')
+
+        pulls=combination.pulls()
+        pullsEach=combination.pullEach()
+        logging.info('Results when floating all (MINOS errors)')
+        for t in theory.coeffs+theory.thetas:
+            if t.GetName() in pulls:
+                # Assuming pullsEach is a dictionary containing values for t.GetName()
+                for key, values in pulls.items():
+                    # Checking for infinity and formatting the pulls accordingly
+                    formatted_pulls = []
+                    for p in values:
+                        if math.isinf(p):
+                            formatted_pulls.append("999999")
+                        else:
+                            formatted_pulls.append(Utils.round2(p))
+
+                # Constructing the formatted string
+                formatted_string = '{} = {}_{{ {} }}^{{ {} }}'.format(key, *formatted_pulls)
+                logging.info(formatted_string)
+                
+        if len(pullsEach)>0:
+            logging.info('Results when setting all but one poi to zero (MINOS errors)')
+        for t in theory.coeffs:
+            if t.GetName() in pullsEach:
+                # Assuming pullsEach is a dictionary containing values for t.GetName()
+                for key, values in pullsEach.items():
+                    # Checking for infinity
+                    formatted_pulls = []
+                    for p in values:
+                        if math.isinf(p):
+                            formatted_pulls.append("999999") # If p is infinity, just append the string "\infty"
+                        else:
+                            formatted_pulls.append(Utils.round2(p))  # Otherwise, round the value normally
+                
+                # Constructing the formatted string
+                formatted_string = '{} = {}_{{ {} }}^{{ {} }}'.format(key, *formatted_pulls)
+                logging.info(formatted_string)   
+        
+        logging.info('doing fit')
+        data_histos_prefit=[]
+        pred_histos_prefit=[]
+        for p,m in zip(predictions,measurements):
+            pred_histos_prefit+=[p.plotPrefit(f)]
+            data_histos_prefit+=[m.plotPrefit(f)]
+        combination.fit()
+        print(combination.getFitResult())
+        #corr=combination.getFitResult().correlationHist()        
+        #corr.Write()
+        #Plotting.canvasCorrelation('c_correlation',corr,f,outname)
+        corrPOIs,covPOIs=combination.correlationHistPOIs()
+        if corrPOIs:
+            corrPOIs.Write()
+            covPOIs.Write()
+            Plotting.canvasCorrelation('c_correlationPOIs',corrPOIs,f,outname)
+            Plotting.canvasCorrelation('c_covariancePOIs',covPOIs,f,outname,log=True)
+
+        for p,m,h_p_pre,h_m_pre in zip(predictions,measurements,pred_histos_prefit,data_histos_prefit):
+            h_p_post=p.plotPostfit(f,combination.getFitResult())
+            hs_bkg_post=p.plotBkgPostfit(f,combination.getFitResult())
+            h_m_post=None
+
+            #  ____Plotting____
+            print ("____Plotting_____")
+            if doBigfit:
+                formulas=p.getPredictionStrings()
+                
+                preds = p.getPredictionFormulas()
+                lin = p.linear_effects
+
+                pred_unc = p.uncertainties
+                meas_unc = m.uncertainties
+
+                operators = {'cll1', 'chq3', 'clq3', 'chl3'}
+
+                # loop over the prediction formula for each bin
+                for iBin,formula in enumerate(formulas):
+                    print ("iBin: ", iBin)
+
+                    print ("formula: ", formula)
+
+                    for u in pred_unc:
+                        if "sm" in u.affected:
+                            sm_effect = u.releffect[iBin]
+                            print ("pred_unc: ", u.releffect[iBin])
+                    
+                    sm_unc = (sm_effect[0] * p.sm[iBin], sm_effect[1] * p.sm[iBin])
+                    meas_unc = (- m.getErr(incl_np=False)[iBin], m.getErr(incl_np=False)[iBin])
+                    postfit_unc = ( -h_p_post.GetBinError(iBin+1)*p.rescaled, h_p_post.GetBinError(iBin+1)*p.rescaled)
+
+                    print ("sm ", p.sm[iBin])
+                    print ("sm uncertainty ", sm_unc )
+                    print ("measurement ", m.central_values[iBin].getVal())
+                    print ("measurement uncertainty ", meas_unc)
+                    print("p.rescaled: ", p.rescaled )
+                    print ("postfit ", h_p_post.GetBinContent(iBin+1)*p.rescaled  )
+                    print ("postfit uncertainty ", postfit_unc )
+
+
+                    data= {'meas': m.central_values[iBin].getVal(), 'sm': p.sm[iBin], 'cll1': 0, 'chq3': 0, 'clq3': 0, 'chl3': 0, 'postfit' : h_p_post.GetBinContent(iBin+1)*p.rescaled }
+
+                    uncertainties = {
+                        'meas': meas_unc,  
+                        'sm': sm_unc,    
+                        'cll1': (0.0, 0.0),
+                        'chq3': (0.0, 0.0),
+                        'clq3': (0.0, 0.0),
+                        'chl3': (0.0, 0.0),
+                        'postfit': postfit_unc
+                    }
+
+                    for j,op in enumerate(operators):
+                        lin_effect = lin[op][iBin]
+                        print ("lin_effect = lin[op][iBin]", op, lin_effect )
+                        data[op] = lin_effect[0]
+                        
+                        for k in range(len(pred_unc)):
+                            if pred_unc[k].name == "hist_"+op:
+                                unc_name = pred_unc[k].name
+                                smeft_effect = pred_unc[k].releffect[iBin]
+
+                        smeft_unc_lower = smeft_effect[0]*data[op]
+                        smeft_unc_upper = smeft_effect[1]*data[op]
+
+                        smeft_unc = (smeft_unc_lower , smeft_unc_upper )
+
+                        print ("smeft uncertainties for ", op, ": ", smeft_unc )
+                        uncertainties[op] = smeft_unc
+                        
+                    print (formula)
+                    print (data)
+
+                    Plotting.canvasPredFormula('c_formula_bin'+str(iBin),formula, data, uncertainties, pullsEach, f,outname)
+                    
+
+            if m.getMeasurementCorrectionString()!=None:
+                h_m_post=m.plotPostfit(f,combination.getFitResult())
+            Plotting.canvasPostfit('c_postfit_'+m.name,h_m_pre,h_m_post,h_p_pre,h_p_post,outfile=f,outfolder=outname)
+            Plotting.canvasRatio('c_ratio_'+m.name,h_m_pre,h_m_post,h_p_pre,h_p_post,outfile=f,outfolder=outname)
+            Plotting.canvasPulls('c_bestfit_all',theory.getCoeffNames(),pulls,outfile=f,outfolder=outname,pois=True,rescale=True)
+            Plotting.canvasPulls('c_bestfit_each',theory.getCoeffNames(),pullsEach,outfile=f,outfolder=outname,pois=True,rescale=True)    
+
     elif method=='fit':
 
-        doBigfit = True
+        doBigfit = False
 
         logging.info('doing fit')
         data_histos_prefit=[]
@@ -610,9 +756,10 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             pred_histos_prefit+=[p.plotPrefit(f)]
             data_histos_prefit+=[m.plotPrefit(f)]
         combination.fit()
-        corr=combination.getFitResult().correlationHist()        
-        corr.Write()
-        Plotting.canvasCorrelation('c_correlation',corr,f,outname)
+        print(combination.getFitResult())
+        #corr=combination.getFitResult().correlationHist()        
+        #corr.Write()
+        #Plotting.canvasCorrelation('c_correlation',corr,f,outname)
         corrPOIs,covPOIs=combination.correlationHistPOIs()
         if corrPOIs:
             corrPOIs.Write()
@@ -650,13 +797,18 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     
                     sm_unc = (sm_effect[0] * p.sm[iBin], sm_effect[1] * p.sm[iBin])
                     meas_unc = (- m.getErr(incl_np=False)[iBin], m.getErr(incl_np=False)[iBin])
+                    postfit_unc = ( -h_p_post.GetBinError(iBin+1)*p.rescaled, h_p_post.GetBinError(iBin+1)*p.rescaled)
 
                     print ("sm ", p.sm[iBin])
                     print ("sm uncertainty ", sm_unc )
                     print ("measurement ", m.central_values[iBin].getVal())
                     print ("measurement uncertainty ", meas_unc)
+                    print("p.rescaled: ", p.rescaled )
+                    print ("postfit ", h_p_post.GetBinContent(iBin+1)*p.rescaled  )
+                    print ("postfit uncertainty ", postfit_unc )
 
-                    data= {'meas': m.central_values[iBin].getVal(), 'sm': p.sm[iBin], 'cll1': 0, 'chq3': 0, 'clq3': 0, 'chl3': 0 }
+
+                    data= {'meas': m.central_values[iBin].getVal(), 'sm': p.sm[iBin], 'cll1': 0, 'chq3': 0, 'clq3': 0, 'chl3': 0, 'postfit' : h_p_post.GetBinContent(iBin+1)*p.rescaled }
 
                     uncertainties = {
                         'meas': meas_unc,  
@@ -664,7 +816,8 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                         'cll1': (0.0, 0.0),
                         'chq3': (0.0, 0.0),
                         'clq3': (0.0, 0.0),
-                        'chl3': (0.0, 0.0)
+                        'chl3': (0.0, 0.0),
+                        'postfit': postfit_unc
                     }
 
                     for j,op in enumerate(operators):
@@ -695,6 +848,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             if m.getMeasurementCorrectionString()!=None:
                 h_m_post=m.plotPostfit(f,combination.getFitResult())
             Plotting.canvasPostfit('c_postfit_'+m.name,h_m_pre,h_m_post,h_p_pre,h_p_post,outfile=f,outfolder=outname)
+            Plotting.canvasRatio('c_ratio_'+m.name,h_m_pre,h_m_post,h_p_pre,h_p_post,outfile=f,outfolder=outname)
 
     elif method=='pulls':
         pulls=combination.pulls()

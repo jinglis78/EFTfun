@@ -1,0 +1,1 @@
+./bin/eftfun.py -i ./configs/CCDY_17_04_24/Tutorial.cfg -o ./results/CCDY_17_04_24/massT_mu_5TeV_fitpulls -m fitpulls
