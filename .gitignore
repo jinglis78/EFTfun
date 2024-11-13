@@ -3,4 +3,5 @@
 *.pdf
 *.png
 *.exp
+log*.txt
 results/
