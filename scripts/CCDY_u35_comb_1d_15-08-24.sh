@@ -1,0 +1,1 @@
+./bin/eftfun.py -i ./configs/CCDY_u35_1d_05-08-24/Tutorial_elmu.cfg -o ./results/CCDY_top1d_tests/mT_comb_u35_05-08-24_fitpulls -m fitpulls

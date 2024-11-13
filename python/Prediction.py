@@ -287,7 +287,6 @@ class Prediction:
         h.Write()
         return h
 
-
     def plotPostfit(self, outfile, fitresult):
         hn=self.name+'_postfit'
         if self.binning!=None:

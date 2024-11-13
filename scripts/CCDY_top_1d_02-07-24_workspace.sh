@@ -1,0 +1,2 @@
+./bin/eftfun.py -i ./configs/CCDY_top_1d_02-07-24/Tutorial_mu.cfg -o ./results/CCDY_top1d_tests/mT_mu_02-07-24_workspaces -m workspace
+./bin/eftfun.py -i ./configs/CCDY_top_1d_02-07-24/Tutorial_el.cfg -o ./results/CCDY_top1d_tests/mT_el_02-07-24_workspaces -m workspace

@@ -20,6 +20,8 @@ class Combination:
 
         self.robust=int(robust)
         
+        print (self.robust)
+        
         self.maxreprofile=3
       
         assert len(predictions)==len(measurements)
@@ -91,6 +93,8 @@ class Combination:
             correlated_uncertainties={}
             for u in correlated_uncertainty_names:
                 correlated_uncertainties[u]=[]
+            
+            print ("correlated_uncertainty_names: ",correlated_uncertainty_names)
 
             for prediction,measurement in zip(predictions,measurements):
                 if measurement.name not in correlated_measurements:
@@ -156,7 +160,8 @@ class Combination:
 
         self.dataset=RooDataSet(self.name+'_data',self.name+'_data',RooArgSet(self.data))
         self.dataset.add(RooArgSet(self.data))
-        self.nll=self.pdf.createNLL(self.dataset,RooFit.Optimize(False))
+        self.nll=self.pdf.createNLL(self.dataset)
+        #self.nll=self.pdf.createNLL(self.dataset,RooFit.Optimize(False))
 
         self.minimizer=RooMinimizer(self.nll)
         unused_pars=theory.getCoeffNames()
@@ -496,14 +501,15 @@ class Combination:
     def minimize(self,strategy=2,hesse=True,minos=False,print_level=2,nshuffle=0,tobeat=None):
        
         deactivated=self.deactivateIrrelevantThetas()
-        self.minimizer.setPrintLevel(1)
+        
         if print_level!=None:
             self.minimizer.setPrintLevel(print_level)
         if not self.verbose or print_level<0:
             self.minimizer.setPrintLevel(-1)
             self.minimizer.setPrintEvalErrors(-1)
             self.minimizer.setVerbose(False)
-        self.minimizer.setStrategy(strategy)
+        self.minimizer.setStrategy(2)
+        self.minimizer.setPrintLevel(3)
         self.minimizer.setErrorLevel(0.5)
         
         nan=False
@@ -521,8 +527,10 @@ class Combination:
                 c.setVal(0.)
             return None
 
-        #logging.info('doing Migrad')
+        logging.info('doing Migrad')
         self.minimizer.migrad()
+        
+        '''
         if self.robust==2:
             res=self.getFitResult()
             if (res.status()!=0 or res.covQual()!=3):
@@ -545,18 +553,25 @@ class Combination:
                     for x in tobeat[1]:
                         self.theory.setVal(x,tobeat[1][x])
                 oldpars=self.shuffle(nshuffle+(int(1e9*self.nll.getVal()) if self.nll.getVal()!=float("inf") else 0 ) )
-                self.minimize(nshuffle=nshuffle+1,tobeat=(self.nll.getVal()+0.05,oldpars),strategy=strategy,hesse=hesse,minos=minos,print_level=print_level)
+                self.minimize(nshuffle=nshuffle+1,tobeat=(self.nll.getVal()+0.05,oldpars),strategy=2,hesse=hesse,minos=minos,print_level=print_level)
             if not tobeat is None and self.nll.getVal()>tobeat[0]:
                 for x in tobeat[1]:
                     self.theory.setVal(x,tobeat[1][x])
                     self.minimizer.migrad()
             
         if hesse:
-            #logging.info('doing Hesse')
+            logging.info('doing Hesse')
+            self.minimizer.setStrategy(2)
             self.minimizer.hesse()
+        '''
 
         if minos:
-            #logging.info('doing Minos')
+            logging.info('doing Minos')
+            self.minimizer.setEps(1e-2)  # Smaller step size for better precision
+            #self.minimizer.setPrintLevel()  # Reduce print verbosity
+            self.minimizer.setMaxFunctionCalls(10000)
+            self.minimizer.setStrategy(2)
+            
             self.minimizer.minos()
         for d in deactivated:
             d.setVal(deactivated[d])
@@ -682,6 +697,7 @@ class Combination:
         self.minimize(strategy=2,minos=True)
         res=self.getFitResult()
         float_pars=res.floatParsFinal()
+        print ("float pars: ", float_pars )
         pars=[]
         if thetas:
             pars+=[t.GetName() for t in self.theory.thetas]
@@ -697,6 +713,7 @@ class Combination:
             hi=float_pars[ipar].getAsymErrorHi()
             lo=float_pars[ipar].getAsymErrorLo()            
             pulls[name]=(val,lo,hi)
+            print("The pull_all: ",name, ": ", val,lo,hi )
         return pulls
 
     def impacts(self,pois,skipMCstat=False):
@@ -721,31 +738,187 @@ class Combination:
             impacts[p]=tuple(impact)
         return pulls,impacts
 
-    def pullEach(self,pois=True,thetas=False,skipMCstat=True):
+    # ___ Determine the pulls when vary each Wilson ceofficent one at a time ___
+    # (varyNP - determines whether the NP's are allowed to vary in the fit or if they should be fixed at zero)
+    def pullEach(self,pois=True,thetas=True,skipMCstat=True,varyNP=False):
         pulls={}
-        pars=[]
+        pars=[] 
+        coeffs=[]
+        nps = []
+        print ("This is pulls_each:")
+        
         if thetas:
             pars+=[t for t in self.theory.thetas if not t.isConstant()]
+            nps+=[t for t in self.theory.thetas]
         if pois:
-            pars+=[c for c in self.theory.coeffs if not c.isConstant()]
-        for thepar in pars:
+            pars+=[c for c in self.theory.coeffs]
+            coeffs+=[c for c in self.theory.coeffs]
+        
+        print (coeffs)
+        print (self.theory.coeffs)
+        
+        # Assuming 'pars' is a RooArgSet or RooArgList containing parameters
+        print("Pars: " +" ".join(par.GetName() for par in pars))
+        print("POIS: " +" ".join(poi.GetName() for poi in coeffs))
+
+        for thepar in coeffs:
             if skipMCstat and thepar.GetName().startswith('mcstat'):
                 continue
+
             for par in pars:
                 par.setVal(0.)
                 par.setConstant()
+            print ("pars: ", pars)
             thepar.setConstant(False)
+            
+            # If varyNP is true, then we want to make the nuisance aprameters non-constant
+            if varyNP:
+                for par in nps:
+                    if "hist" in par.GetName():
+                        continue
+                    else:
+                        par.setConstant(False) 
+            
             logging.info('Minimizing for pulls, with all POIs but '+thepar.GetName()+' fixed at zero')
-            self.minimize(strategy=2,minos=True)
+            self.minimize(strategy=2,hesse=False, minos=True)
             res=self.getFitResult()
             float_pars=res.floatParsFinal()
+            const_pars=res.constPars()
+            print (const_pars)
+            for ipar in range(float_pars.getSize()):
+                val=float_pars[ipar].getVal()
+                hi=float_pars[ipar].getAsymErrorHi()
+                lo=float_pars[ipar].getAsymErrorLo()   
+                print("Float_par: ", ipar, ": ",float_pars[ipar].GetName(), ": ", val,lo,hi )
+            for ipar in range(const_pars.getSize()):
+                val=const_pars[ipar].getVal()
+                hi=const_pars[ipar].getAsymErrorHi()
+                lo=const_pars[ipar].getAsymErrorLo()   
+                print("Const_par: ", ipar, ": ",const_pars[ipar].GetName(), ": ", val,lo,hi )
             for ipar in range(float_pars.getSize()):
                 if float_pars[ipar].GetName()==thepar.GetName():
                     val=float_pars[ipar].getVal()
                     hi=float_pars[ipar].getAsymErrorHi()
                     lo=float_pars[ipar].getAsymErrorLo()            
                     pulls[thepar.GetName()]=(val,lo,hi)
+                    print("The pull_each: ",thepar.GetName(), ": ", val,lo,hi )
                     break
+        for par in pars:
+            par.setConstant(False)
+        return pulls
+    
+    # ___ Returns the pulls on the NP's when each Wilson coefficent is allowed to vary one at a time ___
+    # (varyNP - determines whether the NP's are allowed to vary in the fit or if they should be fixed at zero)
+    def pullEachNP(self,pois=True,thetas=True,skipMCstat=True,varyNP=False):
+        pulls={}
+        pars=[]
+        coeffs=[]
+        nps = []
+        print ("This is pulls_eachNP:")
+        if thetas:
+            pars+=[t for t in self.theory.thetas if not t.isConstant()]
+            nps+=[t for t in self.theory.thetas]
+        if pois:
+            pars+=[c for c in self.theory.coeffs]
+            coeffs+=[c for c in self.theory.coeffs]
+            
+        for thepar in coeffs:
+            pulls[thepar.GetName()] = {}
+
+        print (pulls) 
+        for thepar in coeffs:
+            if skipMCstat and thepar.GetName().startswith('mcstat'):
+                continue
+            for par in pars:
+                par.setVal(0.)
+                par.setConstant()
+            thepar.setConstant(False)
+            
+             # If varyNP is true, then we want to make the nuisance aprameters non-constant
+            if varyNP:
+                for par in nps:
+                    if "hist" in par.GetName():
+                        continue
+                    else:
+                        par.setConstant(False) 
+                    
+                    
+            logging.info('Minimizing for pulls, with all POIs but '+thepar.GetName()+' fixed at zero')
+            self.minimize(strategy=2,minos=True)
+            logging.info("Finsihed Minimizing for pulls")
+            
+            
+            # Ensure strategy remains at 2 for MINOS
+            self.minimizer.setStrategy(2)
+            
+            res=self.getFitResult()
+      
+            
+            float_pars=res.floatParsFinal()
+            for ipar in range(float_pars.getSize()):
+                self.minimizer.setStrategy(2)
+                logging.info("getting value and error")
+                val=float_pars[ipar].getVal()
+                hi=float_pars[ipar].getAsymErrorHi()
+                lo=float_pars[ipar].getAsymErrorLo()   
+                pulls[thepar.GetName()][float_pars[ipar].GetName()] = (val,lo,hi)
+                logging.info("PoI = ", thepar.GetName(), ", ", "Float_par ", ipar, ": ",float_pars[ipar].GetName(), ": ", val,lo,hi )
+ 
+        for par in pars:
+            par.setConstant(False)
+        return pulls
+    
+    # ___ Returns the pulls on the NPs and the c_i for a specified c_i, useful for looking at correlations ___
+    # (varyNP - determines whether the NP's are allowed to vary in the fit or if they should be fixed at zero)  
+    # (coeff_no - determines whether the c_i ayou want to vary)  
+    def pullEach_poi(self,pois=True,thetas=True,skipMCstat=True,varyNP=False, coeff_no=0):
+        pulls={}
+        pars=[]
+        nps = []
+        print ("This is pulls_each_poi:")
+        
+        if thetas:
+            pars+=[t for t in self.theory.thetas if not t.isConstant()]
+            nps+=[t for t in self.theory.thetas]
+        if pois:
+            pars+=[c for c in self.theory.coeffs]
+        
+        
+        for par in pars:
+            par.setVal(0.)
+            par.setConstant()
+    
+        self.theory.coeffs[coeff_no].setConstant(False) 
+            
+        # If varyNP is true, then we want to make the nuisance aprameters non-constant
+        if varyNP:
+            for par in nps:
+                if "hist" in par.GetName():
+                    continue
+                else:
+                    par.setConstant(False) 
+                    
+                    
+        logging.info('Minimizing for pulls, with all POIs but '+self.theory.coeffs[coeff_no].GetName()+' fixed at zero')
+        self.minimize(strategy=2,minos=True)
+        logging.info("Finsihed Minimizing for pulls")
+            
+            
+        # Ensure strategy remains at 2 for MINOS
+        self.minimizer.setStrategy(2)
+        
+        res=self.getFitResult()
+      
+            
+        float_pars=res.floatParsFinal()
+        for ipar in range(float_pars.getSize()):
+            logging.info("getting value and error")
+            val=float_pars[ipar].getVal()
+            hi=float_pars[ipar].getAsymErrorHi()
+            lo=float_pars[ipar].getAsymErrorLo()   
+            pulls[float_pars[ipar].GetName()] = (val,lo,hi)
+            logging.info("PoI = ", self.theory.coeffs[coeff_no].GetName(), ", ", "Float_par ", ipar, ": ",float_pars[ipar].GetName(), ": ", val,lo,hi )
+ 
         for par in pars:
             par.setConstant(False)
         return pulls
@@ -756,19 +929,48 @@ class Combination:
         for p in self.predictions:
             for s in p.scaling_pars:
                 scaling_pars.append(s)
-
+                           
+        print ("scaling_pars: ", scaling_pars)
 
         self.theory.setConstant()
         for s in scaling_pars:
+            print ("setting scale_par ", s, " to 1")
             self.theory.setVal(s,1.)
+            print ("setting scale_par ", s, " to floating")
             self.theory.setFloating(s)
+            
+    
+
+        # Print out the floating and constant parameters
+        print("thetas:")
+        for param in self.theory.thetas:
+            print(param)
+
+        print("\ncoeffs:")
+        for param in self.theory.coeffs:
+            print(param)
+            
+        print("Now performing the mf fit")
         self.fit()
         res=self.getFitResult()
+        # Print out the floating and constant parameters
+        print("____ Now finsihed fit _____")
+        print("thetas:")
+        for param in self.theory.thetas:
+            print(param)
+
+        print("\ncoeffs:")
+        for param in self.theory.coeffs:
+            print(param)
+            
+            
         float_pars=res.floatParsFinal()
+        print ("float_pars: ")
         errs={}
         corr={}
         for ipar in range(float_pars.getSize()):
             name=float_pars[ipar].GetName()
+            print ("float_par: ", name)
             errs[name]=float_pars[ipar].getError()
             corr[name]={}
             for jpar in range(float_pars.getSize()):
@@ -782,8 +984,8 @@ class Combination:
                 m_cov[-1].append(errs[parx]*errs[pary]*corr[parx][pary])
         m_cov=np.matrix(m_cov)
 
-        #logging.info('Covariance Matrix')
-        #logging.info(m_cov)
+        logging.info('Covariance Matrix for scaling pars')
+        logging.info(m_cov)
         c_inv=m_cov.getI()
         
         all_coeffs=[c for c in self.theory.getCoeffNames() if not c in scaling_pars]
@@ -791,18 +993,22 @@ class Combination:
         for g in groups:
             for c in g:
                 remaining_coeffs.remove(c)
+                
+        print ("remaining_coeffs: ", remaining_coeffs)
 
         results=[]
         for coeffs in groups+[remaining_coeffs]:
             m_para=[]
             for c in coeffs:
+                print ("c: ", c)
                 m_para.append([])
                 for p in self.predictions:
                     m_para[-1]+=[0. if x is None else x for x in ([e/n if not n==0 else 0 for e,n in zip(p.getEffectFloat(c),p.getNominal())] if not p.getEffectFloat(c) is None else [0.]*p.nbins) ]
+                print ("m_para[-1]: ", m_para[-1])
             m_para=np.matrix(m_para)
 
-            #logging.info('Parametrization Matrix')
-            #logging.info(m_para)
+            logging.info('Parametrization Matrix')
+            logging.info(m_para)
             a=m_para*c_inv*m_para.getT()
             w,v=np.linalg.eigh(a)
             res=list(zip(w,v.getT()))
@@ -894,3 +1100,182 @@ class Combination:
                 hs_effects[-1].append(h)
         return h_cov,h_corr,h_ev,h_ev_abs,hs_effects
 
+    def scalePCA(self,groups=[]):
+        import numpy as np
+        scaling_pars=[]
+        for p in self.predictions:
+            for s in p.scaling_pars:
+                scaling_pars.append(s)
+
+        self.theory.setConstant()
+
+        for s in scaling_pars:
+            print ("setting scale_par ", s, " to 1")
+            self.theory.setVal(s,1.)
+            print ("setting scale_par ", s, " to floating")
+            self.theory.setFloating(s)
+            
+        # Print out the floating and constant parameters
+        print("thetas:")
+        for param in self.theory.thetas:
+            print(param)
+
+        print("\ncoeffs:")
+        for param in self.theory.coeffs:
+            print(param)
+            
+        print("Now performing the mf fit")
+        self.fit()
+        res=self.getFitResult()
+        # Print out the floating and constant parameters
+        print("____ Now finsihed fit _____")
+        print("thetas:")
+        for param in self.theory.thetas:
+            print(param)
+
+        print("\ncoeffs:")
+        for param in self.theory.coeffs:
+            print(param)
+            
+            
+        float_pars=res.floatParsFinal()
+        print ("float_pars: ")
+        errs={}
+        corr={}
+        for ipar in range(float_pars.getSize()):
+            name=float_pars[ipar].GetName()
+            print ("float_par: ", name)
+            errs[name]=float_pars[ipar].getError()
+            corr[name]={}
+            for jpar in range(float_pars.getSize()):
+                name2=float_pars[jpar].GetName()
+                corr[name][name2]=res.correlation(name,name2)
+        
+        m_cov=[]
+        for iparx,parx in enumerate(scaling_pars):
+            m_cov.append([])
+            for ipary,pary in enumerate(scaling_pars):
+                m_cov[-1].append(errs[parx]*errs[pary]*corr[parx][pary])
+        m_cov=np.matrix(m_cov)
+
+        logging.info('Covariance Matrix for scaling pars')
+        logging.info(m_cov)
+        c_inv=m_cov.getI()
+        
+        all_coeffs=[c for c in self.theory.getThetaNames() if "scaleMu" in c and "meas" not in c]
+        remaining_coeffs=list(all_coeffs)
+        for g in groups:
+            for c in g:
+                remaining_coeffs.remove(c)
+                
+        print ("remaining_coeffs: ", remaining_coeffs)
+
+        results=[]
+        for coeffs in groups+[remaining_coeffs]:
+            m_para=[]
+            for c in coeffs:
+                print ("c: ", c)
+                m_para.append([])
+                for p in self.predictions:
+                    print ("p.getUnc(c): ", p.getUnc(c).name,  p.getUnc(c).releffect)
+                    m_para[-1]+=[0. if x is None else x[1] for x in p.getUnc(c).releffect ]
+                print ("m_para[-1]: ", m_para[-1])
+            m_para=np.matrix(m_para)
+
+            logging.info('Parametrization Matrix')
+            logging.info(m_para)
+            a=m_para*c_inv*m_para.getT()
+            w,v=np.linalg.eigh(a)
+            res=list(zip(w,v.getT()))
+            res.sort(reverse=True, key=lambda x : x[0])
+            results+=[(r[0],sorted(zip(r[1].tolist()[0],coeffs),key=lambda x: abs(x[0]),reverse=True)) for r in res]
+            
+        for ir,r in enumerate(results):
+            logging.info('EV {}: {} ({})'.format(ir,Utils.round2(r[0],3),Utils.round2(1/r[0]**0.5,3) if r[0]>0 else 999999.))
+            logging.info(' + '.join(["{}*{}".format(round(x[0],3),x[1]) for x in r[1] if abs(x[0])>0.1]).replace('+ -','- '))
+            logging.info('')
+        resmap=[]
+        for r in results:
+            d={}
+            norm=0.
+            vmax=0.
+            vmin=0.
+            for v,c in r[1]:
+                if abs(v)<0.01:
+                    v=0
+                norm+=v**2
+                d[c]=v
+                vmax=max(vmax,v)
+                vmin=min(vmin,v)
+            norm=norm**0.5
+            if abs(vmin)>abs(vmax):
+                norm*=-1
+            for c in d:
+                d[c]=d[c]/norm
+            resmap+=[(r[0],d)]
+        logging.info('#'+' '.join(all_coeffs))
+        for i,r in enumerate(resmap):
+            txt=''
+            #logging.info(,)
+            txt+='mu'+str(i)+' = '
+            for c in all_coeffs:
+                if c in r[1]:
+                    txt+=str(r[1][c])+' '
+                else:
+                    txt+='0 '
+            logging.info(txt)
+        n=len(scaling_pars)
+        h_cov=TH2D('h_total_cov','Total Covariance',n,0,n,n,0,n)
+        for i,c in enumerate(scaling_pars):
+            h_cov.GetXaxis().SetBinLabel(i+1,c)
+            h_cov.GetYaxis().SetBinLabel(i+1,c)
+        h_corr=h_cov.Clone('h_total_corr')
+        h_corr.SetTitle('Total Correlation')
+        for i in range(n):
+            for j in range(n):
+                h_cov.SetBinContent(i+1,j+1,m_cov[i,j])
+                h_corr.SetBinContent(i+1,j+1,m_cov[i,j]/(m_cov[i,i]*m_cov[j,j])**0.5)
+        n=len(all_coeffs)
+        #h_para=TH2D('h_para','Parametrization Matrix',n,0,n,n,0,n)
+        h_ev=TH2D('h_ev','',n,0,n,n,0,n)
+        h_ev_abs=TH2D('h_ev_abs','Parametrization Matrix (abs)',n,0,n,n,0,n)
+        for iy,r in enumerate(resmap):
+            for ix,c in enumerate(all_coeffs):
+                col = ix+1
+                if col == 5:
+                    col = 7
+                h_ev.GetXaxis().SetBinLabel(ix+1,f"#color[{col}]{{{c}}}")
+                h_ev_abs.GetXaxis().SetBinLabel(ix+1,c)            
+                if c in r[1]:
+                    h_ev.SetBinContent(ix+1,iy+1,r[1][c])
+                    if r[1][c] == 0.0:
+                        h_ev.SetBinContent(ix+1,iy+1,0.01)
+                    h_ev_abs.SetBinContent(ix+1,iy+1,abs(r[1][c]))
+            h_ev.GetYaxis().SetBinLabel(iy+1,'mu_{'+str(iy)+'} '+'({})'.format(Utils.round2(1/r[0]**0.5,3) if r[0]>0 else 999999))
+            h_ev_abs.GetYaxis().SetBinLabel(iy+1,'mu_{'+str(iy)+'} '+'({})'.format(Utils.round2(1/r[0]**0.5,3) if r[0]>0 else 999999))
+
+        ev_effects=[]
+        for i,r in enumerate(resmap):
+            ev_effects.append([])
+            s=1/r[0]**0.5 if r[0]>0. else 0.
+            if s>1000:
+                s=0
+            for p in self.predictions:
+                effect=[0.]*p.nbins
+                for c in all_coeffs:
+                    if c in r[1] and p.getEffectFloat(c) is not None:
+                        s1=r[1][c]
+                        ceffect=[s1*s*e/n if not n==0 else 0 for e,n in zip(p.getEffectFloat(c),p.getNominal())]
+                        effect=[x+y for x,y in zip(effect,ceffect)]
+                ev_effects[-1].append(effect)
+
+                        
+        hs_effects=[]
+        for i,ev_effect in enumerate(ev_effects):
+            hs_effects.append([])
+            for p,effect in zip(self.predictions,ev_effect):
+                h=TH1D('h_effect{}_{}'.format(i,p.name),'effect of EV {} on {}'.format(i,p.name),len(effect),0,1)
+                for ie,e in enumerate(effect):
+                    h.SetBinContent(ie+1,e)
+                hs_effects[-1].append(h)
+        return h_cov,h_corr,h_ev,h_ev_abs,hs_effects

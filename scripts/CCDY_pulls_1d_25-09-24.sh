@@ -1,0 +1,3 @@
+./bin/eftfun.py -i ./configs/CCDY_top_1d_19-09-24/Tutorial_mu.cfg -o ./results/CCDY_top1d_tests/mT_mu_19-09-24_pulls -m pulls > log_mu.txt
+./bin/eftfun.py -i ./configs/CCDY_top_1d_19-09-24/Tutorial_el.cfg -o ./results/CCDY_top1d_tests/mT_el_19-09-24_pulls -m pulls > log_el.txt
+./bin/eftfun.py -i ./configs/CCDY_u35_1d_22-09-24/Tutorial_elmu.cfg -o ./results/CCDY_top1d_tests/mT_comb_u35_22-09-24_pulls -m pulls > log_elmu.txt

@@ -1,0 +1,2 @@
+./bin/eftfun.py -i ./configs/CCDY_top_1d_08-10-24/Tutorial_mu.cfg -o ./results/CCDY_top1d_tests/mT_mu_08-10-24_fitpulls -m fitpulls > log_mu.txt
+./bin/eftfun.py -i ./configs/CCDY_top_1d_08-10-24/Tutorial_el.cfg -o ./results/CCDY_top1d_tests/mT_el_08-10-24_fitpulls -m fitpulls > log_el.txt

@@ -1,0 +1,2 @@
+./bin/eftfun.py -i ./configs/CCDY_top_1d_renorm_syst_asymm/Tutorial_mu.cfg -o ./results/CCDY_top1d_tests/mT_mu_cross1drenormsyst_asymm_fitpulls -m fitpulls
+./bin/eftfun.py -i ./configs/CCDY_top_1d_renorm_syst_asymm/Tutorial_el.cfg -o ./results/CCDY_top1d_tests/mT_el_cross1drenormsyst_asymm_fitpulls -m fitpulls

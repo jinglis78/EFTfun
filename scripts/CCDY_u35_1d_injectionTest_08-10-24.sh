@@ -1,0 +1,3 @@
+./bin/eftfun.py -i ./configs/CCDY_u35_1d_injectionTest_08-10-24/Tutorial_elmu_clq3eq1.cfg -o ./results/CCDY_top1d_tests/mT_comb_u35_injectionTest_clq3eq1_pulls_08-10-24 -m pulls > log_elmu.txt
+./bin/eftfun.py -i ./configs/CCDY_u35_1d_injectionTest_08-10-24/Tutorial_elmu_clq3eq01.cfg -o ./results/CCDY_top1d_tests/mT_comb_u35_injectionTest_clq3eq01_pulls_08-10-24 -m pulls > log_elmu.txt
+./bin/eftfun.py -i ./configs/CCDY_u35_1d_injectionTest_08-10-24/Tutorial_elmu_clq3eq001.cfg -o ./results/CCDY_top1d_tests/mT_comb_u35_injectionTest_clq3eq001_pulls_08-10-24 -m pulls > log_elmu.txt

@@ -371,13 +371,15 @@ class Measurement:
             cov=TMatrixDSym(self.covMatrix)
         else:
             cov=TMatrixDSym(self.nbins)
-        for u in list(self.uncertainties.values()):            
+        for u in list(self.uncertainties.values()):        
             if u.already_in_cov:
+                #print (u.name, " is ", already_in_cov)
                 cov-=u.getCov(self.getMeas(),incl_np=True)
         for u in list(self.uncertainties.values()):
             if u.name in exclude:
                 continue
             if incl_np or not u.with_nuis_par:
+                #print (u.name, ",getCov: ", u.getCov(self.getMeas(),incl_np=incl_np))
                 cov+=u.getCov(self.getMeas(),incl_np=incl_np)
         if incl_np==False and len(exclude)==0:
             self.bufferedCov=cov
@@ -390,6 +392,11 @@ class Measurement:
             for j in range(self.nbins):
                 m[i][j]=m[i][j]/var[i]**0.5/var[j]**0.5 if var[i]!=0 and var[j]!=0 else 0
         return m
+    
+    def getCovarianceMatrix(self,incl_np=False):
+        m=TMatrixDSym(self.getCov(incl_np=incl_np))
+        return m
+
 
     def getRelErr(self,incl_np=False):
         if self.reco_level:

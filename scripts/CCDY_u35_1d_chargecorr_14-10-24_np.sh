@@ -1,0 +1,1 @@
+./bin/eftfun.py -i ./configs/CCDY_u35_1d_chargecorr_14-10-24_np/Tutorial_elmu.cfg -o ./results/NP_tests/mT_comb_u35_chargecorr_14-10-24_np -m pulls > log_elmu.txt
