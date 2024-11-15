@@ -5,6 +5,9 @@ from math import log10
 import Utils
 import logging
 
+
+
+
 def graphProfile1D(name,result,outfile=None,isNLL=True,makeProb=False,conts2d=False):
     g=ROOT.TGraph()
     result=[r for r in result if not math.isnan(r[1]) and not math.isinf(r[1])]
@@ -24,14 +27,29 @@ def graphProfile1D(name,result,outfile=None,isNLL=True,makeProb=False,conts2d=Fa
 
 def make_line(formula, op, nu_val):
     # Create a dictionary to map variable names to values
-    variables = {'cll1': 0, 'chq3': 0, 'clq3': 0, 'chl3': 0 }
+    variables = {'cll1': 0, 'cHq3': 0, 'clq3': 0, 'cHl3': 0 }
 
     variables.update({
         'hist_sm': 0,
         'hist_cll1': 0,
-        'hist_chq3': 0,
+        'hist_cHq3': 0,
         'hist_clq3': 0,
-        'hist_chl3': 0
+        'hist_cHl3': 0,
+        'hist_cll1_quad': 0,
+        'hist_cHq3_quad': 0,
+        'hist_clq3_quad': 0,
+        'hist_cHl3_quad': 0,
+        'hist_cHl3_cll1_cross': 0,
+        'hist_cHq3_clq3_cross': 0,
+        'hist_cHq3_cHl3_cross': 0,
+        'hist_cHq3_cll1_cross': 0,
+        'hist_cll1_clq3_cross': 0,
+        'hist_cHl3_clq3_cross': 0,
+        'stat':0,
+        'alphas':0,
+        'scaleMu':0,
+        'pdf':0,
+        'ew':0
     })
 
     # Set the value of the relevant nuisance parameter
@@ -40,8 +58,14 @@ def make_line(formula, op, nu_val):
     return variables
 
 def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfolder):
+    
+    # Check for SetAtlasStyle and call it
+    if hasattr(ROOT, "SetAtlasStyle"):
+        ROOT.SetAtlasStyle()
+    else:
+        print("SetAtlasStyle is not defined in AtlasStyle.C")
 
-    operators = {'cll1', 'chq3', 'clq3', 'chl3'} 
+    operators = {'cll1', 'cHq3', 'clq3', 'cHl3'} 
 
     # Dictionary of multigraphs
 
@@ -71,22 +95,34 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
             variables = make_line(formula, op, nu_val)
 
             graph = ROOT.TGraph()
-            graph.GetXaxis().SetRangeUser(-1, 1)
+            graph.GetXaxis().SetRangeUser(-0.2, 0.2)
+            
+            if op == "clq3":
+                graph.GetXaxis().SetRangeUser(-0.001, 0.001)
 
             line_color = ROOT.kBlue if nu_val == 1 else ROOT.kRed if nu_val == -1 else ROOT.kBlack
             line_style = 2 if nu_val != 0 else 1
 
             graph.SetLineColor(line_color)
             graph.SetLineStyle(line_style)
+            
+            
+            variables_sm = variables.copy()
+            nominal = eval(formula, variables_sm)
 
             # Loop over x in the range -1 to 1 with 100 steps
             for x in range(-20, 21):
                 variables_copy = variables.copy()
-                variables_copy[op] = x / 20.0  # Scale x to be in the range -1 to 1
+                variables_copy[op] = x / 20000  # Scale x to be in the range -1 to 1: 20
                 if op != "clq3": 
-                    variables_copy[op] = x / 2.  # Scale x to be in the range -1000 to 1000
+                    variables_copy[op] = x / 200 # Scale x to be in the range -10 to 10
 
+                print (formula)
+                print (variables_copy)
                 result = eval(formula, variables_copy)
+                
+                rel_result = (result - nominal) / nominal * 100
+            
                 #if x == 20:
                     #print ("x= ", x)
                     #print(formula)
@@ -96,16 +132,16 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
                     #print(result)
                 results.append(result)
                 if result < min_result[op]:
-                    min_result[op] = result
+                    min_result[op] = rel_result
                 if result > max_result[op]:
-                    max_result[op] = result
+                    max_result[op] = rel_result
 
             #print ("min and max results: ", min_result, " and ", max_result)
             
             if min_result[op] < 0:
-                graph.GetYaxis().SetRangeUser(min_result[op]*4, max_result[op]*4)
+                graph.GetYaxis().SetRangeUser(min_result[op], max_result[op])
             else:
-                graph.GetYaxis().SetRangeUser(min_result[op]/4, max_result[op]*4)
+                graph.GetYaxis().SetRangeUser(min_result[op], max_result[op])
 
             graph.SetTitle("{};X title;Y title");
 
@@ -113,9 +149,9 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
                 print (i, result)
                 if op != "clq3": 
                     print ("(i - 20) / 2. = ", (i - 20) / 2.)
-                    graph.SetPoint(i, (i - 20) / 2., result)
+                    graph.SetPoint(i, (i - 20) / 200., result)
                 else: 
-                    graph.SetPoint(i, (i - 20) / 20.0, result)
+                    graph.SetPoint(i, (i - 20) / 20000., result)
 
             mg.Add(graph,"lp")
 
@@ -138,15 +174,19 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
 
 
         data_points = ROOT.TGraphErrors()
-        data_points.SetPoint(0, 0, data["meas"])  # sm meas
+        xval = 0.0001
+        if op != "clq3":
+            xval = 0.01
+            
+        data_points.SetPoint(0, xval, data["meas"])  # sm meas
 
         postfit_points = ROOT.TGraphErrors()
-        postfit_points.SetPoint(0, ci, data["postfit"])  # postfit
+        postfit_points.SetPoint(0, ci, data["postfit"] )  # postfit
 
         pred_points = ROOT.TGraphErrors()
         pred_points.SetPoint(0, 0, data["sm"])  # sm pred
 
-        pred_points.SetPoint(1, 1, data["sm"] + data[op])  # smeft pred
+       
 
         print ("ci: ", ci)
         print ("data[op]: ", data[op], " +- ",uncertainties[op][1])
@@ -159,19 +199,22 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
         min_value = min(data["sm"] - data[op] - uncertainties["postfit"][1] ,  data["postfit"] - uncertainties["postfit"][1])
 
         # Set yMax and yMin
-        yMax = 2.5 * max_result[op]
-        if min_result[op] > 0:
-            yMin = 0.1 * min_result[op]
-        else:
-            yMin = 2 * min_result[op]
+        # Final mass bin
+        yMax = 0.3
+        yMin = 0.1
+        
+        # Penultimate mass bin
+        yMax = 1.4
+        yMin = 0.8
+    
         
         mg.SetMaximum(yMax)
         mg.SetMinimum(yMin)
 
         mg.Draw("a")
-
+        
         pred_points.SetPointError(0, 0, uncertainties["sm"][1])  # Set errors for point 0
-        pred_points.SetPointError(1, 0, uncertainties[op][1] )  # Set errors for point 1
+        #pred_points.SetPointError(1, 0, uncertainties[op][1] )  # Set errors for point 1
         
 
         data_points.SetPointError(0, 0,  uncertainties["meas"][1]) # Set errors for point 0
@@ -229,7 +272,7 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
         printAndSave(c, outfile, outfolder)
 
 def graphProfile2D(name,result,outfile=None,isNLL=True,makeProb=False,conts1d=False):
-    g=ROOT.TGraph2D()
+    g=ROOT.TGraph2D() 
     result=[r for r in result if not math.isnan(r[2]) and not math.isinf(r[2])]
     for i,r in enumerate(result):
         z=r[2]
@@ -564,8 +607,9 @@ def canvasProfile2D(name,result,outfile,xtitle,ytitle,ztitle='#minus 2#Delta log
 
 
 def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile,outfolder):
-
+    
     SetAtlasStyle()
+    
 
     # Setup Canvas 
     x1 = 0.04
@@ -579,6 +623,8 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     c = ROOT.TCanvas(name,name,1000,1000)
     c.SetLogy()
     c.Draw()
+    
+    c.SetTicks(1, 1)
 
     c_2 = ROOT.TPad("c ratio", "c ratio", x1, x1+gap, x2, y1)
     c_2.Draw()
@@ -586,6 +632,9 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     c_2.SetTopMargin(0.02)
     c_2.SetBottomMargin(0.4) 
     c_2.SetFillStyle(0)
+    ROOT.gStyle.SetPadTickX(1)
+    ROOT.gStyle.SetPadTickY(1)
+    
 
     c_1 = ROOT.TPad("c top", "c top", x1, y1, x2, y2)
     c_1.Draw()
@@ -593,13 +642,19 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     c_1.SetTopMargin(0.1)
     c_1.SetBottomMargin(0.02)
     c_1.SetFillStyle(0)
+    
 
 
     print ("Canvas set up")
 
     c_1.cd()
-
+    
     sampleText = r"pp \rightarrow l^{\pm} \nu"
+    if "elmu" not in name and "el" in name:
+        sampleText = r"pp \rightarrow e^{\pm} \nu"
+    if "elmu" not in name and "mu" in name:
+        sampleText = r"pp \rightarrow \mu^{\pm} \nu"
+        
 
     ymax=0.
     for h in data_prefit,pred_prefit,pred_postfit:
@@ -661,6 +716,7 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     pred_prefit.GetYaxis().SetTitleSize(0.05)
     pred_prefit.GetYaxis().SetLabelSize(0.05)
     pred_prefit.SetMaximum(ymax*1.1)
+    pred_prefit.SetStats(0)
 
     pred_prefit.DrawCopy("e")
 
@@ -720,10 +776,10 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     leg.AddEntry(pred_postfit,'Postfit pred.','pe')
     leg.AddEntry(data_prefit,'Measurement','pe')
     if data_postfit!=None:
-        leg.AddEntry(data_postfit,'postfit measurement','PE')
+        leg.AddEntry(data_postfit,'Postfit meas.','PE')
     leg.Draw("same")
 
-    ATLASLabel(0.50, 0.83, "Work in Progress")
+    ATLASLabel(0.50, 0.83, "Internal")
     myText(0.5, 0.75, 1, 0.042, sampleText )
 
     c_2.cd()
@@ -732,41 +788,62 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     prefit_ratio.Divide(data_prefit)
     prefit_ratio.GetYaxis().SetNdivisions(505)
     prefit_ratio.GetYaxis().CenterTitle()
-    #prefit_ratio = ROOT.TGraphErrors(prefit_ratio)
     prefit_ratio.SetFillColor(ROOT.kBlue)
     prefit_ratio.SetLineColor(ROOT.kWhite)
     prefit_ratio.SetMarkerColor(ROOT.kBlue+1)
-    #prefit_ratio.SetFillStyle(3345)
     prefit_ratio.SetTitle('')
-
 
     num_points = prefit_ratio.GetNbinsX()
 
+    # New section: Shift the prefit points slightly to the left
+    x_shift = -0.02  # Shift amount to move the prefit points left
+    shifted_prefit = ROOT.TGraphErrors(num_points)  # Create a new TGraphErrors to hold shifted points
+    for i in range(num_points):
+        x_value = prefit_ratio.GetXaxis().GetBinCenter(i+1)
+        y_value = prefit_ratio.GetBinContent(i+1)
+        y_error = prefit_ratio.GetBinError(i+1)
+        shifted_prefit.SetPoint(i, x_value + x_shift, y_value)  # Shift x-value
+        shifted_prefit.SetPointError(i, 0, y_error)
 
-    
     # Update the graph to reflect the changes
     print(aScale*pred_prefit.GetXaxis().GetTitleSize())
 
+    shifted_prefit.SetMarkerStyle(21)
+    shifted_prefit.SetMarkerSize(1.3)
+    shifted_prefit.SetFillColor(ROOT.kBlue)
+    shifted_prefit.SetMarkerColor(ROOT.kBlue+1)
+    shifted_prefit.SetLineColor(ROOT.kWhite)
 
     prefit_ratio.SetMarkerStyle(21)
     prefit_ratio.SetMarkerSize(1.3)
     prefit_ratio.GetYaxis().SetTitleSize(0.10)
     prefit_ratio.GetYaxis().CenterTitle()
-    prefit_ratio.GetYaxis().SetTitleOffset(0.5)
+    prefit_ratio.GetYaxis().SetTitleOffset(1.6)
     prefit_ratio.GetYaxis().SetLabelSize(0.08)
     prefit_ratio.GetXaxis().SetLabelSize(0)
     prefit_ratio.SetLineWidth(5)
-    if data_postfit!=None:
+
+    if data_postfit != None:
         postfit_ratio = pred_postfit.Clone("postfit_ratio")
         postfit_ratio.Divide(data_postfit) 
         postfit_ratio = ROOT.TGraphErrors(postfit_ratio)
         postfit_ratio.SetFillColor(ROOT.kRed)
         postfit_ratio.SetLineColor(ROOT.kWhite)
         postfit_ratio.SetMarkerColor(ROOT.kRed+1)
-        #postfit_ratio.SetFillStyle(3354)
         postfit_ratio.SetTitle('')
         postfit_ratio.SetMarkerStyle(21)
         postfit_ratio.SetMarkerSize(1.3)
+        
+        data_ratio = data_postfit.Clone("data_ratio")
+        data_ratio.Divide(data_postfit) 
+        #data_ratio = ROOT.TGraphErrors(data_ratio)
+        data_ratio.SetFillColor(ROOT.kBlack)
+        data_ratio.SetLineColor(ROOT.kWhite)
+        data_ratio.SetMarkerColor(ROOT.kBlack)
+        data_ratio.SetTitle('')
+        data_ratio.SetMarkerStyle(21)
+        data_ratio.SetMarkerSize(1.3)
+        
     else:
         postfit_ratio = pred_postfit.Clone("postfit_ratio")
         postfit_ratio.Divide(data_prefit)
@@ -774,11 +851,39 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
         postfit_ratio.SetFillColor(ROOT.kRed)
         postfit_ratio.SetLineColor(ROOT.kWhite)
         postfit_ratio.SetMarkerColor(ROOT.kRed+1)
-        #postfit_ratio.SetFillStyle(3354)
         postfit_ratio.SetTitle('')
         postfit_ratio.SetMarkerStyle(21)
         postfit_ratio.SetMarkerSize(1.3)
         postfit_ratio.SetLineWidth(5)
+        
+        data_ratio = data_prefit.Clone("data_ratio")
+        data_ratio.Divide(data_prefit) 
+        #data_ratio = ROOT.TGraphErrors(data_ratio)
+        data_ratio.SetFillColor(ROOT.kBlack)
+        data_ratio.SetLineColor(ROOT.kWhite)
+        data_ratio.SetMarkerColor(ROOT.kBlack)
+        data_ratio.SetTitle('')
+        data_ratio.SetMarkerStyle(21)
+        data_ratio.SetMarkerSize(1.3)
+        
+    # New section: Shift the data points slightly to the left
+   
+    shifted_data = ROOT.TGraphErrors(num_points)  # Create a new TGraphErrors to hold shifted points
+    for i in range(num_points):
+        x_value = data_ratio.GetXaxis().GetBinCenter(i+1)
+        y_value = data_ratio.GetBinContent(i+1)
+        y_error = data_ratio.GetBinError(i+1)
+        shifted_data.SetPoint(i, x_value + 0.02, y_value)  # Shift x-value
+        shifted_data.SetPointError(i, 0, y_error)
+
+    # Update the graph to reflect the changes
+    print(aScale*pred_prefit.GetXaxis().GetTitleSize())
+
+    shifted_data.SetMarkerStyle(21)
+    shifted_data.SetMarkerSize(1.3)
+    shifted_data.SetFillColor(ROOT.kBlack)
+    shifted_data.SetMarkerColor(ROOT.kBlack)
+    shifted_data.SetLineColor(ROOT.kWhite)
 
     line = ROOT.TLine(prefit_ratio.GetXaxis().GetXmin(), 1.0, prefit_ratio.GetXaxis().GetXmax(), 1.0)
     line.SetLineWidth(2)
@@ -790,22 +895,22 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     ratio.GetYaxis().SetNdivisions(505)
     ratio.GetYaxis().CenterTitle()
     ratio.GetYaxis().SetTickLength(0.02)
-    ratio.GetYaxis().SetTitleSize(0.1)
     ratio.SetMinimum(0.5)
     ratio.SetMaximum(1.5)
     ratio.SetTitle("")
     ratio.SetMarkerSize(0)
     ratio.SetLineWidth(0)
-    ratio.GetYaxis().SetTitle("Pred./Meas.")
-    #ratio.GetXaxis().SetTitle(x_title)
+    ratio.GetYaxis().SetTitle("Pred. / Meas.")
     ratio.GetXaxis().SetTitleOffset(5)  
     ratio.GetXaxis().SetTitleSize(0.1)
     ratio.GetXaxis().SetTickLength(0.1)
-    ratio.GetXaxis().SetTitleOffset(0)
+    ratio.GetXaxis().SetTitleOffset(-0.04)
+    ratio.GetYaxis().SetTitleOffset(0.6)
     ratio.GetXaxis().SetLabelSize(0.1)
     ratio.GetXaxis().SetLabelOffset(0.04)
-    ratio.GetYaxis().SetTitleSize(0.1)
+    ratio.GetYaxis().SetTitleSize(0.12)
     ratio.GetYaxis().SetLabelSize(0.1)
+    ratio.SetStats(0)
 
     if num_bins < 15:
         for i, label in enumerate(labels):
@@ -813,12 +918,16 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     else:
         ratio.GetXaxis().SetLabelSize(0)
 
-
     ratio.DrawCopy("e")
+    
+    
 
-    prefit_ratio.Draw("same PE2")
+    # Modified part: Use shifted prefit ratio instead of the original
+    shifted_prefit.Draw("same PE2")
     postfit_ratio.Draw("same PE2")
+    shifted_data.Draw("same PE2")
     line.Draw("same")
+    
     if num_bins < 15:
         myText(0.85, 0.02, 1, 0.15, x_title)
     else:   
@@ -826,7 +935,6 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
 
         # Define the axis labels and the corresponding bin ranges
         labels = ["200-300", "300-425", "425-600", "600-900", "900-2000"]
-
         bin_ranges = [0.24, 0.48, 0.65, 0.77, 0.865]  # Bin ranges where labels change
 
         for i in range(len(labels)):
@@ -834,17 +942,20 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
             text = labels[i]
             myText(xoffset, 0.2, 1, 0.1, text)
 
-
     c_1.Update()
     c_2.Update()
     c.Update()
 
-    printAndSavePads(c, c_1, c_2, outfile,outfolder,alsoLog=True)
+    printAndSavePads(c, c_1, c_2, outfile, outfolder, alsoLog=True)
     return c
-
+  
 def canvasRatio(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile,outfolder):
 
-    SetAtlasStyle()
+    # Check for SetAtlasStyle and call it
+    if hasattr(ROOT, "SetAtlasStyle"):
+        ROOT.SetAtlasStyle()
+    else:
+        print("SetAtlasStyle is not defined in AtlasStyle.C")
 
     # Setup Canvas 
     x1 = 0.04
@@ -879,6 +990,10 @@ def canvasRatio(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile,o
     c_1.cd()
 
     sampleText = r"pp \rightarrow l^{\pm} \nu"
+    if "elmu" not in name and "el" in name:
+        sampleText = r"pp \rightarrow e^{\pm} \nu"
+    if "elmu" not in name and "mu" in name:
+        sampleText = r"pp \rightarrow \mu^{\pm} \nu"
 
     ymax=0.
     for h in data_prefit,pred_prefit,pred_postfit:
@@ -1069,8 +1184,8 @@ def canvasRatio(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile,o
     ratio.GetYaxis().CenterTitle()
     ratio.GetYaxis().SetTickLength(0.02)
     ratio.GetYaxis().SetTitleSize(0.1)
-    ratio.SetMinimum(0.5)
-    ratio.SetMaximum(1.5)
+    ratio.SetMinimum(0.8)
+    ratio.SetMaximum(1.2)
     ratio.SetTitle("")
     ratio.SetMarkerSize(0)
     ratio.SetLineWidth(0)
@@ -1142,6 +1257,12 @@ def canvasRatio(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile,o
 
 
 def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
+    # Check for SetAtlasStyle and call it
+    if hasattr(ROOT, "SetAtlasStyle"):
+        ROOT.SetAtlasStyle()
+    else:
+        print("SetAtlasStyle is not defined in AtlasStyle.C")
+    
     pars=[t for t in pars if t in pulls]
     if len(pars)==0:
         return ROOT.TCanvas(name)
@@ -1173,8 +1294,6 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     h.Draw()
     if not pois:
         h.GetYaxis().SetRangeUser(-3,3)
-#    elif rescale:
-#        h.GetYaxis().SetRangeUser(-2.5,2.5)
     else:
         ymin=0.
         ymax=0.
@@ -1184,6 +1303,7 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
         h.GetYaxis().SetRangeUser(ymin,ymax)
     if not pois:
         h.GetYaxis().SetTitle('pull')
+    #h.GetYaxis().SetRangeUser(-1,1)
     h.GetYaxis().CenterTitle()
 #    h.GetYaxis().SetTitleSize(0.06)
 #    h.GetYaxis().SetTitleOffset(0.5)
@@ -1202,6 +1322,8 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     g=ROOT.TGraphAsymmErrors()
     g.SetMarkerStyle(20)
     g.SetMarkerSize(0.5)
+    g.SetMinimum(-1.0)
+    g.SetMaximum(1.0)
     for i,t in enumerate(pars):
         g.SetPoint(i,i,pulls[t][0])
         g.SetPointError(i,0,0,abs(pulls[t][1]),abs(pulls[t][2]))
@@ -1211,13 +1333,20 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     printAndSave(c,outfile,outfolder)
 
 def canvasCorrelation(name,h,outfile,outfolder,log=False):
+    # Check for SetAtlasStyle and call it
+    if hasattr(ROOT, "SetAtlasStyle"):
+        ROOT.SetAtlasStyle()
+    else:
+        print("SetAtlasStyle is not defined in AtlasStyle.C")
+    
+    
     ROOT.gStyle.SetPalette(ROOT.kThermometer);
     ROOT.gStyle.SetPaintTextFormat("4.2f")
     c=ROOT.TCanvas(name,name,1024,1024 )
     c.SetRightMargin(0.15)
-    c.SetTopMargin(0.1)
-    c.SetLeftMargin(0.1)
-    c.SetBottomMargin(0.1)
+    c.SetTopMargin(0.15)
+    c.SetLeftMargin(0.15)
+    c.SetBottomMargin(0.15)
     c.cd()
     h.SetStats(False)
     if not log:
@@ -1226,6 +1355,16 @@ def canvasCorrelation(name,h,outfile,outfolder,log=False):
         c.SetLogz()
     h.Draw('COLZTEXT')
 
+    ATLASLabel(0.15, 0.86, "Internal")
+    sampleText = r"pp \rightarrow l^{\pm} \nu"
+    if "elmu" not in outfolder and "el" in outfolder:
+        sampleText = r"pp \rightarrow e^{\pm} \nu"
+    if "elmu" not in outfolder and "mu" in outfolder:
+        sampleText = r"pp \rightarrow \mu^{\pm} \nu"
+        
+    print ("outfile: ", outfolder)
+        
+    myText(0.6, 0.86, 1, 0.042, sampleText )
     printAndSave(c,outfile,outfolder)
 
 def canvasImpactsPage(pulls,impacts,poi,outfile,outfolder,max_impact,pars,number):
