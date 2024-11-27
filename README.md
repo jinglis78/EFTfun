@@ -17,7 +17,17 @@ The `mt_elmu` fit should contain a `--doBigFit` argument, in order to produce th
 
 The fitpulls methods should have `pullsEachNP` enabled in order for the NP pulls to be produced when varying each Wilson coefficient one at a time. The prefit-postfit comparison and pulls on Wilson coefficients (`pullsEach`) should always be produced, along with the correlation matrix for the Wilson coefficients.
 
-# 2. General Information
+# 2. Git Workflow
+
+Once you have made a change, perform the following commands to add the change and push it to the CCDY branch:
+```
+git status
+git add .
+git commit -m "Message describing change"
+git push origin CCDY
+```
+
+# 3. General Information
 EFT Fitter for UNfolded measurements -- now also fitting reco measurements.
 
 For help:
