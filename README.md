@@ -1,5 +1,5 @@
 # 1. Performing CCDY Fits
-```
+
 Setting up the environment:
 ```
 setupATLAS
