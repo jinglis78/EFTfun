@@ -73,8 +73,8 @@ class Prediction:
             elif self.theory.stat_unc_threshold!=None:
                 th=self.theory.stat_unc_threshold
             #print ("th: ", th)
-            mcstatname=self.theory.makeMCstatName(self.name,coeff_name,iBin)
-            #print ("mcstatname: ", mcstatname)
+            mcstatname="stat"
+            print ("mcstatname: ", mcstatname)
             #print ("self.theory.getThetaNames(): ", self.theory.getThetaNames())
             if th>0 and effect!=0 and abs(error/effect)>th and not mcstatname in self.theory.getThetaNames():
                 u=Uncertainty.Uncertainty(nbins=self.nbins,name=mcstatname,affected=coeff_name,interpol='lin',

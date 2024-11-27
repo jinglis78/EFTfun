@@ -862,7 +862,8 @@ class Combination:
                 hi=float_pars[ipar].getAsymErrorHi()
                 lo=float_pars[ipar].getAsymErrorLo()   
                 pulls[thepar.GetName()][float_pars[ipar].GetName()] = (val,lo,hi)
-                logging.info("PoI = ", thepar.GetName(), ", ", "Float_par ", ipar, ": ",float_pars[ipar].GetName(), ": ", val,lo,hi )
+                logging.info("PoI = %s, Float_par %d: %s: %.6f [%.6f, %.6f]", thepar.GetName(), ipar, float_pars[ipar].GetName(), val, lo, hi)
+
  
         for par in pars:
             par.setConstant(False)

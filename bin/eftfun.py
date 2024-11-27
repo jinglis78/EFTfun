@@ -97,6 +97,10 @@ def main():
     parser.add_option("--parallel_job",
                       action="store_true", dest="parallel_job", default=False,
                       help="This is a parallel job (internal use only)")
+    parser.add_option("--doBigFit",
+                      action="store_true", dest="doBigFit", default=False,
+                      help="This is if you want to produce cross-section vs c_i plots for each bin")
+
 
 
     options,args=parser.parse_args()
@@ -114,10 +118,10 @@ def main():
         parser.print_help()
         logging.warning('need poi')
     else:
-        fit(options,options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.set_initial,options.quiet,options.write_more,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan,options.conts1d,options.conts2d,options.njobs,options.cluster,options.first,options.last,options.parallel_job)
+        fit(options,options.config,options.outname,options.method,options.poi,options.scanrange,options.nsteps,options.ntoys,options.asimov,options.linear,options.quad,options.deactivate_uncertainties,options.constant,options.set_initial,options.quiet,options.write_more,options.force,options.override,options.measurements,options.repara,options.groups,options.robust,options.offset,options.implicitscan,options.conts1d,options.conts2d,options.njobs,options.cluster,options.first,options.last,options.parallel_job,options.doBigFit)
 
 
-def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,set_initial,quiet,write_more,force,override,measurements_included,repara,groups,robust,offset,implicitscan,conts1d,conts2d,njobs,cluster,first,last,parallel_job):
+def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,quad,deactivate_uncertainties,constant,set_initial,quiet,write_more,force,override,measurements_included,repara,groups,robust,offset,implicitscan,conts1d,conts2d,njobs,cluster,first,last,parallel_job,doBigFit):
 
     if not '/' in outname:
         outname='results/'+outname
@@ -611,7 +615,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
 
     elif method=='fitpulls':
 
-        doBigfit = False
+        print ("doBigFit: ", doBigFit)
         logging.info('doing fit and pulls')
 
         #pulls=combination.pulls()
@@ -639,9 +643,9 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
         corr_4=combination.getFitResult().correlationHist()        
         corr_4.Write()
         Plotting.canvasCorrelation('c_correlation_4',corr_4,f,outname)    
+        
         '''
- 
-        '''
+   
         # _________ Getting the NP pulls for each pulls_each________
         pullsEachNP=combination.pullEachNP(varyNP=True)
         for t in theory.coeffs:
@@ -649,12 +653,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             print (pulls_coeff)
             pullname = "c_pulls_"+t.GetName()
             Plotting.canvasPulls(pullname,theory.getThetaNames(),pulls_coeff,outfile=f,outfolder=outname)       
-        '''
-            
- 
-            
-        
-        
+
         #print ("These are the pulls: ", pulls)
         logging.info('Results when floating all (MINOS errors)')
         for t in theory.coeffs+theory.thetas:
@@ -701,9 +700,9 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
             data_histos_prefit+=[m.plotPrefit(f)]
         combination.fit()
         print(combination.getFitResult())
-        #corr=combination.getFitResult().correlationHist()        
-        #corr.Write()
-        #Plotting.canvasCorrelation('c_correlation',corr,f,outname)
+        corr=combination.getFitResult().correlationHist()        
+        corr.Write()
+        Plotting.canvasCorrelation('c_correlation',corr,f,outname)
         corrPOIs,covPOIs=combination.correlationHistPOIs()
         if corrPOIs:
             corrPOIs.Write()
@@ -718,7 +717,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
 
             #  ____Plotting____
             print ("____Plotting_____")
-            if doBigfit:
+            if doBigFit:
                 formulas=p.getPredictionStrings()
                 
                 preds = p.getPredictionFormulas()
@@ -787,6 +786,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                         print ("quad_effect = quad[op][op][iBin]", op, quad_effect )
                         data[op] = lin_effect[0] + quad_effect[0]
                         
+                        '''
                         for k in range(len(pred_unc)):
                             if pred_unc[k].name == "hist_"+op:
                                 unc_name = pred_unc[k].name
@@ -800,11 +800,12 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
 
                         print ("smeft uncertainties for ", op, ": ", smeft_unc )
                         uncertainties[op] = smeft_unc
+                        '''
                         
                     print (formula)
                     print (data)
 
-                    Plotting.canvasPredFormula('c_formula_bin'+str(iBin),formula, data, uncertainties, pullsEach, f,outname)
+                    Plotting.canvasPredFormula('c_formula_bin'+str(iBin),iBin, formula, data, uncertainties, pullsEach, f,outname)
                     
 
             print (" m.getMeasurementCorrectionString: ", m.getMeasurementCorrectionString)
@@ -868,8 +869,6 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
     
 
     elif method=='fit':
-
-        doBigfit = False
 
         logging.info('doing fit')
         data_histos_prefit=[]
@@ -964,7 +963,7 @@ def fit(options,config,outname,method,poi,scanrange,nsteps,ntoys,asimov,linear,q
                     print (formula)
                     print (data)
 
-                    Plotting.canvasPredFormula('c_formula_bin'+str(iBin),formula, data, uncertainties, f,outname)
+                    Plotting.canvasPredFormula('c_formula_bin'+str(iBin), iBin, formula, data, uncertainties, f,outname)
                     
 
             if m.getMeasurementCorrectionString()!=None:

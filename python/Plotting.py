@@ -30,26 +30,13 @@ def make_line(formula, op, nu_val):
     variables = {'cll1': 0, 'cHq3': 0, 'clq3': 0, 'cHl3': 0 }
 
     variables.update({
-        'hist_sm': 0,
-        'hist_cll1': 0,
-        'hist_cHq3': 0,
-        'hist_clq3': 0,
-        'hist_cHl3': 0,
-        'hist_cll1_quad': 0,
-        'hist_cHq3_quad': 0,
-        'hist_clq3_quad': 0,
-        'hist_cHl3_quad': 0,
-        'hist_cHl3_cll1_cross': 0,
-        'hist_cHq3_clq3_cross': 0,
-        'hist_cHq3_cHl3_cross': 0,
-        'hist_cHq3_cll1_cross': 0,
-        'hist_cll1_clq3_cross': 0,
-        'hist_cHl3_clq3_cross': 0,
-        'stat':0,
+        'ew':0,
         'alphas':0,
-        'scaleMu':0,
-        'pdf':0,
-        'ew':0
+        'mu0':0,
+        'mu1':0,
+        'NNPDF30':0,
+        'MSHT20nnlo':0, 
+        'NNPDF31nnlo': 0
     })
 
     # Set the value of the relevant nuisance parameter
@@ -57,14 +44,11 @@ def make_line(formula, op, nu_val):
 
     return variables
 
-def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfolder):
+def canvasPredFormula(name, iBin,  formula, data, uncertainties, pulls, outfile, outfolder):
     
     # Check for SetAtlasStyle and call it
-    if hasattr(ROOT, "SetAtlasStyle"):
-        ROOT.SetAtlasStyle()
-    else:
-        print("SetAtlasStyle is not defined in AtlasStyle.C")
-
+    SetAtlasStyle()
+    
     operators = {'cll1', 'cHq3', 'clq3', 'cHl3'} 
 
     # Dictionary of multigraphs
@@ -81,6 +65,7 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
         mg = ROOT.TMultiGraph()
         
         mg.SetTitle("{};{}; Cross section [nb]".format(op, op))
+        
 
         min_result[op] = 0
         max_result[op] = 1
@@ -105,6 +90,7 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
 
             graph.SetLineColor(line_color)
             graph.SetLineStyle(line_style)
+            graph.SetMarkerColor(0)
             
             
             variables_sm = variables.copy()
@@ -117,8 +103,8 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
                 if op != "clq3": 
                     variables_copy[op] = x / 200 # Scale x to be in the range -10 to 10
 
-                print (formula)
-                print (variables_copy)
+                #print (formula)
+                #print (variables_copy)
                 result = eval(formula, variables_copy)
                 
                 rel_result = (result - nominal) / nominal * 100
@@ -146,9 +132,9 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
             graph.SetTitle("{};X title;Y title");
 
             for i, result in enumerate(results):
-                print (i, result)
+                #print (i, result)
                 if op != "clq3": 
-                    print ("(i - 20) / 2. = ", (i - 20) / 2.)
+                    #print ("(i - 20) / 2. = ", (i - 20) / 2.)
                     graph.SetPoint(i, (i - 20) / 200., result)
                 else: 
                     graph.SetPoint(i, (i - 20) / 20000., result)
@@ -166,10 +152,10 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
 
         # Create a new canvas for each multigraph
         c = ROOT.TCanvas(name+"_"+op, name+"_"+op, 1024, 1024)
-        c.SetRightMargin(0.1)
+        c.SetRightMargin(0.05)
         c.SetTopMargin(0.1)
-        c.SetLeftMargin(0.15)
-        c.SetBottomMargin(0.1)
+        c.SetLeftMargin(0.22)
+        c.SetBottomMargin(0.15)
         c.cd()
 
 
@@ -199,19 +185,29 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
         min_value = min(data["sm"] - data[op] - uncertainties["postfit"][1] ,  data["postfit"] - uncertainties["postfit"][1])
 
         # Set yMax and yMin
-        # Final mass bin
-        yMax = 0.3
-        yMin = 0.1
+
         
         # Penultimate mass bin
         yMax = 1.4
         yMin = 0.8
+        
+        # Final mass bin
+        if iBin == 11:
+            yMax = 0.3
+            yMin = 0.1
     
         
         mg.SetMaximum(yMax)
         mg.SetMinimum(yMin)
 
         mg.Draw("a")
+        
+        mg.GetYaxis().SetLabelSize(0.045)
+        mg.GetYaxis().SetTitleSize(0.045)
+        mg.GetXaxis().SetLabelSize(0.045)
+        mg.GetXaxis().SetTitleSize(0.045)
+        mg.GetYaxis().SetTitleOffset(1.8) 
+        
         
         pred_points.SetPointError(0, 0, uncertainties["sm"][1])  # Set errors for point 0
         #pred_points.SetPointError(1, 0, uncertainties[op][1] )  # Set errors for point 1
@@ -252,9 +248,21 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
         legend.SetTextSize(0.035)
         legend.SetFillStyle(0)
         legend.SetBorderSize(0)
+        
         legend.AddEntry(data_points, "Meas.", "p")
         legend.AddEntry(pred_points, "Pred.", "p")
         legend.AddEntry(postfit_points, "Postfit", "p")
+        
+        sampleText2 = r"pp \rightarrow l^{\pm} \nu"
+
+        
+        ATLASLabel(0.25, 0.83, "Internal")
+        myText(0.25, 0.77, 1, 0.042, sampleText2 )
+        sampleText3 = "m_{T} = [2,5] TeV"
+        if iBin == 10:
+            sampleText3 = "m_{T} = [1.4,2] TeV"
+        myText(0.25, 0.71, 1, 0.042, sampleText3 )
+
 
 
         legend.Draw("same")
@@ -265,8 +273,9 @@ def canvasPredFormula(name, formula, data, uncertainties, pulls, outfile, outfol
         if op == "clq3":    
             sampleText = op + " = " + str(round(ci, 6)) + " [ +" + str(round(ci_errors[1], 6)) +  ", " + str(round(ci_errors[0], 6)) + " ]"
 
-        myText(0.2, 0.8, 1, 0.03, sampleText )
+        myText(0.25, 0.93, 1, 0.042, sampleText )
 
+        c.SetTicks(1,1)
         c.Update()
         c.WaitPrimitive()
         printAndSave(c, outfile, outfolder)
@@ -622,6 +631,11 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
 
     c = ROOT.TCanvas(name,name,1000,1000)
     c.SetLogy()
+     
+    c.SetRightMargin(0.09)
+    c.SetTopMargin(0.05)
+    c.SetLeftMargin(0.1)
+    c.SetBottomMargin(0.09)
     c.Draw()
     
     c.SetTicks(1, 1)
@@ -900,16 +914,16 @@ def canvasPostfit(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile
     ratio.SetTitle("")
     ratio.SetMarkerSize(0)
     ratio.SetLineWidth(0)
-    ratio.GetYaxis().SetTitle("Pred. / Meas.")
+    ratio.GetYaxis().SetTitle("#frac{Pred.}{Meas.}")
     ratio.GetXaxis().SetTitleOffset(5)  
-    ratio.GetXaxis().SetTitleSize(0.1)
+    ratio.GetXaxis().SetTitleSize(0.14)
     ratio.GetXaxis().SetTickLength(0.1)
-    ratio.GetXaxis().SetTitleOffset(-0.04)
+    ratio.GetXaxis().SetTitleOffset(-0.05)
     ratio.GetYaxis().SetTitleOffset(0.6)
-    ratio.GetXaxis().SetLabelSize(0.1)
+    ratio.GetXaxis().SetLabelSize(0.14)
     ratio.GetXaxis().SetLabelOffset(0.04)
-    ratio.GetYaxis().SetTitleSize(0.12)
-    ratio.GetYaxis().SetLabelSize(0.1)
+    ratio.GetYaxis().SetTitleSize(0.14)
+    ratio.GetYaxis().SetLabelSize(0.14)
     ratio.SetStats(0)
 
     if num_bins < 15:
@@ -1189,7 +1203,7 @@ def canvasRatio(name,data_prefit,data_postfit,pred_prefit,pred_postfit,outfile,o
     ratio.SetTitle("")
     ratio.SetMarkerSize(0)
     ratio.SetLineWidth(0)
-    ratio.GetYaxis().SetTitle("Pred./Meas.")
+    ratio.GetYaxis().SetTitle("#frac{Pred.}{Meas.}")
     #ratio.GetXaxis().SetTitle(x_title)
     ratio.GetXaxis().SetTitleOffset(5)  
     ratio.GetXaxis().SetTitleSize(0.1)
@@ -1271,7 +1285,7 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
     c.SetRightMargin(0.05/l)
     c.SetTopMargin(0.05)
     c.SetLeftMargin(0.3/l)
-    c.SetBottomMargin(0.15)
+    c.SetBottomMargin(0.3)
     c.SetTicks(1,1)
     h=ROOT.TH1F('dummy','',len(pars),-0.5,len(pars)-0.5)
     if pois and rescale:
@@ -1286,7 +1300,10 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
                 rescaled[p]=rescaled[p]/10
                 
     for i,p in enumerate(pars):
-        h.GetXaxis().SetBinLabel(i+1,p)
+        if "_meas" in p:
+            h.GetXaxis().SetBinLabel(i+1,p.replace("_meas", ""))
+        elif "_meas" not in p:
+            h.GetXaxis().SetBinLabel(i+1,p)
         if rescale and rescaled[p]!=1.:
             h.GetXaxis().SetBinLabel(i+1,p+'#times'+str(Utils.round2(rescaled[p])))
     h.SetStats(0)
@@ -1302,12 +1319,12 @@ def canvasPulls(name,pars,pulls,outfile,outfolder,pois=False,rescale=False):
             ymax=max(ymax,pulls[p][0]+pulls[p][2]*1.2)
         h.GetYaxis().SetRangeUser(ymin,ymax)
     if not pois:
-        h.GetYaxis().SetTitle('pull')
+        h.GetYaxis().SetTitle(r'Shift [\sigma]')
     #h.GetYaxis().SetRangeUser(-1,1)
     h.GetYaxis().CenterTitle()
-#    h.GetYaxis().SetTitleSize(0.06)
-#    h.GetYaxis().SetTitleOffset(0.5)
-    h.GetXaxis().SetLabelSize(0.06)
+    h.GetYaxis().SetTitleSize(0.05)
+    h.GetYaxis().SetTitleOffset(0.5)
+    h.GetXaxis().SetLabelSize(0.036)
     if not pois:
         outer=ROOT.TGraphAsymmErrors(h)
         inner=ROOT.TGraphAsymmErrors(h)
@@ -1349,6 +1366,8 @@ def canvasCorrelation(name,h,outfile,outfolder,log=False):
     c.SetBottomMargin(0.15)
     c.cd()
     h.SetStats(False)
+    h.SetTitle("")
+    
     if not log:
         h.GetZaxis().SetRangeUser(-1,1)
     if log:
