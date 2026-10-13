@@ -1,33 +1,4 @@
-# 1. Performing CCDY Fits
-
-Setting up the environment:
-```
-setupATLAS
-source ROOTstart.sh 
-```
-Running the fit, e.g:
-```
-source scripts/CCDY_u35_1d_22-11-24.sh
-```
-The running script should perform six fits: linear and linear+quadratic electron, muon, and combined.
-These should be saved in e.g `/results/u35_22-11-24/`, under six different sub directories:
-`mT_elmu` , `mT_el`, `mT_mu`, `mT_elmu_lin`, `mT_el_lin`, `mT_mu_lin`. 
-
-The `mt_elmu` fit should contain a `--doBigFit` argument, in order to produce the cross-section vs Wilson coefficient plots. 
-
-The fitpulls methods should have `pullsEachNP` enabled in order for the NP pulls to be produced when varying each Wilson coefficient one at a time. The prefit-postfit comparison and pulls on Wilson coefficients (`pullsEach`) should always be produced, along with the correlation matrix for the Wilson coefficients.
-
-# 2. Git Workflow
-
-Once you have made a change, perform the following commands to add the change and push it to the CCDY branch:
-```
-git status
-git add .
-git commit -m "Message describing change"
-git push origin CCDY
-```
-
-# 3. General Information
+# 1. General Information
 EFT Fitter for UNfolded measurements -- now also fitting reco measurements.
 
 For help:
@@ -66,3 +37,33 @@ Fitting Examples:
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m scan -p cW -c all -n 10 -t 400 -o example17
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m scan -p cW -c all -n 10 -t 400 -o example18 --njobs 8
 ./bin/eftfun.py -i configs/ATLAS_WW_2019/SMEFTexample.cfg -m impacts -c all -p cW -o example19
+
+
+# 2. Performing CCDY Fits
+
+Setting up the environment:
+```
+setupATLAS
+source ROOTstart.sh 
+```
+Running the fit, e.g:
+```
+source scripts/CCDY_u35_1d_22-11-24.sh
+```
+The running script should perform six fits: linear and linear+quadratic electron, muon, and combined.
+These should be saved in e.g `/results/u35_22-11-24/`, under six different sub directories:
+`mT_elmu` , `mT_el`, `mT_mu`, `mT_elmu_lin`, `mT_el_lin`, `mT_mu_lin`. 
+
+The `mt_elmu` fit should contain a `--doBigFit` argument, in order to produce the cross-section vs Wilson coefficient plots. 
+
+The fitpulls methods should have `pullsEachNP` enabled in order for the NP pulls to be produced when varying each Wilson coefficient one at a time. The prefit-postfit comparison and pulls on Wilson coefficients (`pullsEach`) should always be produced, along with the correlation matrix for the Wilson coefficients.
+
+# 3. Git Workflow
+
+Once you have made a change, perform the following commands to add the change and push it to the CCDY branch:
+```
+git status
+git add .
+git commit -m "Message describing change"
+git push origin CCDY
+```
